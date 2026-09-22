@@ -1,0 +1,220 @@
+@import "tailwindcss";
+
+@layer base {
+  html {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    scroll-behavior: smooth;
+  }
+
+  h1, h2, h3, h4, h5, h6, .font-display {
+    font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+}
+
+/* Aquatic subtle patterns */
+.bg-aqua-pattern {
+  background-image: radial-gradient(rgba(14, 165, 233, 0.08) 1px, transparent 1px), radial-gradient(rgba(16, 185, 129, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+  background-position: 0 0, 16px 16px;
+}
+
+.bg-waves-pattern {
+  background-color: #f8fafc;
+  background-image: radial-gradient(#0ea5e915 0.75px, transparent 0.75px), radial-gradient(#10b98115 0.75px, #f8fafc 0.75px);
+  background-size: 30px 30px;
+  background-position: 0 0, 15px 15px;
+}
+
+/* Custom Aquatic & Hero Animations */
+@keyframes float-gentle {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
+}
+
+@keyframes float-reverse {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(8px) rotate(-1.5deg);
+  }
+}
+
+@keyframes swim-horizontal {
+  0%, 100% {
+    transform: translateX(0px) translateY(0px) scale(1);
+  }
+  25% {
+    transform: translateX(8px) translateY(-5px) scale(1.02);
+  }
+  50% {
+    transform: translateX(14px) translateY(2px) scale(1);
+  }
+  75% {
+    transform: translateX(6px) translateY(-3px) scale(0.99);
+  }
+}
+
+@keyframes bubble-rise {
+  0% {
+    transform: translateY(12px) scale(0.7);
+    opacity: 0.1;
+  }
+  30% {
+    opacity: 0.85;
+  }
+  70% {
+    transform: translateY(-16px) scale(1.05);
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-32px) scale(1.2);
+    opacity: 0;
+  }
+}
+
+@keyframes radar-pulse {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.2;
+  }
+  100% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.08);
+  }
+}
+
+.animate-float-gentle {
+  animation: float-gentle 5s ease-in-out infinite;
+}
+
+.animate-float-reverse {
+  animation: float-reverse 6s ease-in-out infinite;
+}
+
+.animate-swim {
+  animation: swim-horizontal 8s ease-in-out infinite;
+}
+
+.animate-bubble-1 {
+  animation: bubble-rise 2.8s ease-in-out infinite;
+}
+
+.animate-bubble-2 {
+  animation: bubble-rise 4.2s ease-in-out infinite 1s;
+}
+
+.animate-bubble-3 {
+  animation: bubble-rise 3.5s ease-in-out infinite 2s;
+}
+
+.animate-radar-pulse {
+  animation: radar-pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-spin-slow {
+  animation: spin-slow 22s linear infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 4s ease-in-out infinite;
+}
+
+/* Page-Specific Hero Custom Animations */
+@keyframes route-dash {
+  to {
+    stroke-dashoffset: -40;
+  }
+}
+
+@keyframes tide-drift {
+  0%, 100% {
+    transform: translateX(0%) translateY(0px);
+  }
+  50% {
+    transform: translateX(4%) translateY(-3px);
+  }
+}
+
+@keyframes camera-shutter {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 0.9;
+  }
+  50% {
+    transform: scale(1.05) rotate(4deg);
+    opacity: 1;
+  }
+}
+
+@keyframes nutrient-float {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: translateY(-12px) scale(1.15);
+    opacity: 0.9;
+  }
+}
+
+@keyframes beacon-ping {
+  0% {
+    transform: scale(0.9);
+    opacity: 1;
+  }
+  75%, 100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.animate-route-dash {
+  animation: route-dash 2.5s linear infinite;
+}
+
+.animate-tide-drift {
+  animation: tide-drift 9s ease-in-out infinite;
+}
+
+.animate-camera-shutter {
+  animation: camera-shutter 4s ease-in-out infinite;
+}
+
+.animate-nutrient-float {
+  animation: nutrient-float 3.5s ease-in-out infinite;
+}
+
+.animate-beacon-ping {
+  animation: beacon-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+

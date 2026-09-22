@@ -1,0 +1,6 @@
+{
+  "name": "SR Aqua Feeds & Needs",
+  "description": "Aquaculture feed and chemicals retail shop in Ulavapadu, Nellore District, Andhra Pradesh. Quality shrimp feed, minerals, probiotics, and pond care solutions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
