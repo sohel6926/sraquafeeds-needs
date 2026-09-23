@@ -88,16 +88,16 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             {/* Left Column: Brand Identity, Value Proposition & Prominent CTAs */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               {/* Positive Growth Tag & Aquaculture Hub */}
-              <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2">
+                <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900 border border-emerald-800 text-white text-xs font-semibold backdrop-blur-md shadow-sm">
                   <TrendingUp className="w-4 h-4 text-white flex-shrink-0" />
                   <span>Newly Established & Rapidly Growing Aquaculture Partner</span>
                 </div>
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-bold animate-float-gentle">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900 border border-emerald-800 text-white text-xs font-bold shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                   <span>Fresh Stock Daily</span>
                 </div>
-                <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-sky-500/15 border border-sky-400/30 text-sky-300 text-xs font-semibold backdrop-blur-md">
+                <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-900 border border-emerald-800 text-white text-xs font-semibold shadow-sm">
                   <Droplets className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
                   <span>Ulavapadu · Ramayapatnam Road</span>
                 </div>
@@ -254,10 +254,10 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 {/* Tab 1 Content: Detailed Illustrative Prawn Artwork & Health Metrics with Live Swimming Animation */}
                 {heroActiveTab === 'shrimp' && (
                   <div className="relative z-10 space-y-4 animate-in fade-in duration-300">
-                    <div className="relative rounded-2xl overflow-hidden bg-gradient-to-b from-slate-950 to-slate-900 border border-white/10 p-3 flex flex-col items-center">
-                      <div className="relative w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center">
+                    <div className="relative rounded-2xl overflow-hidden bg-white border border-white/10 flex flex-col items-center group/shrimp">
+                      <div className="relative w-full h-48 sm:h-56 flex items-center justify-center">
                         {/* Glow halo behind prawn illustration with pulsing animation */}
-                        <div className="absolute inset-0 bg-emerald-500/25 rounded-full blur-2xl pointer-events-none animate-pulse-glow" />
+                        <div className="absolute inset-0 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none animate-pulse-glow" />
                         
                         {/* Floating Micro Oxygen Bubbles inside container */}
                         <div className="absolute top-6 left-6 w-3 h-3 rounded-full bg-emerald-300/50 border border-emerald-200/60 animate-bubble-1 pointer-events-none z-20" />
@@ -269,7 +269,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                           src={prawnIllustration}
                           alt="Detailed Vannamei prawn biological illustration"
                           referrerPolicy="no-referrer"
-                          className="w-full h-full object-contain relative z-10 filter drop-shadow-2xl animate-swim animate-float-gentle hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover mix-blend-multiply relative z-10 scale-[1.35] animate-tide-drift group-hover/shrimp:scale-[1.45] transition-transform duration-700"
                         />
                       </div>
 

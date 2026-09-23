@@ -95,7 +95,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white relative overflow-clip">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white relative">
       {/* Universal Background Image & Prawn Aquatic Atmosphere Across Entire Website */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
         {/* Full-bleed textured prawn pattern background image with gentle oceanic overlay */}
@@ -131,9 +131,7 @@ export default function App() {
       </div>
 
       {/* Sticky Header with Navigation & Quick Actions */}
-      <div className="relative z-30">
-        <Header currentPage={currentPage} onNavigate={handleNavigate} />
-      </div>
+      <Header currentPage={currentPage} onNavigate={handleNavigate} />
 
       {/* Main Multi-Page Content Outlet */}
       <main className="flex-1 relative z-10">

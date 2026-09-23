@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PageType } from '../types.ts';
 import { BrandLogo } from './BrandLogo.tsx';
 import { WhatsAppIcon, PhoneCallIcon, GstBadgeIcon } from './Icons.tsx';
@@ -11,6 +11,19 @@ interface HeaderProps {
 
 export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    
+    // Check initial scroll position
+    handleScroll();
+    
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const navItems: { id: PageType; label: string }[] = [
     { id: 'home', label: 'Home' },
@@ -27,9 +40,9 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   };
 
   return (
-    <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200/80 transition-all">
+    <header className={`sticky top-0 z-40 w-full backdrop-blur-md shadow-sm border-b border-slate-200/80 transition-all duration-300 ${isScrolled ? 'bg-white/98' : 'bg-white/95'}`}>
       {/* Top Advisory & Business Identity Strip */}
-      <div className="bg-gradient-to-r from-slate-900 via-sky-950 to-emerald-950 text-slate-200 text-xs py-1.5 px-4 sm:px-6">
+      <div className={`bg-gradient-to-r from-slate-900 via-sky-950 to-emerald-950 text-slate-200 text-xs px-4 sm:px-6 overflow-hidden transition-all duration-300 transform origin-top ${isScrolled ? 'max-h-0 opacity-0 py-0' : 'max-h-20 opacity-100 py-1.5'}`}>
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           {/* GSTIN & Proprietor */}
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
@@ -75,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
       </div>
 
       {/* Main Navbar */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex items-center justify-between">
+      <div className={`max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between transition-all duration-300 ${isScrolled ? 'py-1.5 sm:py-2' : 'py-3 sm:py-4'}`}>
         {/* Brand Logo Clickable */}
         <button
           id="header-brand-logo-btn"
