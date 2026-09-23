@@ -29,7 +29,7 @@ export const GALLERY_DATA: GalleryItem[] = [
   {
     id: 'gallery-shop-front',
     title: 'Showroom Front & Retail Service Counter',
-    category: 'Aqua Retail Showroom',
+    category: 'Shop Interior',
     description: 'Clean, modern showroom front on Ramayapatnam Road, welcoming local aquaculture farmers from dawn till dusk for feed and chemical requirements.',
     imageUrl: 'https://images.unsplash.com/photo-1578916171728-46686eac8d58?auto=format&fit=crop&w=1000&q=80',
   },
