@@ -95,7 +95,7 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white relative overflow-x-hidden">
+    <div className="min-h-screen flex flex-col bg-slate-50 text-slate-800 font-sans antialiased selection:bg-emerald-500 selection:text-white relative overflow-clip">
       {/* Universal Background Image & Prawn Aquatic Atmosphere Across Entire Website */}
       <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden" aria-hidden="true">
         {/* Full-bleed textured prawn pattern background image with gentle oceanic overlay */}

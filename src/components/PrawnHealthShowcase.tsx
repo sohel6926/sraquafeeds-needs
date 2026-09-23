@@ -232,7 +232,7 @@ export const PrawnHealthShowcase: React.FC<PrawnHealthShowcaseProps> = ({
               <div className="relative w-full rounded-2xl p-1 bg-gradient-to-tr from-emerald-500/40 via-teal-400/40 to-sky-400/40 shadow-[0_0_35px_rgba(52,211,153,0.3)] ring-1 ring-emerald-400/50 transition-all duration-300">
                 
                 {/* Visual Image Container with Enhanced Size & Zero Dark Mask */}
-                <div className="relative w-full h-[260px] sm:h-[310px] lg:h-[340px] rounded-xl overflow-hidden bg-slate-950 flex items-center justify-center group">
+                <div className="relative w-full h-[260px] sm:h-[310px] lg:h-[340px] rounded-xl overflow-hidden bg-white flex items-center justify-center group">
                   
                   {/* UNMASKED, FULLY BRIGHT & HIGHLIGHTED IMAGE */}
                   <img
@@ -240,7 +240,7 @@ export const PrawnHealthShowcase: React.FC<PrawnHealthShowcaseProps> = ({
                     src={activeItem.image}
                     alt={activeItem.imageAlt}
                     referrerPolicy="no-referrer"
-                    className={`w-full h-full object-cover filter brightness-110 contrast-110 saturate-115 transition-all duration-500 ease-out ${
+                    className={`w-full h-full object-cover mix-blend-multiply transition-all duration-500 ease-out ${
                       animating
                         ? 'opacity-60 scale-95'
                         : 'opacity-100 scale-100'

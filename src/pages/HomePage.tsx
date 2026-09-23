@@ -89,8 +89,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               {/* Positive Growth Tag & Aquaculture Hub */}
               <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2">
-                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-300 text-xs font-semibold backdrop-blur-md shadow-sm">
-                  <TrendingUp className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900 border border-emerald-800 text-white text-xs font-semibold backdrop-blur-md shadow-sm">
+                  <TrendingUp className="w-4 h-4 text-white flex-shrink-0" />
                   <span>Newly Established & Rapidly Growing Aquaculture Partner</span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30 text-sky-200 text-xs font-bold animate-float-gentle">
@@ -112,7 +112,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   </div>
                   <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none drop-shadow-md">
                     <span className="text-white">SR AQUA</span>{' '}
-                    <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-300 bg-clip-text text-transparent">
+                    <span className="text-white">
                       FEEDS & NEEDS
                     </span>
                   </h1>
@@ -124,7 +124,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               </div>
 
               {/* Value proposition paragraph */}
-              <p className="text-slate-200 text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal drop-shadow-xs">
+              <p className="text-white text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal drop-shadow-xs">
                 Your trusted retail partner in Ulavapadu for certified Vannamei and Tiger shrimp feeds, essential pond ionic minerals, bio-secure probiotics, and 24/7 emergency water care solutions. Supporting coastal farmers with reliable stock and rapid farm delivery.
               </p>
 
