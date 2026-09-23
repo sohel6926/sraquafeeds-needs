@@ -13,9 +13,18 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
-  const handleNav = (page: PageType) => {
+  const handleNav = (page: PageType, hash?: string) => {
     onNavigate(page);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    if (hash) {
+      setTimeout(() => {
+        const element = document.getElementById(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      }, 100);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
   };
 
   return (
@@ -101,6 +110,22 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                   className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
                 >
                   Shop Gallery
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('home', 'farmer-success-stories')}
+                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
+                >
+                  Farmer Stories
+                </button>
+              </li>
+              <li>
+                <button
+                  onClick={() => handleNav('home', 'faqs-section')}
+                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
+                >
+                  Aquaculture FAQs
                 </button>
               </li>
               <li>

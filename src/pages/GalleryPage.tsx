@@ -18,7 +18,7 @@ export const GalleryPage: React.FC = () => {
     'All',
     'Prawn & Crop Vitality',
     'Pond & Farm Scenery',
-    'Shop Interior',
+    'Aqua Retail Showroom',
     'Stock & Warehouse',
     'Products Display',
     'Farmer Support',
@@ -38,13 +38,14 @@ export const GalleryPage: React.FC = () => {
               src={galleryFacilityBanner}
               alt="Aquaculture showroom and pond facility backdrop"
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover object-center filter brightness-45 contrast-115 scale-105"
+              className="w-full h-full object-cover object-center filter brightness-105 contrast-105 scale-105"
             />
             {/* Clean water caustics overlay with subtle optical shimmer */}
-            <div className="absolute inset-0 pointer-events-none opacity-25 mix-blend-overlay">
+            <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-teal-950/70" />
+            {/* Soft left gradient only behind text for crisp contrast, no heavy dark mask */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/35 to-transparent pointer-events-none" />
 
             {/* Rising Animated Water Bubbles */}
             <div className="absolute bottom-6 left-1/4 w-3.5 h-3.5 rounded-full bg-emerald-300/40 border border-emerald-200/50 animate-bubble-1 pointer-events-none" />
@@ -63,7 +64,7 @@ export const GalleryPage: React.FC = () => {
               </div>
 
               <h1 className="font-display text-3xl sm:text-5xl font-extrabold text-white leading-tight">
-                Shop Interior, Pallet Warehousing & Pond Facilities
+                Aqua Retail Showroom, Pallet Warehousing & Pond Facilities
               </h1>
 
               <p className="text-slate-300 text-base leading-relaxed">
@@ -206,13 +207,13 @@ export const GalleryPage: React.FC = () => {
 
       {/* 3. Photo Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredItems.map((item) => (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 reveal-group">
+          {filteredItems.map((item, idx) => (
             <div
               key={item.id}
               id={`gallery-item-${item.id}`}
               onClick={() => setSelectedPhoto(item)}
-              className="group cursor-pointer relative bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-xl hover:border-emerald-300 transition-all duration-300 flex flex-col"
+              className={`reveal reveal-fade-up reveal-delay-${(idx % 6) + 1} group cursor-pointer relative bg-white rounded-3xl border border-slate-200/90 overflow-hidden shadow-xs hover:shadow-xl hover:border-emerald-300 transition-all duration-300 flex flex-col`}
             >
               {/* Top aquatic accent bar on hover */}
               <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 opacity-0 group-hover:opacity-100 transition-opacity z-20" />

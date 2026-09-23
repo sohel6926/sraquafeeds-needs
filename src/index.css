@@ -217,4 +217,103 @@
   animation: beacon-ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
 }
 
+@keyframes progress-fill {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-progress-fill {
+  animation: progress-fill 5.5s linear forwards;
+}
+
+/* ==========================================================================
+   Smooth Scroll-to-Reveal Animation System
+   ========================================================================== */
+
+.reveal {
+  opacity: 0;
+  transition-property: opacity, transform, filter;
+  transition-duration: 750ms;
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+/* Reveal Directions & Effects */
+.reveal-fade-up,
+.reveal-slide-up {
+  transform: translateY(36px);
+}
+
+.reveal-fade-down,
+.reveal-slide-down {
+  transform: translateY(-36px);
+}
+
+/* Smooth Slide From Left to Right into place */
+.reveal-slide-left,
+.reveal-fade-left {
+  transform: translateX(-56px);
+}
+
+/* Smooth Slide From Right to Left into place */
+.reveal-slide-right,
+.reveal-fade-right {
+  transform: translateX(56px);
+}
+
+.reveal-scale {
+  transform: scale(0.92) translateY(24px);
+}
+
+.reveal-blur {
+  filter: blur(10px);
+  transform: translateY(24px);
+}
+
+/* Active State (Added when scrolled into viewport) */
+.reveal.is-revealed,
+.is-revealed .reveal {
+  opacity: 1;
+  transform: translateY(0) translateX(0) scale(1);
+  filter: blur(0px);
+}
+
+/* Independent parent container reveal */
+.reveal-group > * {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 700ms cubic-bezier(0.16, 1, 0.3, 1), transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-group.is-revealed > * {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Fluid Stagger Delays */
+.reveal-delay-1, .reveal-group.is-revealed > *:nth-child(1) { transition-delay: 80ms; }
+.reveal-delay-2, .reveal-group.is-revealed > *:nth-child(2) { transition-delay: 160ms; }
+.reveal-delay-3, .reveal-group.is-revealed > *:nth-child(3) { transition-delay: 240ms; }
+.reveal-delay-4, .reveal-group.is-revealed > *:nth-child(4) { transition-delay: 320ms; }
+.reveal-delay-5, .reveal-group.is-revealed > *:nth-child(5) { transition-delay: 400ms; }
+.reveal-delay-6, .reveal-group.is-revealed > *:nth-child(6) { transition-delay: 480ms; }
+.reveal-delay-7, .reveal-group.is-revealed > *:nth-child(7) { transition-delay: 560ms; }
+.reveal-delay-8, .reveal-group.is-revealed > *:nth-child(8) { transition-delay: 640ms; }
+
+/* Accessibility fallback */
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal-group > * {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    transition: none !important;
+  }
+}
+
+
 

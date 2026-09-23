@@ -1,4 +1,4 @@
-export type PageType = 'home' | 'about' | 'products' | 'gallery' | 'contact';
+export type PageType = 'home' | 'about' | 'products' | 'gallery' | 'contact' | 'product-detail';
 
 export type ProductCategory =
   | 'All'
@@ -20,6 +20,14 @@ export interface Product {
   keyBenefits: string[];
   imageUrl: string;
   isPopular?: boolean;
+  curiosityHighlight?: string;
+  curiosityBadge?: string;
+  fullDescription?: string;
+  composition?: { component: string; percentage: string }[];
+  specs?: { label: string; value: string }[];
+  dosageSchedule?: { stage: string; dose: string; frequency: string; notes: string }[];
+  idealWaterParams?: { param: string; target: string; note: string }[];
+  handlingAndStorage?: string;
 }
 
 export interface GalleryItem {

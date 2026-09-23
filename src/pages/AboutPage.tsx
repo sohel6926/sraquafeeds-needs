@@ -65,25 +65,26 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
   ];
 
   return (
-    <div className="space-y-16 sm:space-y-24 pt-8 pb-16 sm:pb-24">
+    <div className="space-y-10 sm:space-y-14 pt-8 pb-12 sm:pb-16">
       {/* 1. Unique Animated Heritage & Farmer Trust Hero Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="relative overflow-hidden rounded-3xl bg-slate-950 text-white p-8 sm:p-14 shadow-2xl border border-white/10">
-          {/* Coastal shrimp aquaculture pond at sunrise background with caustics and tidal drift */}
+          {/* Coastal shrimp aquaculture pond at sunrise background with caustics and tidal drift - UNMASKED */}
           <div className="absolute inset-0 z-0 overflow-hidden">
             <img
               src={aboutFarmBanner}
               alt="Coastal shrimp aquaculture pond at sunrise"
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover object-center filter brightness-45 contrast-110 scale-105 animate-tide-drift"
+              loading="eager"
+              decoding="sync"
+              className="w-full h-full object-cover object-center filter brightness-105 contrast-105 scale-105 animate-tide-drift"
             />
             {/* Clean water caustics overlay with subtle shimmer */}
-            <div className="absolute inset-0 pointer-events-none opacity-25 mix-blend-overlay">
+            <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
-            {/* Dual gradient overlay for text readability while preserving morning pond ambiance */}
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-emerald-950/65" />
-            <div className="absolute inset-0 bg-aqua-pattern opacity-10 mix-blend-overlay pointer-events-none" />
+            {/* Soft left gradient only behind text for legibility, no dark blanket mask */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/35 to-transparent pointer-events-none" />
 
             {/* Rising Animated Oxygen Micro-Bubbles */}
             <div className="absolute bottom-6 left-1/4 w-3.5 h-3.5 rounded-full bg-emerald-300/40 border border-emerald-200/50 animate-bubble-1 pointer-events-none" />
@@ -235,8 +236,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
       {/* 2. Proprietor Story & Rapid Positive Momentum */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
-          {/* Visual Proprietor & Establishment Card with Water Texture & Faint Shrimp Watermark */}
-          <div className="lg:col-span-5">
+          {/* Visual Proprietor & Establishment Card - Slides from Left */}
+          <div className="lg:col-span-5 reveal reveal-slide-left">
             <div className="group relative rounded-3xl overflow-hidden bg-white border border-slate-200/90 shadow-lg p-6 sm:p-8 space-y-6">
               {/* Subtle water caustics overlay */}
               <div className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-multiply overflow-hidden">
@@ -310,7 +311,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Right: Narrative Story */}
-          <div className="lg:col-span-7 space-y-6">
+          <div className="lg:col-span-7 space-y-6 reveal reveal-slide-right">
             <div className="space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200/80 text-xs font-bold text-emerald-700 tracking-wider uppercase">
                 <Droplets className="w-3.5 h-3.5 text-sky-500" />
@@ -382,9 +383,9 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
 
       {/* 3. Vision & Mission Cards with Water Caustics Shimmer */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Vision */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 text-white p-8 sm:p-10 shadow-lg border border-emerald-800 flex flex-col justify-between group">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 reveal-group">
+          {/* Vision - Slides in from Left */}
+          <div className="reveal reveal-slide-left relative overflow-hidden rounded-3xl bg-gradient-to-br from-emerald-950 via-teal-950 to-slate-950 text-white p-8 sm:p-10 shadow-lg border border-emerald-800 flex flex-col justify-between group">
             <div className="absolute inset-0 pointer-events-none opacity-15 mix-blend-overlay">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
@@ -406,8 +407,8 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Mission */}
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-950 via-slate-950 to-emerald-950 text-white p-8 sm:p-10 shadow-lg border border-sky-800 flex flex-col justify-between group">
+          {/* Mission - Slides in from Right */}
+          <div className="reveal reveal-slide-right relative overflow-hidden rounded-3xl bg-gradient-to-br from-sky-950 via-slate-950 to-emerald-950 text-white p-8 sm:p-10 shadow-lg border border-sky-800 flex flex-col justify-between group">
             <div className="absolute inset-0 pointer-events-none opacity-15 mix-blend-overlay">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
@@ -446,11 +447,11 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 reveal-group">
           {values.map((v, idx) => (
             <div
               key={idx}
-              className="group relative overflow-hidden p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:shadow-lg hover:border-emerald-400/80 transition-all duration-300 flex flex-col justify-between"
+              className={`reveal reveal-fade-up reveal-delay-${idx + 1} group relative overflow-hidden p-6 rounded-3xl bg-white border border-slate-200/90 shadow-xs hover:shadow-lg hover:border-emerald-400/80 transition-all duration-300 flex flex-col justify-between`}
             >
               {/* Subtle water caustics overlay */}
               <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply overflow-hidden">

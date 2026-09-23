@@ -4,25 +4,72 @@ import { Header } from './components/Header.tsx';
 import { Footer } from './components/Footer.tsx';
 import { FloatingActions } from './components/FloatingActions.tsx';
 import { ScrollToTop } from './components/ScrollToTop.tsx';
+import { GlobalScrollRevealObserver } from './components/ScrollReveal.tsx';
 import { HomePage } from './pages/HomePage.tsx';
 import { AboutPage } from './pages/AboutPage.tsx';
 import { ProductsPage } from './pages/ProductsPage.tsx';
 import { GalleryPage } from './pages/GalleryPage.tsx';
 import { ContactPage } from './pages/ContactPage.tsx';
+import { ProductDetailPage } from './pages/ProductDetailPage.tsx';
 
 // Background image asset for entire website
 import prawnPatternBg from './assets/images/prawn_pattern_bg_1790103865798.jpg';
 import prawnIllustration from './assets/images/prawn_illustration_1790103846428.jpg';
 
+// Core banner images for instant preloading and zero-lag tab transitions
+import heroPrawnBanner from './assets/images/hero_prawn_banner_1790103831232.jpg';
+import aboutFarmBanner from './assets/images/about_farm_banner_1790110278351.jpg';
+import productsFeedBanner from './assets/images/products_feed_banner_1790110292560.jpg';
+import galleryFacilityBanner from './assets/images/gallery_facility_banner_1790110304653.jpg';
+import contactSupportBanner from './assets/images/contact_support_banner_1790110315472.jpg';
+import pondAerationBanner from './assets/images/pond_aeration_banner_1790103885278.jpg';
+import cleanWaterTexture from './assets/images/clean_water_texture_1790105872350.jpg';
+
+const CRITICAL_BANNER_IMAGES = [
+  heroPrawnBanner,
+  aboutFarmBanner,
+  productsFeedBanner,
+  galleryFacilityBanner,
+  contactSupportBanner,
+  pondAerationBanner,
+  cleanWaterTexture,
+  prawnPatternBg,
+  prawnIllustration,
+];
+
 export default function App() {
   const [currentPage, setCurrentPage] = useState<PageType>('home');
+  const [selectedProductId, setSelectedProductId] = useState<string>('shrimp-feed-grower');
+
+  // Pre-load and hardware pre-decode all banner images immediately on app startup
+  useEffect(() => {
+    CRITICAL_BANNER_IMAGES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+      if (typeof img.decode === 'function') {
+        img.decode().catch(() => {
+          // Fallback gracefully if decode fails
+        });
+      }
+    });
+  }, []);
 
   // Sync with window hash for natural multi-page browser back/forward buttons
   useEffect(() => {
     const handleHashChange = () => {
-      const hash = window.location.hash.replace('#', '') as PageType;
-      if (['home', 'about', 'products', 'gallery', 'contact'].includes(hash)) {
-        setCurrentPage(hash);
+      const rawHash = window.location.hash.replace('#', '');
+      if (rawHash.startsWith('product')) {
+        const queryPart = rawHash.includes('?') ? rawHash.split('?')[1] : '';
+        const params = new URLSearchParams(queryPart);
+        const id = params.get('id');
+        if (id) {
+          setSelectedProductId(id);
+          setCurrentPage('product-detail');
+          return;
+        }
+      }
+      if (['home', 'about', 'products', 'gallery', 'contact', 'product-detail'].includes(rawHash)) {
+        setCurrentPage(rawHash as PageType);
       }
     };
 
@@ -35,9 +82,15 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHashChange);
   }, []);
 
-  const handleNavigate = (page: PageType) => {
-    setCurrentPage(page);
-    window.location.hash = page;
+  const handleNavigate = (page: PageType, productId?: string) => {
+    if (page === 'product-detail' && productId) {
+      setSelectedProductId(productId);
+      setCurrentPage('product-detail');
+      window.location.hash = `product?id=${productId}`;
+    } else {
+      setCurrentPage(page);
+      window.location.hash = page;
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -86,9 +139,12 @@ export default function App() {
       <main className="flex-1 relative z-10">
         {currentPage === 'home' && <HomePage onNavigate={handleNavigate} />}
         {currentPage === 'about' && <AboutPage onNavigate={handleNavigate} />}
-        {currentPage === 'products' && <ProductsPage />}
+        {currentPage === 'products' && <ProductsPage onNavigate={handleNavigate} />}
         {currentPage === 'gallery' && <GalleryPage />}
         {currentPage === 'contact' && <ContactPage />}
+        {currentPage === 'product-detail' && (
+          <ProductDetailPage productId={selectedProductId} onNavigate={handleNavigate} />
+        )}
       </main>
 
       {/* Comprehensive Business Footer */}
@@ -96,11 +152,21 @@ export default function App() {
         <Footer onNavigate={handleNavigate} />
       </div>
 
+      {/* Smooth Scroll-to-Reveal Universal Observer */}
+      <GlobalScrollRevealObserver />
+
       {/* Global Scroll-to-Top Button with Circular Progress Ring */}
       <ScrollToTop />
 
       {/* Global Floating Action Button (FAB) with Animated Sub-Icons */}
       <FloatingActions />
+
+      {/* Hidden persistent DOM image cache to ensure instant tab switching with 0ms lag */}
+      <div style={{ display: 'none' }} aria-hidden="true">
+        {CRITICAL_BANNER_IMAGES.map((src) => (
+          <img key={src} src={src} loading="eager" decoding="sync" alt="" />
+        ))}
+      </div>
     </div>
   );
 }

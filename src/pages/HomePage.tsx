@@ -1,8 +1,11 @@
 import React, { useState } from 'react';
 import { PageType } from '../types.ts';
 import { PRODUCTS_DATA } from '../data/products.ts';
-import { BrandLogo } from '../components/BrandLogo.tsx';
 import { ProductCard } from '../components/ProductCard.tsx';
+import { PrawnHealthShowcase } from '../components/PrawnHealthShowcase.tsx';
+import { FarmerSuccessStories } from '../components/FarmerSuccessStories.tsx';
+import { ProductFarmingFAQ } from '../components/ProductFarmingFAQ.tsx';
+import { InquiryForm } from '../components/InquiryForm.tsx';
 import { WhatsAppIcon, PhoneCallIcon, GstBadgeIcon } from '../components/Icons.tsx';
 import {
   ShieldCheck,
@@ -32,7 +35,7 @@ import galleryFacilityBanner from '../assets/images/gallery_facility_banner_1790
 import productsFeedBanner from '../assets/images/products_feed_banner_1790110292560.jpg';
 
 interface HomePageProps {
-  onNavigate: (page: PageType) => void;
+  onNavigate: (page: PageType, productId?: string) => void;
 }
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
@@ -40,19 +43,21 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   const featuredProducts = PRODUCTS_DATA.filter((p) => p.isPopular).slice(0, 4);
 
   return (
-    <div className="space-y-16 sm:space-y-24 pb-16 sm:pb-24">
+    <div className="space-y-8 sm:space-y-12 pb-12 sm:pb-16">
       {/* 1. Full-Width Premium Hero Banner with High-Quality Aquatic Background & Brand Identity */}
       <section className="relative w-full overflow-hidden bg-slate-950 text-white pt-8 pb-20 sm:pt-14 sm:pb-28">
-        {/* Full-bleed High-Quality Aquatic Background Image & Water Caustics Shimmer */}
+        {/* Full-bleed High-Quality Aquatic Background Image & Water Caustics Shimmer - UNMASKED */}
         <div className="absolute inset-0 z-0">
           <img
             src={heroPrawnBanner}
             alt="Healthy Vannamei prawns swimming underwater in aerated aquaculture pond"
             referrerPolicy="no-referrer"
-            className="w-full h-full object-cover object-center filter brightness-95 contrast-110"
+            loading="eager"
+            decoding="sync"
+            className="w-full h-full object-cover object-center filter brightness-105 contrast-105"
           />
           {/* Authentic Clean Water Caustics Shimmer Layer */}
-          <div className="absolute inset-0 pointer-events-none opacity-25 mix-blend-overlay">
+          <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay">
             <img
               src={cleanWaterTexture}
               alt=""
@@ -60,9 +65,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
               className="w-full h-full object-cover"
             />
           </div>
-          {/* Multi-stage nautical gradient overlays for text legibility and aesthetic aquatic depth */}
-          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-sky-950/65" />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-slate-950/55" />
+          {/* Soft directional gradient only behind text, no heavy opaque mask */}
+          <div className="absolute inset-0 bg-gradient-to-r from-slate-950/65 via-slate-950/30 to-transparent pointer-events-none" />
         </div>
 
         {/* Ambient Aquatic Light Flares & Animated Rising Bubbles */}
@@ -101,28 +105,21 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
 
               {/* Core Brand Identity Showcase */}
               <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row items-center lg:items-start gap-4">
-                  {/* Brand Emblem Badge */}
-                  <div className="p-3 rounded-2xl bg-white/10 backdrop-blur-xl border border-white/25 shadow-xl flex-shrink-0 hover:border-emerald-400/50 transition-colors">
-                    <BrandLogo variant="emblem" className="w-14 h-14 sm:w-16 sm:h-16" />
+                {/* Brand Typography & Tagline */}
+                <div className="text-center sm:text-left space-y-1.5">
+                  <div className="text-xs uppercase font-extrabold tracking-widest text-emerald-400">
+                    Aquaculture Feeds, Chemicals & Diagnostics
                   </div>
-
-                  {/* Brand Typography & Tagline */}
-                  <div className="text-center sm:text-left space-y-1.5">
-                    <div className="text-xs uppercase font-extrabold tracking-widest text-emerald-400">
-                      Aquaculture Feeds, Chemicals & Diagnostics
-                    </div>
-                    <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none drop-shadow-md">
-                      <span className="text-white">SR AQUA</span>{' '}
-                      <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-300 bg-clip-text text-transparent">
-                        FEEDS & NEEDS
-                      </span>
-                    </h1>
-                    <p className="font-display text-lg sm:text-2xl text-emerald-300 font-semibold tracking-wide flex items-center justify-center sm:justify-start gap-2 pt-0.5">
-                      <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                      <span>&ldquo;Nourishing Life. Growing Future.&rdquo;</span>
-                    </p>
-                  </div>
+                  <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none drop-shadow-md">
+                    <span className="text-white">SR AQUA</span>{' '}
+                    <span className="bg-gradient-to-r from-emerald-400 via-teal-300 to-sky-300 bg-clip-text text-transparent">
+                      FEEDS & NEEDS
+                    </span>
+                  </h1>
+                  <p className="font-display text-lg sm:text-2xl text-emerald-300 font-semibold tracking-wide flex items-center justify-center sm:justify-start gap-2 pt-0.5">
+                    <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+                    <span>&ldquo;Nourishing Life. Growing Future.&rdquo;</span>
+                  </p>
                 </div>
               </div>
 
@@ -369,9 +366,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
       </section>
 
       {/* 2. Key Highlights / Trust Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 -mt-8 sm:-mt-12 relative z-20">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-emerald-400/80 transition-all duration-300 flex items-start gap-4">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-8 sm:mt-12 lg:mt-14 relative z-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 reveal-group">
+          <div className="reveal reveal-fade-up reveal-delay-1 group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-emerald-400/80 transition-all duration-300 flex items-start gap-4">
             {/* Water caustics backdrop */}
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply overflow-hidden">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
@@ -391,7 +388,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-sky-400/80 transition-all duration-300 flex items-start gap-4">
+          <div className="reveal reveal-fade-up reveal-delay-2 group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-sky-400/80 transition-all duration-300 flex items-start gap-4">
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply overflow-hidden">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
@@ -409,7 +406,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-teal-400/80 transition-all duration-300 flex items-start gap-4">
+          <div className="reveal reveal-fade-up reveal-delay-3 group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-teal-400/80 transition-all duration-300 flex items-start gap-4">
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply overflow-hidden">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
@@ -427,7 +424,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          <div className="group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-amber-400/80 transition-all duration-300 flex items-start gap-4">
+          <div className="reveal reveal-fade-up reveal-delay-4 group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-amber-400/80 transition-all duration-300 flex items-start gap-4">
             <div className="absolute inset-0 pointer-events-none opacity-[0.03] mix-blend-multiply overflow-hidden">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
@@ -447,121 +444,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
-      {/* NEW: Dedicated Vannamei Prawn Health & Biological Nutrition Feature */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="relative rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-emerald-950 text-white p-6 sm:p-10 lg:p-12 overflow-hidden shadow-xl border border-slate-800">
-          {/* Subtle prawn pattern background layer */}
-          <img
-            src={prawnPatternBg}
-            alt=""
-            referrerPolicy="no-referrer"
-            className="absolute inset-0 w-full h-full object-cover opacity-10 mix-blend-screen pointer-events-none"
-          />
-
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            {/* Left: Illustrative Prawn Artwork with Biological Callouts */}
-            <div className="lg:col-span-5 flex flex-col items-center justify-center text-center">
-              <div className="relative w-64 h-64 sm:w-72 sm:h-72 p-4">
-                <div className="absolute inset-0 rounded-full bg-emerald-500/15 blur-2xl" />
-                <div className="relative w-full h-full rounded-2xl bg-slate-950/60 border border-emerald-500/30 p-4 flex items-center justify-center backdrop-blur-md">
-                  <img
-                    src={prawnIllustration}
-                    alt="Vannamei shrimp illustrative diagram"
-                    referrerPolicy="no-referrer"
-                    className="w-full h-full object-contain filter drop-shadow-2xl"
-                  />
-                  <span className="absolute -bottom-3 px-3 py-1 rounded-full bg-emerald-600 text-white text-[11px] font-bold shadow-md">
-                    Target DOC 30 – 120+ Days
-                  </span>
-                </div>
-              </div>
-              <p className="mt-4 text-xs text-slate-300 font-medium">
-                High survival rates achieved through scientific mineral ratios & gut stability.
-              </p>
-            </div>
-
-            {/* Right: Nutritional Pillars for Farmers */}
-            <div className="lg:col-span-7 space-y-6">
-              <div className="space-y-2">
-                <span className="inline-block px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-300 text-xs font-bold uppercase tracking-wider">
-                  Science of Aquaculture Success
-                </span>
-                <h2 className="font-display text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white leading-tight">
-                  Protecting Prawn Health from Hatchery to Harvest
-                </h2>
-                <p className="text-slate-300 text-sm sm:text-base leading-relaxed">
-                  Prawn farming requires precise water ionic balance, active probiotic colonization, and low-leaching feeds. SR Aqua Feeds & Needs stocks the exact chemical components required for every phase:
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-emerald-500/40 transition-colors">
-                  <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-emerald-400" />
-                    <span>Ionic Mineral Balance (Ca:Mg:K)</span>
-                  </h4>
-                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                    Maintains crucial 1:3:1 ratio to prevent soft-shell, white muscle syndrome, and molt-related mortality.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-sky-500/40 transition-colors">
-                  <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-sky-400" />
-                    <span>Gut Probiotics & Enzymes</span>
-                  </h4>
-                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                    Multi-strain Bacillus colonizes gut mucosa to resist Vibrio pathogens, EHP, and running mortality syndrome (RMS).
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-teal-500/40 transition-colors">
-                  <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-teal-400" />
-                    <span>High-Stability Feed Pellets</span>
-                  </h4>
-                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                    Sustains 2+ hours of water stability, preventing bottom soil deterioration and maximizing feed assimilation.
-                  </p>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-white/5 border border-white/10 hover:border-amber-500/40 transition-colors">
-                  <h4 className="font-bold text-white text-sm flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-amber-400" />
-                    <span>Toxic Gas Neutralization</span>
-                  </h4>
-                  <p className="text-xs text-slate-300 mt-1.5 leading-relaxed">
-                    Concentrated Yucca and oxygen donors instantly detoxify unionized Ammonia (NH3) and Hydrogen Sulfide (H2S).
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-2 flex flex-wrap gap-3">
-                <button
-                  onClick={() => {
-                    onNavigate('products');
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                  }}
-                  className="px-5 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs shadow-md transition-colors inline-flex items-center gap-2"
-                >
-                  <span>Browse Prawn Products & Feeds</span>
-                  <ArrowRight className="w-4 h-4" />
-                </button>
-
-                <a
-                  href="https://wa.me/919493243244?text=Hi%20Utukuri%20Rambabu%2C%20I%20want%20to%20discuss%20feed%20and%20minerals%20for%20my%20prawn%20pond."
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-colors inline-flex items-center gap-2"
-                >
-                  <WhatsAppIcon className="w-4 h-4 text-emerald-400" />
-                  <span>Ask Rambabu for Advice</span>
-                </a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* Dedicated Vannamei Prawn Health & Biological Nutrition Interactive Showcase */}
+      <PrawnHealthShowcase
+        onNavigateProducts={() => {
+          onNavigate('products');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }}
+      />
 
       {/* 3. Top Demanded Aqua Products Preview */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
@@ -592,16 +481,32 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
 
         {/* 4 Featured Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 reveal-group">
+          {featuredProducts.map((product, idx) => (
+            <div
+              key={product.id}
+              className={`reveal reveal-fade-up ${
+                idx === 0
+                  ? 'reveal-delay-1'
+                  : idx === 1
+                  ? 'reveal-delay-2'
+                  : idx === 2
+                  ? 'reveal-delay-3'
+                  : 'reveal-delay-4'
+              }`}
+            >
+              <ProductCard
+                product={product}
+                onSelect={(id) => onNavigate('product-detail', id)}
+              />
+            </div>
           ))}
         </div>
       </section>
 
       {/* Visual Mid-Page Aquaculture Facility & Warehouse Logistics Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-950 text-white">
+        <div className="reveal reveal-scale relative rounded-3xl overflow-hidden shadow-2xl border border-white/20 bg-slate-950 text-white">
           <div className="absolute inset-0 z-0">
             <img
               src={galleryFacilityBanner}
@@ -653,9 +558,12 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* Trust-Building Local Aquaculture Client Feedback Carousel */}
+      <FarmerSuccessStories />
+
       {/* 4. Homepage Cross-Navigation Sections */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        <div className="text-center max-w-2xl mx-auto mb-10 space-y-3">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="text-center max-w-2xl mx-auto mb-6 sm:mb-8 space-y-3">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200/80 text-xs font-bold tracking-wider uppercase shadow-xs">
             <Droplets className="w-3.5 h-3.5 text-sky-500" />
             <span>Aquaculture Operations Hub</span>
@@ -669,9 +577,9 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
 
         {/* 4 Summary Blocks for About Us, Products, Gallery, and Contact */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* Block 1: About Us Teaser */}
-          <div className="group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-emerald-400/80 transition-all duration-300 flex flex-col justify-between">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 reveal-group">
+          {/* Block 1: About Us Teaser - Slides in from Left */}
+          <div className="reveal reveal-slide-left reveal-delay-1 group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-emerald-400/80 transition-all duration-300 flex flex-col justify-between">
             {/* Top subtle aquatic accent line */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity z-20" />
             {/* Water caustics texture */}
@@ -716,8 +624,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Block 2: Products Teaser */}
-          <div className="group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-sky-400/80 transition-all duration-300 flex flex-col justify-between">
+          {/* Block 2: Products Teaser - Slides in from Right */}
+          <div className="reveal reveal-slide-right reveal-delay-2 group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-sky-400/80 transition-all duration-300 flex flex-col justify-between">
             {/* Top subtle aquatic accent line */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-sky-400 to-teal-400 opacity-0 group-hover:opacity-100 transition-opacity z-20" />
             <div className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-multiply overflow-hidden">
@@ -760,8 +668,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Block 3: Gallery Teaser */}
-          <div className="group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-teal-400/80 transition-all duration-300 flex flex-col justify-between">
+          {/* Block 3: Gallery Teaser - Slides in from Left */}
+          <div className="reveal reveal-slide-left reveal-delay-3 group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-teal-400/80 transition-all duration-300 flex flex-col justify-between">
             {/* Top subtle aquatic accent line */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-teal-400 to-emerald-400 opacity-0 group-hover:opacity-100 transition-opacity z-20" />
             <div className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-multiply overflow-hidden">
@@ -804,8 +712,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             </div>
           </div>
 
-          {/* Block 4: Contact Teaser */}
-          <div className="group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-emerald-400/80 transition-all duration-300 flex flex-col justify-between">
+          {/* Block 4: Contact Teaser - Slides in from Right */}
+          <div className="reveal reveal-slide-right reveal-delay-4 group relative overflow-hidden rounded-3xl bg-white border border-slate-200/90 p-6 sm:p-7 shadow-xs hover:shadow-xl hover:border-emerald-400/80 transition-all duration-300 flex flex-col justify-between">
             {/* Top subtle aquatic accent line */}
             <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-emerald-400 to-sky-400 opacity-0 group-hover:opacity-100 transition-opacity z-20" />
             <div className="absolute inset-0 pointer-events-none opacity-[0.035] mix-blend-multiply overflow-hidden">
@@ -850,22 +758,90 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* 4.5 Dedicated Farmer Inquiry Desk & Rapid Quotation on Homepage */}
+      <section id="homepage-inquiry-desk" className="max-w-7xl mx-auto px-4 sm:px-6">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch reveal-group">
+          {/* Left Column: Direct Consultation Reassurance */}
+          <div className="reveal reveal-slide-left lg:col-span-5 rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900 to-sky-950 text-white p-6 sm:p-8 lg:p-10 flex flex-col justify-between border border-white/10 shadow-xl relative overflow-hidden">
+            {/* Water caustics texture */}
+            <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay">
+              <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
+            </div>
+            <div className="absolute -bottom-10 -right-10 w-48 h-48 pointer-events-none opacity-10">
+              <img src={prawnIllustration} alt="" referrerPolicy="no-referrer" className="w-full h-full object-contain filter invert" />
+            </div>
+
+            <div className="space-y-4 relative z-10">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-400/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-400/30">
+                <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
+                <span>Instant Quotation & Advisory</span>
+              </div>
+
+              <h3 className="font-display text-2xl sm:text-3xl font-extrabold text-white leading-tight">
+                Get Bulk Feed Rates & Direct Pond Delivery
+              </h3>
+
+              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed">
+                Whether you need a 10-bag grower feed refill, urgent dissolved oxygen tablets, or water parameter calculation, submit your inquiry here for an instant quotation directly from Utukuri Rambabu.
+              </p>
+
+              <div className="space-y-2.5 pt-2">
+                <div className="flex items-center gap-2.5 text-xs text-slate-200">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Doorstep delivery to Ulavapadu, Ramayapatnam & Nellore</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-200">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Complimentary water testing at Ramayapatnam Road store</span>
+                </div>
+                <div className="flex items-center gap-2.5 text-xs text-slate-200">
+                  <CheckCircle2 className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span>Transparent GST invoices for every single batch</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="pt-6 border-t border-white/10 relative z-10 space-y-3">
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">Direct Helpline:</span>
+                <a href="tel:9493243244" className="text-emerald-400 font-bold hover:underline">
+                  +91 94932 43244
+                </a>
+              </div>
+              <div className="flex items-center justify-between text-xs">
+                <span className="text-slate-400">Response Time:</span>
+                <span className="text-sky-300 font-semibold">&lt; 20 Minutes (8 AM – 9 PM)</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Embedded Reusable Inquiry Form */}
+          <div className="reveal reveal-slide-right lg:col-span-7">
+            <InquiryForm
+              title="Request a Crop Quote or Pond Advice"
+              subtitle="Submit your requirements below to instantly launch the message on WhatsApp or send via Email."
+            />
+          </div>
+        </div>
+      </section>
+
       {/* 5. Direct Pond-Side Advisory & Order Callout with Coastal Pond Banner */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         <div className="relative rounded-3xl text-white p-8 sm:p-12 overflow-hidden shadow-2xl border border-emerald-800">
-          {/* Real Aquaculture Aeration Pond Photo Background */}
+          {/* Real Aquaculture Aeration Pond Photo Background - UNMASKED & BRIGHT */}
           <div className="absolute inset-0 z-0">
             <img
               src={pondAerationBanner}
               alt="Coastal shrimp aquaculture pond aeration"
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover filter brightness-50"
+              className="w-full h-full object-cover filter brightness-100 contrast-105"
             />
             {/* Clean water caustics texture shimmer overlay */}
-            <div className="absolute inset-0 pointer-events-none opacity-25 mix-blend-overlay">
+            <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-teal-950/90 to-slate-950/85" />
+            {/* Subtle soft gradient only behind text for crisp readability without masking the photo */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/75 via-slate-950/40 to-transparent pointer-events-none" />
           </div>
 
           <div className="relative z-10 max-w-3xl space-y-4">
@@ -902,6 +878,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+
+      {/* Curated Top Aquaculture FAQs on Home Page with direct link to full library on Contact Page */}
+      <ProductFarmingFAQ
+        limit={3}
+        showViewAllButton={true}
+        onNavigate={onNavigate}
+      />
     </div>
   );
 };

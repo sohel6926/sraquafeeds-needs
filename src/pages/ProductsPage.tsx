@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { ProductCategory, Product } from '../types.ts';
+import { ProductCategory, Product, PageType } from '../types.ts';
 import { PRODUCTS_DATA } from '../data/products.ts';
 import { ProductCard } from '../components/ProductCard.tsx';
 import { WhatsAppIcon, PhoneCallIcon } from '../components/Icons.tsx';
@@ -12,7 +12,11 @@ import pondAerationBanner from '../assets/images/pond_aeration_banner_1790103885
 import cleanWaterTexture from '../assets/images/clean_water_texture_1790105872350.jpg';
 import productsFeedBanner from '../assets/images/products_feed_banner_1790110292560.jpg';
 
-export const ProductsPage: React.FC = () => {
+interface ProductsPageProps {
+  onNavigate?: (page: PageType, productId?: string) => void;
+}
+
+export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -50,13 +54,16 @@ export const ProductsPage: React.FC = () => {
               src={productsFeedBanner}
               alt="Scientific shrimp aquaculture feed and water conditioning"
               referrerPolicy="no-referrer"
-              className="w-full h-full object-cover object-center filter brightness-45 contrast-120 scale-105"
+              loading="eager"
+              decoding="sync"
+              className="w-full h-full object-cover object-center filter brightness-105 contrast-105"
             />
             {/* Clean water caustics texture shimmer overlay */}
-            <div className="absolute inset-0 pointer-events-none opacity-25 mix-blend-overlay">
+            <div className="absolute inset-0 pointer-events-none opacity-20 mix-blend-overlay">
               <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
             </div>
-            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/95 via-slate-950/85 to-sky-950/70" />
+            {/* Soft left gradient only behind text, no heavy opaque mask */}
+            <div className="absolute inset-0 bg-gradient-to-r from-slate-950/70 via-slate-950/35 to-transparent pointer-events-none" />
 
             {/* Rising Animated Oxygen & Nutrient Micro-Bubbles */}
             <div className="absolute bottom-6 left-1/4 w-3.5 h-3.5 rounded-full bg-emerald-300/40 border border-emerald-200/50 animate-bubble-1 pointer-events-none" />
@@ -65,7 +72,7 @@ export const ProductsPage: React.FC = () => {
           </div>
 
           <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-10">
-            <div className="max-w-2xl space-y-4">
+            <div className="max-w-2xl space-y-4 reveal reveal-slide-left">
               <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-sky-300">
                 <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-sky-500/20 border border-sky-400/30">
                   <Zap className="w-3.5 h-3.5 text-sky-400" />
@@ -93,7 +100,7 @@ export const ProductsPage: React.FC = () => {
             </div>
 
             {/* Bespoke Thematic Showcase: Animated Bio-Nutrition & 3-Hour Stability Lab Console */}
-            <div className="relative flex-shrink-0 w-72 sm:w-80 flex items-center justify-center">
+            <div className="relative flex-shrink-0 w-72 sm:w-80 flex items-center justify-center reveal reveal-slide-right">
               {/* Outer Animated Molecular Orbital Ring */}
               <div className="absolute inset-0 rounded-full border border-dashed border-sky-400/35 animate-spin-slow pointer-events-none" />
 
@@ -286,9 +293,25 @@ export const ProductsPage: React.FC = () => {
       {/* 3. Product Cards Grid */}
       <section className="max-w-7xl mx-auto px-4 sm:px-6">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 reveal-group">
+            {filteredProducts.map((product, idx) => (
+              <div
+                key={product.id}
+                className={`reveal reveal-fade-up ${
+                  idx < 12 ? `reveal-delay-${(idx % 4) + 1}` : ''
+                }`}
+              >
+                <ProductCard
+                  product={product}
+                  onSelect={(id) => {
+                    if (onNavigate) {
+                      onNavigate('product-detail', id);
+                    } else {
+                      window.location.hash = `product?id=${id}`;
+                    }
+                  }}
+                />
+              </div>
             ))}
           </div>
         ) : (
@@ -349,7 +372,7 @@ export const ProductsPage: React.FC = () => {
             <img src={prawnIllustration} alt="" referrerPolicy="no-referrer" className="w-full h-full object-contain filter invert" />
           </div>
 
-          <div className="space-y-2 text-center md:text-left max-w-2xl relative z-10">
+          <div className="space-y-2 text-center md:text-left max-w-2xl relative z-10 reveal reveal-slide-left">
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-bold uppercase tracking-wider border border-emerald-400/30">
               <Sparkles className="w-3.5 h-3.5 text-emerald-400" />
               <span>Full Season Pond Stocking Packages</span>
@@ -362,7 +385,7 @@ export const ProductsPage: React.FC = () => {
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto relative z-10">
+          <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto relative z-10 reveal reveal-slide-right">
             <a
               href="tel:9493243244"
               className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs shadow-md transition-all active:scale-95"
