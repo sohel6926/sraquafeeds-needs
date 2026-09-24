@@ -1,4 +1,5 @@
 import React from 'react';
+import { useData } from '../context/DataContext.tsx';
 import { PageType } from '../types.ts';
 import { BrandLogo } from '../components/BrandLogo.tsx';
 import { WhatsAppIcon, PhoneCallIcon, GstBadgeIcon } from '../components/Icons.tsx';
@@ -31,6 +32,7 @@ interface AboutPageProps {
 }
 
 export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
+  const { siteSettings } = useData();
   const values = [
     {
       title: 'Trust & Transparency',
@@ -286,7 +288,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
 
               {/* Quotation from Rambabu */}
               <div className="relative pl-4 border-l-2 border-emerald-500 italic text-slate-600 text-xs sm:text-sm leading-relaxed z-10">
-                &ldquo;Every farmer invests their hard-earned capital into shrimp farming. Our duty at SR Aqua is to ensure every bag of feed and every bottle of probiotic is 100% genuine and helps them harvest healthy crops with maximum profit.&rdquo;
+                &ldquo;{siteSettings.aboutFounderMessage || 'Every farmer invests their hard-earned capital into shrimp farming. Our duty at SR Aqua is to ensure every bag of feed and every bottle of probiotic is 100% genuine and helps them harvest healthy crops with maximum profit.'}&rdquo;
               </div>
 
               <div className="pt-2 flex flex-col gap-2 relative z-10">
@@ -323,11 +325,15 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
             </div>
 
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-              Located along the strategic Ramayapatnam coastal aquaculture belt in Ulavapadu mandal, <strong>SR Aqua Feeds & Needs</strong> was founded 4 months ago by <strong>Utukuri Rambabu</strong> to address a critical need for local farmers: easy, immediate access to fresh, uncompromised shrimp feed and fast-acting pond care solutions.
+              {siteSettings.aboutStoryPart1 || (
+                <>Located along the strategic Ramayapatnam coastal aquaculture belt in Ulavapadu mandal, <strong>SR Aqua Feeds & Needs</strong> was founded 4 months ago by <strong>Utukuri Rambabu</strong> to address a critical need for local farmers: easy, immediate access to fresh, uncompromised shrimp feed and fast-acting pond care solutions.</>
+              )}
             </p>
 
             <p className="text-sm sm:text-base text-slate-600 leading-relaxed">
-              In just 4 months of active operation, our retail shop has established quick trust among progressive shrimp growers across Chakicherla Peddapattapu Palem and surrounding villages. We keep overheads honest, maintain transparent pricing, and personally inspect every batch of incoming stock so farmers never face compromised yields.
+              {siteSettings.aboutStoryPart2 || (
+                <>In just 4 months of active operation, our retail shop has established quick trust among progressive shrimp growers across Chakicherla Peddapattapu Palem and surrounding villages. We keep overheads honest, maintain transparent pricing, and personally inspect every batch of incoming stock so farmers never face compromised yields.</>
+              )}
             </p>
 
             {/* 3 Pillars Highlight with Water Texture */}
@@ -422,7 +428,7 @@ export const AboutPage: React.FC<AboutPageProps> = ({ onNavigate }) => {
               </div>
               <h3 className="font-display text-2xl font-bold text-white">Our Mission</h3>
               <p className="text-sky-100 text-sm sm:text-base leading-relaxed">
-                To supply farmers with a complete, dependable range of feed, minerals, probiotics, and pond-care products — backed by honest guidance and prompt service.
+                {siteSettings.aboutMission || 'To supply farmers with a complete, dependable range of feed, minerals, probiotics, and pond-care products — backed by honest guidance and prompt service.'}
               </p>
             </div>
             <div className="mt-8 pt-4 border-t border-sky-800/80 text-xs text-sky-300 relative z-10">

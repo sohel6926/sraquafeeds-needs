@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { Product, PageType } from '../types.ts';
-import { PRODUCTS_DATA } from '../data/products.ts';
 import { ProductCard } from '../components/ProductCard.tsx';
 import { InquiryForm } from '../components/InquiryForm.tsx';
 import { WhatsAppIcon, PhoneCallIcon } from '../components/Icons.tsx';
+import { useData } from '../context/DataContext.tsx';
 import {
   ArrowLeft,
   Package,
@@ -32,11 +32,13 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   productId,
   onNavigate,
 }) => {
-  const product = PRODUCTS_DATA.find((p) => p.id === productId) || PRODUCTS_DATA[0];
+  const { products, siteSettings } = useData();
+  const product = products.find((p) => p.id === productId) || products[0];
 
   // Interactive Pond Calculator State
   const [pondAcres, setPondAcres] = useState<number>(1);
   const [docStage, setDocStage] = useState<'early' | 'mid' | 'late'>('mid');
+
 
   // Calculate estimated requirement
   const isFeed = product.category === 'Shrimp & Fish Feed';
@@ -65,7 +67,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const req = calculateRequirement();
 
   // Related products
-  const relatedProducts = PRODUCTS_DATA.filter((p) => p.id !== product.id && (p.category === product.category || p.isPopular)).slice(0, 3);
+  const relatedProducts = products.filter((p) => p.id !== product.id && (p.category === product.category || p.isPopular)).slice(0, 3);
+
 
   const encodedProductName = encodeURIComponent(product.name);
   const whatsappOrderUrl = `https://wa.me/919493243244?text=Hi%20SR%20Aqua%20Feeds%2C%20I'm%20interested%20in%20ordering%20${encodedProductName}.%20Please%20share%20current%20batch%20quote%20and%20pond%20delivery%20details.`;

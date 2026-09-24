@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useData } from '../context/DataContext.tsx';
 import {
   ChevronDown,
   HelpCircle,
@@ -14,20 +15,11 @@ import {
   Sparkles,
   ArrowRight,
 } from 'lucide-react';
-import { PageType } from '../types.ts';
+import { PageType, FAQItem } from '../types.ts';
 import { WhatsAppIcon, PhoneCallIcon } from './Icons.tsx';
 
-export interface FAQItem {
-  id: string;
-  category: 'Products & Nutrition' | 'Pond Farming Practices' | 'Water Quality & Minerals' | 'Ordering & Delivery';
-  question: string;
-  answer: string;
-  keyPoints?: string[];
-  recommendedAction?: {
-    label: string;
-    waText: string;
-  };
-}
+export type { FAQItem };
+
 
 const FAQ_DATA: FAQItem[] = [
   {
@@ -207,6 +199,9 @@ export const ProductFarmingFAQ: React.FC<ProductFarmingFAQProps> = ({
   onNavigate,
   initialOpenId,
 }) => {
+  const { faqs } = useData();
+  const sourceFAQs = faqs && faqs.length > 0 ? faqs : FAQ_DATA;
+
   // CRITICAL REQUIREMENT: Single active openId ensures that opening any FAQ automatically closes the previous one!
   const [openId, setOpenId] = useState<string | null>(initialOpenId ?? 'faq-prod-1');
   const [activeCategory, setActiveCategory] = useState<string>('All');
@@ -221,7 +216,7 @@ export const ProductFarmingFAQ: React.FC<ProductFarmingFAQProps> = ({
   ];
 
   const filteredFAQs = useMemo(() => {
-    return FAQ_DATA.filter((item) => {
+    return sourceFAQs.filter((item) => {
       const matchesCategory =
         activeCategory === 'All' || item.category === activeCategory;
       const matchesQuery =
@@ -232,7 +227,7 @@ export const ProductFarmingFAQ: React.FC<ProductFarmingFAQProps> = ({
 
       return matchesCategory && matchesQuery;
     });
-  }, [activeCategory, searchQuery]);
+  }, [sourceFAQs, activeCategory, searchQuery]);
 
   // When limit is provided, only show the specified few FAQs
   const displayedFAQs = useMemo(() => {

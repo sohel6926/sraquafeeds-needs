@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { PageType } from '../types.ts';
-import { PRODUCTS_DATA } from '../data/products.ts';
 import { ProductCard } from '../components/ProductCard.tsx';
 import { PrawnHealthShowcase } from '../components/PrawnHealthShowcase.tsx';
 import { FarmerSuccessStories } from '../components/FarmerSuccessStories.tsx';
 import { ProductFarmingFAQ } from '../components/ProductFarmingFAQ.tsx';
 import { InquiryForm } from '../components/InquiryForm.tsx';
 import { WhatsAppIcon, PhoneCallIcon, GstBadgeIcon } from '../components/Icons.tsx';
+import { useData } from '../context/DataContext.tsx';
 import {
   ShieldCheck,
   Award,
@@ -40,7 +40,12 @@ interface HomePageProps {
 
 export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
   const [heroActiveTab, setHeroActiveTab] = useState<'shrimp' | 'pond'>('shrimp');
-  const featuredProducts = PRODUCTS_DATA.filter((p) => p.isPopular).slice(0, 4);
+  const { products, siteSettings } = useData();
+  const featuredProducts = (products.filter((p) => p.isPopular).length > 0
+    ? products.filter((p) => p.isPopular)
+    : products
+  ).slice(0, 4);
+
 
   return (
     <div className="space-y-8 sm:space-y-12 pb-12 sm:pb-16">
@@ -88,18 +93,18 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
             {/* Left Column: Brand Identity, Value Proposition & Prominent CTAs */}
             <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
               {/* Positive Growth Tag & Aquaculture Hub */}
-                <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2">
+              <div className="inline-flex flex-wrap items-center justify-center lg:justify-start gap-2">
                 <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-900 border border-emerald-800 text-white text-xs font-semibold backdrop-blur-md shadow-sm">
                   <TrendingUp className="w-4 h-4 text-white flex-shrink-0" />
-                  <span>Newly Established & Rapidly Growing Aquaculture Partner</span>
+                  <span>{siteSettings.heroBadge1 || 'Newly Established & Rapidly Growing Aquaculture Partner'}</span>
                 </div>
                 <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-900 border border-emerald-800 text-white text-xs font-bold shadow-sm">
                   <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-                  <span>Fresh Stock Daily</span>
+                  <span>{siteSettings.heroBadge2 || 'Fresh Stock Daily'}</span>
                 </div>
                 <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-900 border border-emerald-800 text-white text-xs font-semibold shadow-sm">
                   <Droplets className="w-3.5 h-3.5 text-sky-400 flex-shrink-0" />
-                  <span>Ulavapadu · Ramayapatnam Road</span>
+                  <span>{siteSettings.heroBadge3 || 'Ulavapadu · Ramayapatnam Road'}</span>
                 </div>
               </div>
 
@@ -111,14 +116,11 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     Aquaculture Feeds, Chemicals & Diagnostics
                   </div>
                   <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none drop-shadow-md">
-                    <span className="text-white">SR AQUA</span>{' '}
-                    <span className="text-white">
-                      FEEDS & NEEDS
-                    </span>
+                    <span className="text-white">{siteSettings.heroTitle || 'SR AQUA FEEDS & NEEDS'}</span>
                   </h1>
                   <p className="font-display text-lg sm:text-2xl text-emerald-300 font-semibold tracking-wide flex items-center justify-center sm:justify-start gap-2 pt-0.5">
                     <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                    <span>&ldquo;Nourishing Life. Growing Future.&rdquo;</span>
+                    <span>&ldquo;{siteSettings.heroSubtitle || siteSettings.heroSubheadline || siteSettings.tagline || 'Nourishing Life. Growing Future.'}&rdquo;</span>
                   </p>
                 </div>
               </div>
@@ -207,7 +209,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                 <span>•</span>
                 <div className="flex items-center gap-1.5">
                   <Clock className="w-4 h-4 text-sky-400 flex-shrink-0" />
-                  <span>Daily Dispatch: 6:30 AM – 9:00 PM</span>
+                  <span>{siteSettings.dispatchTurnaround || 'Daily Dispatch: 6:30 AM – 9:00 PM'}</span>
                 </div>
                 <span>•</span>
                 <div className="flex items-center gap-1.5">
@@ -365,8 +367,49 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
         </div>
       </section>
 
+      {/* Dynamic Statistical Counters Strip */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 -mt-8 sm:-mt-12 relative z-30">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-md flex flex-col justify-center items-center text-center hover:border-emerald-400/80 transition-all">
+            <span className="text-2xl sm:text-3xl font-black text-emerald-600 font-display">
+              {siteSettings.heroStat1Number || '500+'}
+            </span>
+            <span className="text-xs font-semibold text-slate-600 mt-1">
+              {siteSettings.heroStat1Label || 'Happy Coastal Farmers'}
+            </span>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-md flex flex-col justify-center items-center text-center hover:border-sky-400/80 transition-all">
+            <span className="text-2xl sm:text-3xl font-black text-sky-600 font-display">
+              {siteSettings.heroStat2Number || '15+'}
+            </span>
+            <span className="text-xs font-semibold text-slate-600 mt-1">
+              {siteSettings.heroStat2Label || 'Years Aquaculture Wisdom'}
+            </span>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-md flex flex-col justify-center items-center text-center hover:border-teal-400/80 transition-all">
+            <span className="text-2xl sm:text-3xl font-black text-teal-600 font-display">
+              {siteSettings.heroStat3Number || '35 km'}
+            </span>
+            <span className="text-xs font-semibold text-slate-600 mt-1">
+              {siteSettings.heroStat3Label || 'Direct Farm Gate Reach'}
+            </span>
+          </div>
+
+          <div className="bg-white/95 backdrop-blur-md rounded-2xl p-4 sm:p-5 border border-slate-200/90 shadow-md flex flex-col justify-center items-center text-center hover:border-indigo-400/80 transition-all">
+            <span className="text-2xl sm:text-3xl font-black text-indigo-600 font-display">
+              {siteSettings.heroStat4Number || '100%'}
+            </span>
+            <span className="text-xs font-semibold text-slate-600 mt-1">
+              {siteSettings.heroStat4Label || 'Genuine Sealed Factory Stock'}
+            </span>
+          </div>
+        </div>
+      </section>
+
       {/* 2. Key Highlights / Trust Banner */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-8 sm:mt-12 lg:mt-14 relative z-20">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 mt-6 sm:mt-10 lg:mt-12 relative z-20">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 reveal-group">
           <div className="reveal reveal-fade-up reveal-delay-1 group relative overflow-hidden p-5 rounded-2xl bg-white/95 backdrop-blur-md border border-slate-200/90 shadow-sm hover:shadow-lg hover:border-emerald-400/80 transition-all duration-300 flex items-start gap-4">
             {/* Water caustics backdrop */}

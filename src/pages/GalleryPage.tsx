@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { GALLERY_DATA } from '../data/gallery.ts';
 import { GalleryItem } from '../types.ts';
 import { WhatsAppIcon, PhoneCallIcon } from '../components/Icons.tsx';
+import { useData } from '../context/DataContext.tsx';
 import { MapPin, ZoomIn, X, Clock, Layers, Camera, Droplets } from 'lucide-react';
 
 import pondAerationBanner from '../assets/images/pond_aeration_banner_1790103885278.jpg';
@@ -11,6 +11,7 @@ import prawnIllustration from '../assets/images/prawn_illustration_1790103846428
 import galleryFacilityBanner from '../assets/images/gallery_facility_banner_1790110304653.jpg';
 
 export const GalleryPage: React.FC = () => {
+  const { gallery } = useData();
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [selectedPhoto, setSelectedPhoto] = useState<GalleryItem | null>(null);
 
@@ -18,15 +19,16 @@ export const GalleryPage: React.FC = () => {
     'All',
     'Prawn & Crop Vitality',
     'Pond & Farm Scenery',
-    'Aqua Retail Showroom',
+    'Shop Interior',
     'Stock & Warehouse',
     'Products Display',
     'Farmer Support',
   ];
 
   const filteredItems = activeCategory === 'All'
-    ? GALLERY_DATA
-    : GALLERY_DATA.filter((item) => item.category === activeCategory);
+    ? gallery
+    : gallery.filter((item) => item.category === activeCategory);
+
 
   return (
     <div className="space-y-12 sm:space-y-16 pt-8 pb-16 sm:pb-24">

@@ -2,9 +2,11 @@ import React from 'react';
 import { PageType } from '../types.ts';
 import { BrandLogo } from './BrandLogo.tsx';
 import { WhatsAppIcon, PhoneCallIcon, EmailIcon, GstBadgeIcon } from './Icons.tsx';
-import { MapPin, ShieldCheck, CheckCircle2, Clock, AlertTriangle } from 'lucide-react';
+import { MapPin, ShieldCheck, CheckCircle2, Clock, AlertTriangle, Shield } from 'lucide-react';
+import { useData } from '../context/DataContext.tsx';
 
 import prawnIllustration from '../assets/images/prawn_illustration_1790103846428.jpg';
+
 import prawnPatternBg from '../assets/images/prawn_pattern_bg_1790103865798.jpg';
 import cleanWaterTexture from '../assets/images/clean_water_texture_1790105872350.jpg';
 
@@ -13,6 +15,9 @@ interface FooterProps {
 }
 
 export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
+  const { siteSettings, leads } = useData();
+  const newLeadsCount = leads.filter((l) => l.status === 'new').length;
+
   const handleNav = (page: PageType, hash?: string) => {
     onNavigate(page);
     if (hash) {
@@ -56,7 +61,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
             <div className="flex flex-wrap gap-2 pt-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-800">
                 <GstBadgeIcon className="w-3.5 h-3.5 text-emerald-400" />
-                GSTIN: 37AGHPU5940Q1ZF
+                GSTIN: {siteSettings.gstin}
               </span>
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-sky-950/80 text-sky-300 border border-sky-800">
                 <ShieldCheck className="w-3.5 h-3.5 text-sky-400" />
@@ -70,7 +75,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
 
             {/* Proprietor Credit */}
             <div className="pt-2 text-xs text-slate-400">
-              Proprietor: <span className="text-white font-semibold">Utukuri Rambabu</span>
+              Proprietor: <span className="text-white font-semibold">{siteSettings.proprietor}</span>
             </div>
           </div>
 
@@ -83,7 +88,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <li>
                 <button
                   onClick={() => handleNav('home')}
-                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
+                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left cursor-pointer"
                 >
                   Home
                 </button>
@@ -91,7 +96,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <li>
                 <button
                   onClick={() => handleNav('about')}
-                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
+                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left cursor-pointer"
                 >
                   About Us
                 </button>
@@ -99,7 +104,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <li>
                 <button
                   onClick={() => handleNav('products')}
-                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
+                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left cursor-pointer"
                 >
                   Products Catalog
                 </button>
@@ -107,33 +112,29 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <li>
                 <button
                   onClick={() => handleNav('gallery')}
-                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
+                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left cursor-pointer"
                 >
                   Shop Gallery
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => handleNav('home', 'farmer-success-stories')}
-                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
-                >
-                  Farmer Stories
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => handleNav('home', 'faqs-section')}
-                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
-                >
-                  Aquaculture FAQs
-                </button>
-              </li>
-              <li>
-                <button
                   onClick={() => handleNav('contact')}
-                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left"
+                  className="text-slate-400 hover:text-emerald-400 transition-colors text-left cursor-pointer"
                 >
                   Contact & Location
+                </button>
+              </li>
+              <li className="pt-2 border-t border-slate-800/80">
+                <button
+                  onClick={() => handleNav('admin')}
+                  className="inline-flex items-center gap-1.5 text-emerald-400 hover:text-emerald-300 font-semibold transition-colors text-left text-xs cursor-pointer bg-emerald-950/70 px-2.5 py-1 rounded-lg border border-emerald-800/60"
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  <span>Admin Panel & Leads</span>
+                  {newLeadsCount > 0 && (
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse ml-1" />
+                  )}
                 </button>
               </li>
             </ul>
@@ -151,8 +152,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <div>
                 <strong className="font-semibold text-amber-300">Important Payment Notice:</strong>
                 <p className="mt-0.5 text-[11px] text-amber-200/90 leading-tight">
-                  For all payments and billing, please contact ONLY on{' '}
-                  <strong className="text-white underline">9493243244</strong>. Beware of fraudulent calls.
+                  {siteSettings.paymentNotice}
                 </p>
               </div>
             </div>
@@ -164,26 +164,28 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <div className="flex flex-col gap-0.5">
                   <div className="flex items-center gap-2 flex-wrap">
                     <a
-                      href="tel:9493243244"
-                      className="text-white hover:text-emerald-400 font-semibold"
+                      href={`tel:${siteSettings.primaryPhone}`}
+                      className="text-white hover:text-emerald-400 font-semibold font-mono"
                     >
-                      +91 9493243244
+                      +91 {siteSettings.primaryPhone}
                     </a>
                     <span className="text-xs text-emerald-400 bg-emerald-950 px-1.5 py-0.5 rounded border border-emerald-800">
                       Primary & WhatsApp
                     </span>
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <a
-                      href="tel:7075838624"
-                      className="text-white hover:text-sky-400 font-semibold"
-                    >
-                      +91 7075838624
-                    </a>
-                    <span className="text-xs text-sky-400 bg-sky-950 px-1.5 py-0.5 rounded border border-sky-800">
-                      Secondary Desk
-                    </span>
-                  </div>
+                  {siteSettings.secondaryPhone && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <a
+                        href={`tel:${siteSettings.secondaryPhone}`}
+                        className="text-white hover:text-sky-400 font-semibold font-mono"
+                      >
+                        +91 {siteSettings.secondaryPhone}
+                      </a>
+                      <span className="text-xs text-sky-400 bg-sky-950 px-1.5 py-0.5 rounded border border-sky-800">
+                        Secondary Desk
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -191,10 +193,10 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <div className="flex items-center gap-3">
                 <EmailIcon className="w-4 h-4 text-amber-400 flex-shrink-0" />
                 <a
-                  href="mailto:rams34333@gmail.com"
+                  href={`mailto:${siteSettings.primaryEmail}`}
                   className="text-slate-300 hover:text-white transition-colors"
                 >
-                  rams34333@gmail.com
+                  {siteSettings.primaryEmail}
                 </a>
               </div>
 
@@ -202,7 +204,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <div className="flex items-center gap-3">
                 <Clock className="w-4 h-4 text-sky-400 flex-shrink-0" />
                 <span className="text-xs text-slate-300">
-                  Monday – Sunday: 6:30 AM to 9:00 PM (Serving early pond feeding cycles)
+                  {siteSettings.shopHours}
                 </span>
               </div>
 
@@ -210,12 +212,13 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               <div className="flex items-start gap-3">
                 <MapPin className="w-4 h-4 text-rose-400 flex-shrink-0 mt-1" />
                 <span className="text-xs text-slate-400 leading-relaxed">
-                  Chakicherla Peddapattapu Palem, Ulavapadu (Mandal), Ramayapatnam Road, SPSR Nellore District, Andhra Pradesh – 523292
+                  {siteSettings.address}
                 </span>
               </div>
             </div>
           </div>
         </div>
+
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-500">

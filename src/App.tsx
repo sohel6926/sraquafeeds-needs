@@ -11,8 +11,13 @@ import { ProductsPage } from './pages/ProductsPage.tsx';
 import { GalleryPage } from './pages/GalleryPage.tsx';
 import { ContactPage } from './pages/ContactPage.tsx';
 import { ProductDetailPage } from './pages/ProductDetailPage.tsx';
+import { AdminPage } from './pages/AdminPage.tsx';
+import { ContactGateModal, ContactGateData } from './components/ContactGateModal.tsx';
+import { useData } from './context/DataContext.tsx';
+import { Megaphone, Shield } from 'lucide-react';
 
 // Background image asset for entire website
+
 import prawnPatternBg from './assets/images/prawn_pattern_bg_1790103865798.jpg';
 import prawnIllustration from './assets/images/prawn_illustration_1790103846428.jpg';
 
@@ -37,9 +42,57 @@ const CRITICAL_BANNER_IMAGES = [
   prawnIllustration,
 ];
 
+// Helper to extract page and product ID from either pathname (/admin) or hash (#admin)
+const getRouteFromUrl = (): { page: PageType; productId?: string } => {
+  // 1. Check window pathname first (e.g. /admin, /about, /products, /gallery, /contact, /product)
+  const pathname = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
+  const pathClean = pathname.replace(/^\//, ''); // e.g. "admin", "products", ""
+
+  if (pathClean === 'admin') {
+    return { page: 'admin' };
+  }
+  if (pathClean === 'about') {
+    return { page: 'about' };
+  }
+  if (pathClean === 'products') {
+    return { page: 'products' };
+  }
+  if (pathClean === 'gallery') {
+    return { page: 'gallery' };
+  }
+  if (pathClean === 'contact') {
+    return { page: 'contact' };
+  }
+  if (pathClean.startsWith('product')) {
+    const searchParams = new URLSearchParams(window.location.search);
+    const id = searchParams.get('id') || pathClean.split('/')[1];
+    return { page: 'product-detail', productId: id || 'shrimp-feed-grower' };
+  }
+
+  // 2. Check hash fallback for backwards compatibility (e.g. #admin, #about, #product?id=...)
+  const rawHash = window.location.hash.replace(/^#\/?/, '').toLowerCase();
+  if (rawHash.startsWith('product')) {
+    const queryPart = rawHash.includes('?') ? rawHash.split('?')[1] : '';
+    const params = new URLSearchParams(queryPart);
+    const id = params.get('id');
+    return { page: 'product-detail', productId: id || 'shrimp-feed-grower' };
+  }
+  if (rawHash === 'admin') return { page: 'admin' };
+  if (rawHash === 'about') return { page: 'about' };
+  if (rawHash === 'products') return { page: 'products' };
+  if (rawHash === 'gallery') return { page: 'gallery' };
+  if (rawHash === 'contact') return { page: 'contact' };
+  if (rawHash === 'home') return { page: 'home' };
+
+  return { page: 'home' };
+};
+
 export default function App() {
-  const [currentPage, setCurrentPage] = useState<PageType>('home');
-  const [selectedProductId, setSelectedProductId] = useState<string>('shrimp-feed-grower');
+  const initialRoute = getRouteFromUrl();
+  const [currentPage, setCurrentPage] = useState<PageType>(initialRoute.page);
+  const [selectedProductId, setSelectedProductId] = useState<string>(
+    initialRoute.productId || 'shrimp-feed-grower'
+  );
 
   // Pre-load and hardware pre-decode all banner images immediately on app startup
   useEffect(() => {
@@ -54,42 +107,85 @@ export default function App() {
     });
   }, []);
 
-  // Sync with window hash for natural multi-page browser back/forward buttons
+  // Sync with both window pathname (popstate) and hash for natural browser navigation
   useEffect(() => {
-    const handleHashChange = () => {
-      const rawHash = window.location.hash.replace('#', '');
-      if (rawHash.startsWith('product')) {
-        const queryPart = rawHash.includes('?') ? rawHash.split('?')[1] : '';
-        const params = new URLSearchParams(queryPart);
-        const id = params.get('id');
-        if (id) {
-          setSelectedProductId(id);
-          setCurrentPage('product-detail');
-          return;
-        }
-      }
-      if (['home', 'about', 'products', 'gallery', 'contact', 'product-detail'].includes(rawHash)) {
-        setCurrentPage(rawHash as PageType);
+    const handleUrlChange = () => {
+      const { page, productId } = getRouteFromUrl();
+      setCurrentPage(page);
+      if (productId) {
+        setSelectedProductId(productId);
       }
     };
 
-    // Initial check
-    if (window.location.hash) {
-      handleHashChange();
-    }
-
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
+    return () => {
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
+    };
   }, []);
+
+  // Contact Gate Modal State (Intercepts Call, WhatsApp, Email to capture Name & Mobile)
+  const [contactGateData, setContactGateData] = useState<ContactGateData | null>(null);
+  const [isContactGateOpen, setIsContactGateOpen] = useState(false);
+
+  // Global click interceptor: Catches any call, WhatsApp, or email action across the entire website
+  useEffect(() => {
+    const handleGlobalClick = (e: MouseEvent) => {
+      // Do not intercept if currently on the admin page
+      if (currentPage === 'admin' || window.location.pathname.startsWith('/admin')) {
+        return;
+      }
+
+      const target = e.target as HTMLElement | null;
+      if (!target) return;
+
+      const link = target.closest('a') as HTMLAnchorElement | null;
+      if (!link) return;
+
+      const href = link.getAttribute('href') || '';
+      if (!href) return;
+
+      let type: 'whatsapp' | 'call' | 'email' | null = null;
+      if (href.startsWith('tel:')) {
+        type = 'call';
+      } else if (href.includes('wa.me') || href.includes('whatsapp.com')) {
+        type = 'whatsapp';
+      } else if (href.startsWith('mailto:')) {
+        type = 'email';
+      }
+
+      if (type) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const topic = link.getAttribute('title') || link.innerText?.trim() || undefined;
+        setContactGateData({
+          type,
+          targetUrl: href,
+          topic: topic ? topic.slice(0, 60) : undefined,
+        });
+        setIsContactGateOpen(true);
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick, true);
+    return () => {
+      document.removeEventListener('click', handleGlobalClick, true);
+    };
+  }, [currentPage]);
+
+  const { siteSettings } = useData();
 
   const handleNavigate = (page: PageType, productId?: string) => {
     if (page === 'product-detail' && productId) {
       setSelectedProductId(productId);
       setCurrentPage('product-detail');
-      window.location.hash = `product?id=${productId}`;
+      window.history.pushState({}, '', `/product?id=${productId}`);
     } else {
       setCurrentPage(page);
-      window.location.hash = page;
+      const targetPath = page === 'home' ? '/' : `/${page}`;
+      window.history.pushState({}, '', targetPath);
     }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -130,6 +226,16 @@ export default function App() {
         </div>
       </div>
 
+      {/* Live Configurable Top Announcement Bar */}
+      {siteSettings.announcementEnabled && siteSettings.announcementText && currentPage !== 'admin' && (
+        <div className="relative z-50 bg-gradient-to-r from-emerald-700 via-teal-700 to-sky-700 text-white text-[11px] sm:text-xs py-1.5 px-4 font-semibold shadow-xs flex items-center justify-between border-b border-white/10">
+          <div className="max-w-7xl mx-auto flex items-center justify-center gap-2 text-center w-full">
+            <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse flex-shrink-0" />
+            <span className="line-clamp-1">{siteSettings.announcementText}</span>
+          </div>
+        </div>
+      )}
+
       {/* Sticky Header with Navigation & Quick Actions */}
       <Header currentPage={currentPage} onNavigate={handleNavigate} />
 
@@ -143,7 +249,9 @@ export default function App() {
         {currentPage === 'product-detail' && (
           <ProductDetailPage productId={selectedProductId} onNavigate={handleNavigate} />
         )}
+        {currentPage === 'admin' && <AdminPage onNavigate={handleNavigate} />}
       </main>
+
 
       {/* Comprehensive Business Footer */}
       <div className="relative z-20">
@@ -158,6 +266,13 @@ export default function App() {
 
       {/* Global Floating Action Button (FAB) with Animated Sub-Icons */}
       <FloatingActions />
+
+      {/* Universal Customer Contact Capture Gate Modal */}
+      <ContactGateModal
+        isOpen={isContactGateOpen}
+        data={contactGateData}
+        onClose={() => setIsContactGateOpen(false)}
+      />
 
       {/* Hidden persistent DOM image cache to ensure instant tab switching with 0ms lag */}
       <div style={{ display: 'none' }} aria-hidden="true">

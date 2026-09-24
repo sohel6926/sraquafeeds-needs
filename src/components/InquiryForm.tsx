@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { WhatsAppIcon, EmailIcon } from './Icons.tsx';
 import { Droplets, CheckCircle2, ShieldCheck, Sparkles, Clock, Send } from 'lucide-react';
+import { useData } from '../context/DataContext.tsx';
 import cleanWaterTexture from '../assets/images/clean_water_texture_1790105872350.jpg';
 import prawnIllustration from '../assets/images/prawn_illustration_1790103846428.jpg';
 
@@ -19,6 +20,7 @@ export const InquiryForm: React.FC<InquiryFormProps> = ({
   title = 'Send an Inquiry or Request a Quote',
   subtitle = 'Fill in your details below. You can immediately launch the message on WhatsApp or send via Email.',
 }) => {
+  const { addLead, siteSettings } = useData();
   const [farmerName, setFarmerName] = useState('');
   const [phone, setPhone] = useState('');
   const [village, setVillage] = useState('');
@@ -41,10 +43,25 @@ export const InquiryForm: React.FC<InquiryFormProps> = ({
       return;
     }
 
-    const text = `*Farmer Inquiry - SR Aqua Feeds & Needs*%0A%0A*Name:* ${encodeURIComponent(farmerName)}%0A*Phone:* ${encodeURIComponent(phone)}%0A*Village/Mandal:* ${encodeURIComponent(village || 'Not specified')}%0A*Topic:* ${encodeURIComponent(topic)}${productName ? `%0A*Product:* ${encodeURIComponent(productName)}` : ''}%0A*Message/Requirements:* ${encodeURIComponent(message || 'Requesting current batch quote and delivery details.')}`;
+    // Automatically record lead in Admin Panel CRM
+    addLead({
+      farmerName: farmerName.trim(),
+      phone: phone.trim(),
+      village: village.trim() || 'Ulavapadu / Nellore',
+      topic,
+      productName: productName || undefined,
+      message: message.trim() || 'Requesting current batch quote and delivery details.',
+      source: 'Website Form (WhatsApp)',
+      status: 'new',
+    });
 
-    window.open(`https://wa.me/919493243244?text=${text}`, '_blank');
-    setSubmittedStatus('Inquiry prepared! Launching WhatsApp conversation with Utukuri Rambabu...');
+    const targetPhone = siteSettings.whatsappNumber.replace(/[^0-9]/g, '');
+    const fullPhone = targetPhone.length === 10 ? `91${targetPhone}` : targetPhone;
+
+    const text = `*Farmer Inquiry - ${siteSettings.businessName}*%0A%0A*Name:* ${encodeURIComponent(farmerName)}%0A*Phone:* ${encodeURIComponent(phone)}%0A*Village/Mandal:* ${encodeURIComponent(village || 'Not specified')}%0A*Topic:* ${encodeURIComponent(topic)}${productName ? `%0A*Product:* ${encodeURIComponent(productName)}` : ''}%0A*Message/Requirements:* ${encodeURIComponent(message || 'Requesting current batch quote and delivery details.')}`;
+
+    window.open(`https://wa.me/${fullPhone}?text=${text}`, '_blank');
+    setSubmittedStatus(`Inquiry saved & logged! Launching WhatsApp conversation with ${siteSettings.proprietor}...`);
   };
 
   const handleMailtoSubmit = (e: React.FormEvent) => {
@@ -54,14 +71,27 @@ export const InquiryForm: React.FC<InquiryFormProps> = ({
       return;
     }
 
+    // Automatically record lead in Admin Panel CRM
+    addLead({
+      farmerName: farmerName.trim(),
+      phone: phone.trim(),
+      village: village.trim() || 'Ulavapadu / Nellore',
+      topic,
+      productName: productName || undefined,
+      message: message.trim() || 'Requesting current batch quote and delivery details.',
+      source: 'Website Form (Email)',
+      status: 'new',
+    });
+
     const subject = encodeURIComponent(`Pond Inquiry from ${farmerName} (${village || 'Nellore'}) - ${topic}`);
     const body = encodeURIComponent(
-      `Name: ${farmerName}\nPhone: ${phone}\nVillage/Location: ${village}\nTopic: ${topic}\n${productName ? `Product: ${productName}\n` : ''}\nMessage / Requirement:\n${message}\n\nSent via SR Aqua Feeds & Needs Portal`
+      `Name: ${farmerName}\nPhone: ${phone}\nVillage/Location: ${village}\nTopic: ${topic}\n${productName ? `Product: ${productName}\n` : ''}\nMessage / Requirement:\n${message}\n\nSent via ${siteSettings.businessName} Portal`
     );
 
-    window.location.href = `mailto:sraquafeedsneeds@gmail.com?subject=${subject}&body=${body}`;
-    setSubmittedStatus('Opening your default email client with pre-filled inquiry details.');
+    window.location.href = `mailto:${siteSettings.primaryEmail}?subject=${subject}&body=${body}`;
+    setSubmittedStatus(`Inquiry saved & logged! Opening your email client to contact ${siteSettings.proprietor}.`);
   };
+
 
   return (
     <div

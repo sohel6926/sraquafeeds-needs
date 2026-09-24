@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useData } from '../context/DataContext.tsx';
 import {
   Star,
   ChevronLeft,
@@ -16,25 +17,10 @@ import {
   Play,
 } from 'lucide-react';
 import { WhatsAppIcon } from './Icons.tsx';
+import { FarmerStory } from '../types.ts';
 
-export interface FarmerStory {
-  id: string;
-  name: string;
-  village: string;
-  region: string;
-  cultureType: string;
-  farmSize: string;
-  docDays: string;
-  stars: number;
-  highlightCategory: 'Minerals & Molting' | 'Feed & Low FCR' | 'Vibrio Defense' | 'Emergency DO';
-  quote: string;
-  keyOutcomes: {
-    label: string;
-    value: string;
-  }[];
-  verifiedCropCount: string;
-  date: string;
-}
+export type { FarmerStory };
+
 
 const FARMER_STORIES: FarmerStory[] = [
   {
@@ -160,6 +146,9 @@ const FARMER_STORIES: FarmerStory[] = [
 ];
 
 export const FarmerSuccessStories: React.FC = () => {
+  const { farmerStories } = useData();
+  const sourceStories = farmerStories && farmerStories.length > 0 ? farmerStories : FARMER_STORIES;
+
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [isAutoPlay, setIsAutoPlay] = useState<boolean>(true);
   const [selectedFilter, setSelectedFilter] = useState<string>('All');
@@ -167,8 +156,8 @@ export const FarmerSuccessStories: React.FC = () => {
 
   const filteredStories =
     selectedFilter === 'All'
-      ? FARMER_STORIES
-      : FARMER_STORIES.filter((s) => s.highlightCategory === selectedFilter);
+      ? sourceStories
+      : sourceStories.filter((s) => s.highlightCategory === selectedFilter);
 
   // Auto rotate carousel
   useEffect(() => {

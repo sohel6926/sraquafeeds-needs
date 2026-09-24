@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { ProductCategory, Product, PageType } from '../types.ts';
-import { PRODUCTS_DATA } from '../data/products.ts';
 import { ProductCard } from '../components/ProductCard.tsx';
 import { WhatsAppIcon, PhoneCallIcon } from '../components/Icons.tsx';
+import { useData } from '../context/DataContext.tsx';
 import { Search, Filter, HelpCircle, Phone, Sparkles, Droplets, ShieldCheck, CheckCircle2, Activity, Zap } from 'lucide-react';
 
 // Visual image assets
@@ -17,6 +17,7 @@ interface ProductsPageProps {
 }
 
 export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
+  const { products } = useData();
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('All');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -32,7 +33,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
   ];
 
   const filteredProducts = useMemo(() => {
-    return PRODUCTS_DATA.filter((product) => {
+    return products.filter((product) => {
       const matchesCategory =
         selectedCategory === 'All' || product.category === selectedCategory;
       const matchesSearch =
@@ -42,7 +43,8 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
         product.category.toLowerCase().includes(searchQuery.toLowerCase());
       return matchesCategory && matchesSearch;
     });
-  }, [selectedCategory, searchQuery]);
+  }, [products, selectedCategory, searchQuery]);
+
 
   return (
     <div className="space-y-10 sm:space-y-14 pt-8 pb-16 sm:pb-24">
@@ -259,8 +261,9 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
               const isSelected = selectedCategory === cat;
               const count =
                 cat === 'All'
-                  ? PRODUCTS_DATA.length
-                  : PRODUCTS_DATA.filter((p) => p.category === cat).length;
+                  ? products.length
+                  : products.filter((p) => p.category === cat).length;
+
 
               return (
                 <button

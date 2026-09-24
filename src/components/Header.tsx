@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { PageType } from '../types.ts';
 import { BrandLogo } from './BrandLogo.tsx';
 import { WhatsAppIcon, PhoneCallIcon, GstBadgeIcon } from './Icons.tsx';
-import { Menu, X, MapPin, Clock } from 'lucide-react';
+import { Menu, X, MapPin, Clock, Shield } from 'lucide-react';
+import { useData } from '../context/DataContext.tsx';
 
 interface HeaderProps {
   currentPage: PageType;
@@ -12,6 +13,8 @@ interface HeaderProps {
 export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  const { siteSettings, leads } = useData();
+  const newLeadsCount = leads.filter((l) => l.status === 'new').length;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -48,44 +51,66 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
             <div className="flex items-center gap-1 text-emerald-400 font-medium">
               <GstBadgeIcon className="w-3.5 h-3.5 text-emerald-400" />
-              <span>GSTIN: 37AGHPU5940Q1ZF</span>
+              <span>GSTIN: {siteSettings.gstin}</span>
             </div>
             <span className="hidden sm:inline text-slate-500">|</span>
             <span className="text-slate-300 hidden sm:inline">
-              Proprietor: <strong className="text-white font-semibold">Utukuri Rambabu</strong>
+              Proprietor: <strong className="text-white font-semibold">{siteSettings.proprietor}</strong>
             </span>
             <span className="hidden md:inline text-slate-500">|</span>
             <div className="hidden md:flex items-center gap-1 text-slate-300">
               <MapPin className="w-3 h-3 text-sky-400" />
-              <span>Ramayapatnam Road, Ulavapadu, Nellore</span>
+              <span className="line-clamp-1">{siteSettings.address.split(',')[1] || 'Ulavapadu, Nellore'}</span>
             </div>
           </div>
 
-          {/* Quick Direct Contacts */}
+          {/* Quick Direct Contacts & Admin Portal Shortcut */}
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center gap-1 text-slate-300">
               <Clock className="w-3 h-3 text-emerald-400" />
-              <span>Open Daily: 6:30 AM – 9:00 PM</span>
+              <span>{siteSettings.shopHours.split('(')[0] || 'Open Daily'}</span>
             </div>
             <a
-              href="tel:9493243244"
-              className="flex items-center gap-1 text-sky-300 hover:text-white transition-colors font-medium"
+              href={`tel:${siteSettings.primaryPhone}`}
+              className="flex items-center gap-1 text-sky-300 hover:text-white transition-colors font-medium font-mono"
               title="Call Main Contact"
             >
               <PhoneCallIcon className="w-3 h-3 text-sky-400" />
-              <span>9493243244</span>
+              <span>{siteSettings.primaryPhone}</span>
             </a>
-            <span className="text-slate-600">/</span>
-            <a
-              href="tel:7075838624"
-              className="flex items-center gap-1 text-sky-300 hover:text-white transition-colors font-medium"
-              title="Call Secondary Contact"
+            {siteSettings.secondaryPhone && (
+              <>
+                <span className="text-slate-600">/</span>
+                <a
+                  href={`tel:${siteSettings.secondaryPhone}`}
+                  className="flex items-center gap-1 text-sky-300 hover:text-white transition-colors font-medium font-mono"
+                  title="Call Secondary Contact"
+                >
+                  <span>{siteSettings.secondaryPhone}</span>
+                </a>
+              </>
+            )}
+
+            {/* Direct Admin Portal Access Button in Top Strip */}
+            <button
+              onClick={() => handleNavClick('admin')}
+              className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-[11px] font-bold transition-all ml-1 cursor-pointer ${
+                currentPage === 'admin'
+                  ? 'bg-emerald-500 text-slate-950 font-black shadow-xs'
+                  : 'bg-emerald-950/90 text-emerald-300 border border-emerald-600/50 hover:bg-emerald-800 hover:text-white'
+              }`}
+              title="Open Admin Control Panel & Customer Leads"
             >
-              <span>7075838624</span>
-            </a>
+              <Shield className="w-3 h-3" />
+              <span>Admin</span>
+              {newLeadsCount > 0 && (
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping ml-0.5" />
+              )}
+            </button>
           </div>
         </div>
       </div>
+
 
       {/* Main Navbar */}
       <div className={`max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between transition-all duration-300 ${isScrolled ? 'py-1.5 sm:py-2' : 'py-3 sm:py-4'}`}>
@@ -202,23 +227,25 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
           <div className="pt-2 border-t border-slate-100 flex flex-col gap-2.5">
             <a
               id="mobile-drawer-call-1"
-              href="tel:9493243244"
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-600 text-white font-semibold text-sm shadow-sm"
+              href={`tel:${siteSettings.primaryPhone}`}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-sky-600 text-white font-semibold text-sm shadow-sm font-mono"
             >
               <PhoneCallIcon className="w-4 h-4" />
-              <span>Call Primary: 9493243244</span>
+              <span>Call Primary: {siteSettings.primaryPhone}</span>
             </a>
-            <a
-              id="mobile-drawer-call-2"
-              href="tel:7075838624"
-              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-sky-300 text-sky-800 bg-sky-50 font-semibold text-sm"
-            >
-              <PhoneCallIcon className="w-4 h-4 text-sky-700" />
-              <span>Call Secondary: 7075838624</span>
-            </a>
+            {siteSettings.secondaryPhone && (
+              <a
+                id="mobile-drawer-call-2"
+                href={`tel:${siteSettings.secondaryPhone}`}
+                className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-sky-300 text-sky-800 bg-sky-50 font-semibold text-sm font-mono"
+              >
+                <PhoneCallIcon className="w-4 h-4 text-sky-700" />
+                <span>Call Secondary: {siteSettings.secondaryPhone}</span>
+              </a>
+            )}
             <a
               id="mobile-drawer-whatsapp"
-              href="https://wa.me/919493243244?text=Hi%20SR%20Aqua%20Feeds%2C%20I%20need%20details%20about%20your%20products."
+              href={`https://wa.me/${siteSettings.whatsappNumber}?text=Hi%20SR%20Aqua%20Feeds%2C%20I%20need%20details%20about%20your%20products.`}
               target="_blank"
               rel="noopener noreferrer"
               className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-emerald-600 text-white font-semibold text-sm shadow-sm"
@@ -226,9 +253,17 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
               <WhatsAppIcon className="w-5 h-5 text-white" />
               <span>Chat on WhatsApp</span>
             </a>
+            <button
+              onClick={() => handleNavClick('admin')}
+              className="w-full flex items-center justify-center gap-2 py-3 px-4 rounded-xl bg-slate-900 text-white font-semibold text-sm shadow-sm cursor-pointer"
+            >
+              <Shield className="w-4 h-4 text-emerald-400" />
+              <span>Store Admin Portal {newLeadsCount > 0 ? `(${newLeadsCount} New Leads)` : ''}</span>
+            </button>
           </div>
         </div>
       )}
+
     </header>
   );
 };
