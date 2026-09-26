@@ -1,30 +1,26 @@
 import { GalleryItem } from '../types.ts';
 
-import heroPrawnBanner from '../assets/images/hero_prawn_banner_1790103831232.jpg';
-import prawnIllustration from '../assets/images/prawn_illustration_1790103846428.jpg';
-import pondAerationBanner from '../assets/images/pond_aeration_banner_1790103885278.jpg';
-
 export const GALLERY_DATA: GalleryItem[] = [
   {
     id: 'gallery-hero-prawns',
     title: 'Healthy Vannamei Prawns Underwater Culture',
     category: 'Prawn & Crop Vitality',
     description: 'Vigorous Vannamei shrimp school swimming in crystal-clear, aerated brackish water ponds supported by our high-digestibility feed and ionic mineral supplements.',
-    imageUrl: heroPrawnBanner,
+    imageUrl: '/images/hero_prawn_banner_1790103831232.jpg',
   },
   {
     id: 'gallery-pond-aeration',
     title: 'Coastal Pond Aeration Network & Paddlewheels',
     category: 'Pond & Farm Scenery',
     description: 'Active morning aeration across Ulavapadu aquaculture pond embankments, generating rich dissolved oxygen foam for high stocking densities.',
-    imageUrl: pondAerationBanner,
+    imageUrl: '/images/pond_aeration_banner_1790103885278.jpg',
   },
   {
     id: 'gallery-prawn-specimen',
     title: 'Vannamei Shrimp Biological Health Standard',
     category: 'Prawn & Crop Vitality',
     description: 'Detailed anatomical inspection of healthy Vannamei specimen showing complete antennal integrity, clean transparent carapace, and full gut lines.',
-    imageUrl: prawnIllustration,
+    imageUrl: '/images/prawn_illustration_1790103846428.jpg',
   },
   {
     id: 'gallery-shop-front',

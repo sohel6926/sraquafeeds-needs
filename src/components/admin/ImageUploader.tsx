@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Upload, Image as ImageIcon, Trash2, Link, Check, RefreshCw } from 'lucide-react';
+import { Upload, Image as ImageIcon, Trash2, Link, Check, RefreshCw, Cloud } from 'lucide-react';
+import { uploadImageToCloudinary } from '../../lib/cloudinary.ts';
 
 interface ImageUploaderProps {
   value: string;
@@ -8,7 +9,7 @@ interface ImageUploaderProps {
   presetImages?: { label: string; url: string }[];
 }
 
-// Client-side image resizing and optimization to prevent exceeding browser localStorage limits
+// Client-side image resizing and optimization fallback
 const compressImage = (file: File, maxWidth = 1200, maxHeight = 900, quality = 0.85): Promise<string> => {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -58,6 +59,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string>('');
   const [showUrlOption, setShowUrlOption] = useState(false);
   const [urlInput, setUrlInput] = useState('');
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,13 +72,23 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
     try {
       setIsProcessing(true);
-      const compressedDataUrl = await compressImage(file);
-      onChange(compressedDataUrl);
+      setUploadStatus('Uploading to Cloudinary CDN...');
+      try {
+        const cloudUrl = await uploadImageToCloudinary(file);
+        onChange(cloudUrl);
+        setUploadStatus('Uploaded successfully!');
+      } catch (cloudErr) {
+        console.warn('Cloudinary upload fallback to local compressed image:', cloudErr);
+        setUploadStatus('Optimizing image locally...');
+        const compressedDataUrl = await compressImage(file);
+        onChange(compressedDataUrl);
+      }
     } catch (e) {
       console.error('Failed to process image', e);
       alert('Error processing image. Please try another image.');
     } finally {
       setIsProcessing(false);
+      setTimeout(() => setUploadStatus(''), 2000);
     }
   };
 
@@ -161,6 +173,12 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
             <p className="text-[11px] text-slate-500 leading-snug">
               This photo will be displayed in the product catalog and detail page.
             </p>
+            {uploadStatus && (
+              <div className="text-[10px] font-bold text-emerald-700 bg-emerald-100/90 px-2 py-0.5 rounded inline-flex items-center gap-1">
+                <Cloud className="w-3 h-3 text-emerald-600" />
+                <span>{uploadStatus}</span>
+              </div>
+            )}
 
             <div className="flex items-center gap-2 pt-1 flex-wrap">
               <button

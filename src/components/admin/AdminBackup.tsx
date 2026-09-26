@@ -158,6 +158,63 @@ export const AdminBackup: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Cloud & Supabase Infrastructure Summary */}
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl border border-slate-700 p-6 text-white space-y-4 shadow-xl">
+        <div className="flex items-center justify-between gap-4 pb-3 border-b border-white/10 flex-wrap">
+          <div className="flex items-center gap-2.5">
+            <ShieldCheck className="w-5 h-5 text-emerald-400" />
+            <h3 className="font-extrabold text-sm sm:text-base">Supabase Cloud Architecture</h3>
+          </div>
+          <span className="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-[11px] font-bold">
+            Vercel + Supabase + Cloudinary
+          </span>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase">Products Table</span>
+            <div className="font-mono text-emerald-300 font-bold text-sm">public.products</div>
+            <span className="text-[11px] text-slate-300">Live synced table</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase">Gallery Table</span>
+            <div className="font-mono text-emerald-300 font-bold text-sm">public.gallery</div>
+            <span className="text-[11px] text-slate-300">Showroom & warehouse</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase">Leads Table</span>
+            <div className="font-mono text-emerald-300 font-bold text-sm">public.leads</div>
+            <span className="text-[11px] text-slate-300">Farmer CRM inquiries</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase">Stories Table</span>
+            <div className="font-mono text-emerald-300 font-bold text-sm">public.farmer_stories</div>
+            <span className="text-[11px] text-slate-300">Verified harvest stories</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase">FAQs Table</span>
+            <div className="font-mono text-emerald-300 font-bold text-sm">public.faqs</div>
+            <span className="text-[11px] text-slate-300">Pond science knowledgebase</span>
+          </div>
+
+          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+            <span className="text-[10px] text-slate-400 font-semibold block uppercase">Settings Table</span>
+            <div className="font-mono text-emerald-300 font-bold text-sm">public.site_settings</div>
+            <span className="text-[11px] text-slate-300">Store hours, phones, GSTIN</span>
+          </div>
+        </div>
+
+        <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400 flex-wrap gap-2 border-t border-white/10">
+          <span>Supabase Project: <strong className="text-slate-200">lnsflmqbrpdkjcajzagw</strong></span>
+          <span>Cloud CDN: <strong className="text-slate-200">neaxuyc2 (Cloudinary)</strong></span>
+          <span>Hosting Ready: <strong className="text-slate-200">Vercel</strong></span>
+        </div>
+      </div>
     </div>
   );
 };
