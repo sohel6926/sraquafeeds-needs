@@ -41,7 +41,7 @@ export const AdminContent: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6 max-w-4xl">
+    <div className="space-y-6 max-w-4xl w-full min-w-0">
       {toastMessage && (
         <div className="fixed top-20 right-6 z-50 p-4 rounded-xl bg-slate-900 text-white shadow-2xl border border-emerald-500/40 flex items-center gap-3 animate-in fade-in duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />

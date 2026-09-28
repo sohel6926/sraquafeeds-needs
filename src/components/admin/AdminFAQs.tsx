@@ -118,11 +118,11 @@ export const AdminFAQs: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200">
-        <div>
-          <h2 className="text-2xl font-black text-slate-900 flex items-center gap-2.5">
-            <HelpCircle className="w-7 h-7 text-emerald-600" />
-            <span>Aquaculture FAQs & Farming Guidance Manager</span>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-2 border-b border-slate-200 w-full max-w-full min-w-0">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-xl sm:text-2xl font-black text-slate-900 flex items-center gap-2.5">
+            <HelpCircle className="w-6 h-6 sm:w-7 sm:h-7 text-emerald-600 flex-shrink-0" />
+            <span className="break-words">Aquaculture FAQs & Farming Guidance Manager</span>
           </h2>
           <p className="text-xs text-slate-500 mt-1">
             Edit farmer questions, recommended dosages, and farming advisory displayed across Homepage and Contact pages.
@@ -154,8 +154,8 @@ export const AdminFAQs: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs">
-        <div className="relative w-full sm:w-80">
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs w-full max-w-full min-w-0">
+        <div className="relative w-full sm:w-80 min-w-0 flex-shrink-0">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
@@ -166,12 +166,12 @@ export const AdminFAQs: React.FC = () => {
           />
         </div>
 
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none self-start sm:self-auto">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none w-full sm:w-auto max-w-full min-w-0">
           {['All', ...FAQ_CATEGORIES].map((cat) => (
             <button
               key={cat}
               onClick={() => setSelectedCat(cat)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer flex-shrink-0 ${
                 selectedCat === cat
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -253,8 +253,8 @@ export const AdminFAQs: React.FC = () => {
 
       {/* Add / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto w-full max-w-full">
+          <div className="bg-white rounded-xl max-w-xl w-full p-5 sm:p-8 shadow-2xl border border-slate-200 space-y-4 my-8 max-h-[90vh] overflow-y-auto min-w-0">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <HelpCircle className="w-5 h-5 text-emerald-600" />

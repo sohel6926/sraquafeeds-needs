@@ -243,8 +243,8 @@ export const FAQSection: React.FC = () => {
             </div>
 
             {/* Category Filter Pills & Toggle All */}
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+            <div className="flex flex-wrap items-center justify-between gap-3 w-full max-w-full min-w-0">
+              <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full sm:w-auto max-w-full min-w-0">
                 {categories.map((cat) => (
                   <button
                     key={cat}

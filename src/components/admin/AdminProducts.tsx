@@ -365,7 +365,7 @@ export const AdminProducts: React.FC = () => {
         </div>
 
         {/* Tab Selector Bar */}
-        <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none">
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none w-full max-w-full min-w-0">
           <button
             type="button"
             onClick={() => setModalTab('general')}
@@ -953,7 +953,7 @@ export const AdminProducts: React.FC = () => {
         </div>
 
         {/* Categories Bar */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none w-full max-w-full min-w-0">
           {CATEGORIES.map((cat) => (
             <button
               key={cat}

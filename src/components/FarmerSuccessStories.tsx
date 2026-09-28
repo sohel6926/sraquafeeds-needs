@@ -246,7 +246,7 @@ export const FarmerSuccessStories: React.FC = () => {
       </div>
 
       {/* Filter Pills */}
-      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none text-xs font-semibold">
+      <div className="flex items-center gap-2 overflow-x-auto pb-3 mb-6 scrollbar-none text-xs font-semibold w-full max-w-full min-w-0">
         <span className="text-slate-400 uppercase tracking-wider text-[11px] font-bold mr-1 flex-shrink-0">
           Filter by:
         </span>

@@ -48,7 +48,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
   };
 
   return (
-    <div className="space-y-7">
+    <div className="space-y-7 w-full max-w-full min-w-0">
       {/* 1. Welcome Hero Banner */}
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-6 sm:p-8 shadow-xl border border-white/10">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">

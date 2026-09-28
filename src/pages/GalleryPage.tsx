@@ -189,7 +189,7 @@ export const GalleryPage: React.FC = () => {
           <div className="absolute inset-0 pointer-events-none opacity-[0.025] mix-blend-multiply">
             <img src={cleanWaterTexture} alt="" referrerPolicy="no-referrer" className="w-full h-full object-cover" />
           </div>
-          <div className="relative z-10 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+          <div className="relative z-10 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full max-w-full min-w-0">
             {categories.map((cat) => (
               <button
                 key={cat}

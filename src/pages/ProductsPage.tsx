@@ -256,7 +256,7 @@ export const ProductsPage: React.FC<ProductsPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Category Pills Slider/Wrap */}
-          <div className="relative z-10 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1">
+          <div className="relative z-10 flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none pt-1 w-full max-w-full min-w-0">
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat;
               const count =

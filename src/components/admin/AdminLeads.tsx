@@ -280,7 +280,7 @@ export const AdminLeads: React.FC = () => {
       {/* 2. Filter Pills & Search Filter Row */}
       <div className="space-y-3">
         {/* Filter Pills */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full max-w-full min-w-0">
           <button
             onClick={() => setChannelFilter('all')}
             className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
@@ -372,8 +372,8 @@ export const AdminLeads: React.FC = () => {
       </div>
 
       {/* 4. CRM Leads Data Table */}
-      <div className="bg-slate-950/90 rounded-lg border border-slate-800 overflow-hidden shadow-2xl">
-        <div className="overflow-x-auto">
+      <div className="bg-slate-950/90 rounded-lg border border-slate-800 overflow-hidden shadow-2xl w-full max-w-full min-w-0">
+        <div className="overflow-x-auto w-full max-w-full min-w-0">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
               <tr className="border-b border-slate-800 bg-slate-900/60 text-[10px] font-black uppercase tracking-widest text-slate-400">

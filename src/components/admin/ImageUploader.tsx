@@ -267,7 +267,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
               <span className="text-[10px] font-semibold text-slate-500 block mb-1">
                 Or select from sample presets:
               </span>
-              <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] pb-1 scrollbar-none">
+              <div className="flex items-center gap-1.5 overflow-x-auto text-[11px] pb-1 scrollbar-none w-full max-w-full min-w-0">
                 {presetImages.map((preset, idx) => (
                   <button
                     key={idx}

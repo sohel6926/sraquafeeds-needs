@@ -364,7 +364,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-100/70 text-slate-900 pb-16">
+    <div className="min-h-screen bg-slate-100/70 text-slate-900 pb-16 w-full max-w-full overflow-x-hidden">
       {/* Mobile Top Header */}
       <div className="lg:hidden sticky top-0 z-30 bg-slate-900 text-white px-4 py-3 border-b border-slate-800 flex items-center justify-between shadow-md">
         <div className="flex items-center gap-2.5">
@@ -402,7 +402,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-4 lg:pt-8 flex flex-col lg:flex-row gap-6 items-start">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-4 lg:pt-8 flex flex-col lg:flex-row gap-6 items-start w-full max-w-full min-w-0">
         {/* SIDEBAR NAVIGATION (Desktop & Tablet) */}
         <aside
           className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-300 p-5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-72 lg:rounded-xl lg:p-5 lg:shadow-xl lg:border lg:border-slate-800 flex flex-col justify-between overflow-y-auto ${
@@ -564,7 +564,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Active Tab Component Container with Smooth Animation */}
-          <div className="bg-white rounded-xl p-5 sm:p-7 border border-slate-200/80 shadow-sm transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
+          <div className="bg-white rounded-xl p-4 sm:p-7 border border-slate-200/80 shadow-sm transition-all duration-200 animate-in fade-in slide-in-from-bottom-2 w-full max-w-full min-w-0 overflow-hidden">
             {activeTab === 'dashboard' && (
               <AdminDashboard
                 onNavigateTab={(tab) => handleSelectTab(tab)}
