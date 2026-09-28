@@ -60,10 +60,94 @@ interface NavGroup {
   }[];
 }
 
+const ADMIN_TAB_STORAGE_KEY = 'sr_aqua_admin_active_tab';
+const VALID_ADMIN_TABS: AdminTabType[] = [
+  'dashboard',
+  'leads',
+  'products',
+  'content',
+  'stories',
+  'faqs',
+  'gallery',
+  'settings',
+  'backup',
+];
+
 export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const { isAdminAuthenticated, loginAdmin, logoutAdmin, leads, products, gallery, siteSettings, farmerStories, faqs } = useData();
-  const [activeTab, setActiveTab] = useState<AdminTabType>('dashboard');
+
+  const getInitialTab = (): AdminTabType => {
+    // 1. Check URL query param ?tab=
+    const params = new URLSearchParams(window.location.search);
+    const searchTab = params.get('tab') as AdminTabType | null;
+    if (searchTab && VALID_ADMIN_TABS.includes(searchTab)) {
+      return searchTab;
+    }
+
+    // 2. Check URL hash (e.g. #admin?tab=products or #products)
+    const hash = window.location.hash.toLowerCase();
+    const hashMatch = hash.match(/(?:tab=|\/|#)(dashboard|leads|products|content|stories|faqs|gallery|settings|backup)/);
+    if (hashMatch && hashMatch[1] && VALID_ADMIN_TABS.includes(hashMatch[1] as AdminTabType)) {
+      return hashMatch[1] as AdminTabType;
+    }
+
+    // 3. Check persistent localStorage memory (survives any page refresh!)
+    try {
+      const storedTab = localStorage.getItem(ADMIN_TAB_STORAGE_KEY) as AdminTabType | null;
+      if (storedTab && VALID_ADMIN_TABS.includes(storedTab)) {
+        return storedTab;
+      }
+    } catch {
+      // Fallback
+    }
+
+    return 'dashboard';
+  };
+
+  const [activeTab, setActiveTab] = useState<AdminTabType>(getInitialTab);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Sync state changes with localStorage and URL
+  React.useEffect(() => {
+    try {
+      localStorage.setItem(ADMIN_TAB_STORAGE_KEY, activeTab);
+    } catch {
+      // Ignore
+    }
+
+    // Ensure the URL search param matches activeTab without causing full page reload
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('tab') !== activeTab) {
+      params.set('tab', activeTab);
+      const newRelativePathQuery = window.location.pathname + '?' + params.toString() + window.location.hash;
+      window.history.replaceState(null, '', newRelativePathQuery);
+    }
+  }, [activeTab]);
+
+  // Listen to popstate & hashchange (Back/Forward browser buttons)
+  React.useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const searchTab = params.get('tab') as AdminTabType | null;
+      if (searchTab && VALID_ADMIN_TABS.includes(searchTab)) {
+        setActiveTab(searchTab);
+        try {
+          localStorage.setItem(ADMIN_TAB_STORAGE_KEY, searchTab);
+        } catch {}
+      } else {
+        const storedTab = localStorage.getItem(ADMIN_TAB_STORAGE_KEY) as AdminTabType | null;
+        if (storedTab && VALID_ADMIN_TABS.includes(storedTab)) {
+          setActiveTab(storedTab);
+        }
+      }
+    };
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+    };
+  }, []);
 
   // Login form state
   const [pin, setPin] = useState('');
@@ -86,7 +170,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   if (!isAdminAuthenticated) {
     return (
       <div className="min-h-[85vh] flex items-center justify-center p-4 sm:p-6 bg-slate-100/60">
-        <div className="max-w-md w-full rounded-3xl bg-white border border-slate-200/90 shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+        <div className="max-w-md w-full rounded-xl bg-white border border-slate-200/90 shadow-2xl p-6 sm:p-8 space-y-6 relative overflow-hidden animate-in fade-in zoom-in-95 duration-200">
           {/* Top subtle aquatic accent line */}
           <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-400 to-sky-500" />
 
@@ -105,7 +189,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
           {/* Login Error */}
           {loginError && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium text-center">
+            <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-medium text-center">
               {loginError}
             </div>
           )}
@@ -125,14 +209,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                   value={pin}
                   onChange={(e) => setPin(e.target.value)}
                   placeholder="Enter PIN (Demo: 1234)"
-                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white tracking-widest font-mono"
+                  className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-sm text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white tracking-widest font-mono"
                 />
               </div>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
+              className="w-full py-2.5 px-4 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md hover:shadow-lg transition-all active:scale-98 cursor-pointer flex items-center justify-center gap-2"
             >
               <Unlock className="w-4 h-4" />
               <span>Unlock Admin Panel</span>
@@ -147,7 +231,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
             <button
               type="button"
               onClick={handleQuickDemoLogin}
-              className="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
+              className="w-full py-2.5 px-4 rounded-lg bg-slate-100 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 border border-slate-200 text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-1.5"
             >
               <ShieldCheck className="w-4 h-4 text-emerald-600" />
               <span>1-Click Quick Login as Utukuri Rambabu</span>
@@ -263,6 +347,19 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
   const handleSelectTab = (tabId: AdminTabType) => {
     setActiveTab(tabId);
     setIsMobileSidebarOpen(false);
+    try {
+      localStorage.setItem(ADMIN_TAB_STORAGE_KEY, tabId);
+    } catch {
+      // Ignore
+    }
+    const params = new URLSearchParams(window.location.search);
+    params.set('tab', tabId);
+    if (tabId !== 'products') {
+      params.delete('action');
+      params.delete('id');
+    }
+    const newPath = window.location.pathname + '?' + params.toString();
+    window.history.pushState({}, '', newPath);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -273,13 +370,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-            className="p-1.5 rounded-xl bg-slate-800 text-slate-200 hover:text-white cursor-pointer"
+            className="p-1.5 rounded-lg bg-slate-800 text-slate-200 hover:text-white cursor-pointer"
             aria-label="Toggle menu"
           >
             {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
           <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-lg bg-emerald-600 flex items-center justify-center font-bold text-xs text-white">
+            <span className="w-7 h-7 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-xs text-white">
               SR
             </span>
             <span className="font-extrabold text-sm tracking-tight text-white">Admin Control</span>
@@ -290,14 +387,14 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           {newLeadsCount > 0 && (
             <button
               onClick={() => handleSelectTab('leads')}
-              className="px-2 py-0.5 rounded-full bg-rose-500 text-white text-[10px] font-bold flex items-center gap-1 animate-pulse"
+              className="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[10px] font-bold flex items-center gap-1 animate-pulse"
             >
               <span>{newLeadsCount} Leads</span>
             </button>
           )}
           <button
             onClick={() => onNavigate('home')}
-            className="p-1.5 rounded-xl bg-slate-800 text-sky-400 hover:text-sky-300"
+            className="p-1.5 rounded-lg bg-slate-800 text-sky-400 hover:text-sky-300"
             title="View Live Website"
           >
             <ExternalLink className="w-4 h-4" />
@@ -308,7 +405,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-4 lg:pt-8 flex flex-col lg:flex-row gap-6 items-start">
         {/* SIDEBAR NAVIGATION (Desktop & Tablet) */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-300 p-5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-72 lg:rounded-3xl lg:p-5 lg:shadow-xl lg:border lg:border-slate-800 flex flex-col justify-between overflow-y-auto ${
+          className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-300 p-5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-72 lg:rounded-xl lg:p-5 lg:shadow-xl lg:border lg:border-slate-800 flex flex-col justify-between overflow-y-auto ${
             isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
           }`}
         >
@@ -316,7 +413,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           <div className="space-y-6">
             <div className="flex items-center justify-between pb-4 border-b border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-base shadow-md">
+                <div className="w-9 h-9 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-sm shadow-md">
                   SR
                 </div>
                 <div>
@@ -348,7 +445,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                         <button
                           key={item.id}
                           onClick={() => handleSelectTab(item.id)}
-                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-2xl text-xs font-bold transition-all text-left cursor-pointer group ${
+                          className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-xs font-bold transition-all text-left cursor-pointer group ${
                             isActive
                               ? 'bg-emerald-700 text-white shadow-md'
                               : 'text-slate-300 hover:text-white hover:bg-slate-800/80'
@@ -356,7 +453,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                         >
                           <div className="flex items-center gap-3 min-w-0">
                             <span
-                              className={`p-1.5 rounded-xl transition-colors ${
+                              className={`p-1.5 rounded-md transition-colors ${
                                 isActive ? 'bg-emerald-500/30 text-emerald-300' : 'text-slate-400 group-hover:text-emerald-400'
                               }`}
                             >
@@ -367,7 +464,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
                           {typeof item.badge === 'number' && item.badge > 0 && (
                             <span
-                              className={`text-[10px] font-black px-2 py-0.5 rounded-full ml-1.5 flex-shrink-0 ${
+                              className={`text-[10px] font-black px-2 py-0.5 rounded-md ml-1.5 flex-shrink-0 ${
                                 isActive
                                   ? 'bg-white/20 text-white'
                                   : item.badgeColor || 'bg-slate-800 text-slate-300'
@@ -387,7 +484,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
           {/* Sidebar Bottom Profile & Controls */}
           <div className="pt-6 mt-6 border-t border-slate-800 space-y-3">
-            <div className="p-3 rounded-2xl bg-slate-800/60 border border-slate-700/60 flex items-center justify-between">
+            <div className="p-3 rounded-lg bg-slate-800/60 border border-slate-700/60 flex items-center justify-between">
               <div className="min-w-0">
                 <span className="text-[10px] text-slate-400 block font-medium">Logged in as</span>
                 <strong className="text-xs font-bold text-white truncate block">
@@ -400,7 +497,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => onNavigate('home')}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-800 hover:bg-sky-950/80 text-sky-400 hover:text-sky-300 text-[11px] font-bold transition-colors cursor-pointer border border-slate-700/60"
+                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-800 hover:bg-sky-950/80 text-sky-400 hover:text-sky-300 text-[11px] font-bold transition-colors cursor-pointer border border-slate-700/60"
                 title="Open live website in public view"
               >
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -409,7 +506,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
               <button
                 onClick={logoutAdmin}
-                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-slate-800 hover:bg-rose-950/80 text-rose-400 hover:text-rose-300 text-[11px] font-bold transition-colors cursor-pointer border border-slate-700/60"
+                className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg bg-slate-800 hover:bg-rose-950/80 text-rose-400 hover:text-rose-300 text-[11px] font-bold transition-colors cursor-pointer border border-slate-700/60"
                 title="Log out of admin session"
               >
                 <LogOut className="w-3.5 h-3.5" />
@@ -430,9 +527,9 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         {/* MAIN CONTENT AREA */}
         <main className="flex-1 w-full min-w-0 space-y-6">
           {/* Top Breadcrumb & Quick Actions Header */}
-          <div className="hidden lg:flex items-center justify-between bg-white px-6 py-4 rounded-3xl border border-slate-200/80 shadow-2xs">
+          <div className="hidden lg:flex items-center justify-between bg-white px-6 py-4 rounded-xl border border-slate-200/80 shadow-2xs">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+              <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
                 {currentNav.icon}
               </div>
               <div>
@@ -450,7 +547,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
             <div className="flex items-center gap-3">
               <button
                 onClick={() => onNavigate('home')}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200/80 text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200/80 text-xs font-bold transition-all cursor-pointer shadow-2xs"
               >
                 <ExternalLink className="w-3.5 h-3.5 text-sky-600" />
                 <span>View Live Site</span>
@@ -458,7 +555,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
               <button
                 onClick={logoutAdmin}
-                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-100 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 border border-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
+                className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-slate-100 text-slate-700 hover:bg-rose-50 hover:text-rose-700 hover:border-rose-200 border border-slate-200 text-xs font-semibold transition-all cursor-pointer shadow-2xs"
               >
                 <LogOut className="w-3.5 h-3.5" />
                 <span>Log Out</span>
@@ -467,7 +564,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           </div>
 
           {/* Active Tab Component Container with Smooth Animation */}
-          <div className="bg-white rounded-3xl p-5 sm:p-7 border border-slate-200/80 shadow-sm transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
+          <div className="bg-white rounded-xl p-5 sm:p-7 border border-slate-200/80 shadow-sm transition-all duration-200 animate-in fade-in slide-in-from-bottom-2">
             {activeTab === 'dashboard' && (
               <AdminDashboard
                 onNavigateTab={(tab) => handleSelectTab(tab)}

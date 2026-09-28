@@ -48,7 +48,7 @@ const getRouteFromUrl = (): { page: PageType; productId?: string } => {
   const pathname = window.location.pathname.toLowerCase().replace(/\/+$/, '') || '/';
   const pathClean = pathname.replace(/^\//, ''); // e.g. "admin", "products", ""
 
-  if (pathClean === 'admin') {
+  if (pathClean === 'admin' || pathClean.startsWith('admin/') || pathClean.startsWith('admin?')) {
     return { page: 'admin' };
   }
   if (pathClean === 'about') {
@@ -77,7 +77,7 @@ const getRouteFromUrl = (): { page: PageType; productId?: string } => {
     const id = params.get('id');
     return { page: 'product-detail', productId: id || 'shrimp-feed-grower' };
   }
-  if (rawHash === 'admin') return { page: 'admin' };
+  if (rawHash === 'admin' || rawHash.startsWith('admin')) return { page: 'admin' };
   if (rawHash === 'about') return { page: 'about' };
   if (rawHash === 'products') return { page: 'products' };
   if (rawHash === 'gallery') return { page: 'gallery' };
@@ -236,8 +236,10 @@ export default function App() {
         </div>
       )}
 
-      {/* Sticky Header with Navigation & Quick Actions */}
-      <Header currentPage={currentPage} onNavigate={handleNavigate} />
+      {/* Sticky Header with Navigation & Quick Actions (hidden on admin portal) */}
+      {currentPage !== 'admin' && (
+        <Header currentPage={currentPage} onNavigate={handleNavigate} />
+      )}
 
       {/* Main Multi-Page Content Outlet */}
       <main className="flex-1 relative z-10">
@@ -252,20 +254,21 @@ export default function App() {
         {currentPage === 'admin' && <AdminPage onNavigate={handleNavigate} />}
       </main>
 
-
-      {/* Comprehensive Business Footer */}
-      <div className="relative z-20">
-        <Footer onNavigate={handleNavigate} />
-      </div>
+      {/* Comprehensive Business Footer (hidden on admin portal) */}
+      {currentPage !== 'admin' && (
+        <div className="relative z-20">
+          <Footer onNavigate={handleNavigate} />
+        </div>
+      )}
 
       {/* Smooth Scroll-to-Reveal Universal Observer */}
       <GlobalScrollRevealObserver />
 
       {/* Global Scroll-to-Top Button with Circular Progress Ring */}
-      <ScrollToTop />
+      {currentPage !== 'admin' && <ScrollToTop />}
 
       {/* Global Floating Action Button (FAB) with Animated Sub-Icons */}
-      <FloatingActions />
+      {currentPage !== 'admin' && <FloatingActions />}
 
       {/* Universal Customer Contact Capture Gate Modal */}
       <ContactGateModal

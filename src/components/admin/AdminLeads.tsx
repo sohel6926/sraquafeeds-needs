@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useData } from '../../context/DataContext.tsx';
 import { Lead, LeadStatus } from '../../types.ts';
+import { AutoResizeTextarea } from './AutoResizeTextarea.tsx';
 import {
   Users,
   Search,
@@ -234,17 +235,15 @@ export const AdminLeads: React.FC = () => {
     <div className="space-y-5 text-slate-100 font-sans">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 p-4 rounded-2xl bg-slate-900 text-white shadow-2xl border border-emerald-500/50 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-20 right-6 z-50 p-4 rounded-lg bg-slate-900 text-white shadow-2xl border border-emerald-500/50 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
-      )}
-
-      {/* 1. Main Title Card Block (Matching Screenshot) */}
-      <div className="bg-slate-950/90 rounded-3xl p-5 sm:p-7 border border-slate-800/90 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
+      )}      {/* 1. Main Title Card Block (Matching Screenshot) */}
+      <div className="bg-slate-950/90 rounded-lg p-5 sm:p-7 border border-slate-800/90 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5">
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
               <Users className="w-5 h-5" />
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
@@ -262,7 +261,7 @@ export const AdminLeads: React.FC = () => {
         <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-slate-800/90 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-800/90 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
           >
             <Download className="w-4 h-4 text-slate-400" />
             <span>Export CSV</span>
@@ -270,7 +269,7 @@ export const AdminLeads: React.FC = () => {
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-black shadow-lg shadow-orange-950/40 transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-black shadow-lg shadow-orange-950/40 transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Add Walk-in Lead</span>
@@ -284,7 +283,7 @@ export const AdminLeads: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
           <button
             onClick={() => setChannelFilter('all')}
-            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               channelFilter === 'all'
                 ? 'bg-slate-800 text-white border border-slate-700 shadow-md ring-2 ring-emerald-500/20'
                 : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800'
@@ -295,7 +294,7 @@ export const AdminLeads: React.FC = () => {
 
           <button
             onClick={() => setChannelFilter('form')}
-            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               channelFilter === 'form'
                 ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50 shadow-md ring-2 ring-emerald-500/20'
                 : 'bg-slate-900/60 text-emerald-400 hover:text-emerald-300 border border-slate-800'
@@ -307,7 +306,7 @@ export const AdminLeads: React.FC = () => {
 
           <button
             onClick={() => setChannelFilter('whatsapp_call')}
-            className={`px-4 py-2 rounded-2xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               channelFilter === 'whatsapp_call'
                 ? 'bg-sky-950 text-sky-300 border border-sky-500/50 shadow-md ring-2 ring-sky-500/20'
                 : 'bg-slate-900/60 text-sky-400 hover:text-sky-300 border border-slate-800'
@@ -327,7 +326,7 @@ export const AdminLeads: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search leads by client name, mobile, service, enquired property, or village..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-inner"
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-inner"
             />
             {searchTerm && (
               <button
@@ -343,7 +342,7 @@ export const AdminLeads: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-800 rounded-2xl text-xs font-semibold text-slate-300 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs font-semibold text-slate-300 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
             >
               <option value="all">All Pipeline Statuses ({counts.total})</option>
               <option value="new">New ({leads.filter((l) => l.status === 'new').length})</option>
@@ -351,7 +350,7 @@ export const AdminLeads: React.FC = () => {
                 Contacted ({leads.filter((l) => l.status === 'contacted').length})
               </option>
               <option value="quote_sent">
-                Quote Sent ({leads.filter((l) => l.status === 'quote_sent').length})
+                Quote Given ({leads.filter((l) => l.status === 'quote_sent').length})
               </option>
               <option value="order_placed">
                 Order Placed ({leads.filter((l) => l.status === 'order_placed').length})
@@ -373,7 +372,7 @@ export const AdminLeads: React.FC = () => {
       </div>
 
       {/* 4. CRM Leads Data Table */}
-      <div className="bg-slate-950/90 rounded-3xl border border-slate-800 overflow-hidden shadow-2xl">
+      <div className="bg-slate-950/90 rounded-lg border border-slate-800 overflow-hidden shadow-2xl">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
@@ -572,11 +571,11 @@ export const AdminLeads: React.FC = () => {
       {/* 5. Client Dossier & Discussion Notes Modal */}
       {selectedLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-700/80 space-y-5 my-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-slate-900 text-white rounded-xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-700/80 space-y-5 my-6 animate-in zoom-in-95 duration-200">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
@@ -590,14 +589,14 @@ export const AdminLeads: React.FC = () => {
               </div>
               <button
                 onClick={() => setSelectedLead(null)}
-                className="p-1.5 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Profile Overview */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-2xl bg-slate-950/80 border border-slate-800 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-lg bg-slate-950/80 border border-slate-800 text-xs">
               <div>
                 <span className="text-[10px] text-slate-400 block font-medium">Farmer Name</span>
                 <strong className="text-sm text-white block mt-0.5">{selectedLead.farmerName}</strong>
@@ -639,7 +638,7 @@ export const AdminLeads: React.FC = () => {
             {/* Farmer Inquiry Message */}
             <div className="space-y-1">
               <label className="text-xs font-bold text-slate-300">Farmer Inquiry Details</label>
-              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-2xl text-xs text-slate-200 leading-relaxed font-sans">
+              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 leading-relaxed font-sans">
                 {selectedLead.message || 'No specific text submitted.'}
               </div>
             </div>
@@ -655,7 +654,7 @@ export const AdminLeads: React.FC = () => {
                 defaultValue={selectedLead.notes || ''}
                 id="modal-lead-notes"
                 placeholder="Write negotiation notes, delivery address details, vehicle driver phone, or batch numbers..."
-                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-2xl text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
               />
             </div>
 
@@ -665,7 +664,7 @@ export const AdminLeads: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => handleWhatsAppFarmer(selectedLead)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md cursor-pointer"
                 >
                   <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
                   <span>WhatsApp Farmer</span>
@@ -673,7 +672,7 @@ export const AdminLeads: React.FC = () => {
 
                 <a
                   href={`tel:${selectedLead.phone}`}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md"
                 >
                   <Phone className="w-3.5 h-3.5 text-white" />
                   <span>Call Direct</span>
@@ -684,7 +683,7 @@ export const AdminLeads: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedLead(null)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs text-slate-400 hover:text-white cursor-pointer"
                 >
                   Close
                 </button>
@@ -698,7 +697,7 @@ export const AdminLeads: React.FC = () => {
                     showToast('Saved discussion dossier notes.');
                     setSelectedLead(null);
                   }}
-                  className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md cursor-pointer"
                 >
                   Save Dossier Notes
                 </button>
@@ -711,10 +710,10 @@ export const AdminLeads: React.FC = () => {
       {/* 6. Add Walk-in Lead Modal */}
       {isAddModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-slate-900 text-white rounded-3xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-700/80 space-y-4 my-6 animate-in zoom-in-95 duration-200">
+          <div className="bg-slate-900 text-white rounded-xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-700/80 space-y-4 my-6 animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between pb-3 border-b border-slate-800">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-2xl bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold">
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
@@ -744,7 +743,7 @@ export const AdminLeads: React.FC = () => {
                     value={newFarmerName}
                     onChange={(e) => setNewFarmerName(e.target.value)}
                     placeholder="e.g. Gandam Bhagyalaxmi"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
 
@@ -758,7 +757,7 @@ export const AdminLeads: React.FC = () => {
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     placeholder="e.g. 9989715441"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 font-mono"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 font-mono"
                   />
                 </div>
               </div>
@@ -771,7 +770,7 @@ export const AdminLeads: React.FC = () => {
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:ring-2 focus:ring-orange-500"
                   >
                     <option value="🦐 Aqua Feed">🦐 Aqua Feed</option>
                     <option value="⚡ Emergency DO">⚡ Emergency DO</option>
@@ -792,7 +791,7 @@ export const AdminLeads: React.FC = () => {
                     value={newAmountOrAcres}
                     onChange={(e) => setNewAmountOrAcres(e.target.value)}
                     placeholder="e.g. 60 Bags (DOC 55)"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
               </div>
@@ -807,7 +806,7 @@ export const AdminLeads: React.FC = () => {
                     value={newVillage}
                     onChange={(e) => setNewVillage(e.target.value)}
                     placeholder="e.g. Chakicherla / Ulavapadu"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
 
@@ -820,7 +819,7 @@ export const AdminLeads: React.FC = () => {
                     value={newFarmerProfile}
                     onChange={(e) => setNewFarmerProfile(e.target.value)}
                     placeholder="e.g. Semi-Intensive Vannamei"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
                   />
                 </div>
               </div>
@@ -834,7 +833,7 @@ export const AdminLeads: React.FC = () => {
                   value={newProductName}
                   onChange={(e) => setNewProductName(e.target.value)}
                   placeholder="e.g. Ultra Vannamei Feed 40 (38% Protein)"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
                 />
               </div>
 
@@ -842,12 +841,12 @@ export const AdminLeads: React.FC = () => {
                 <label className="block text-xs font-bold text-slate-300 mb-1">
                   Discussion Dossier Notes
                 </label>
-                <textarea
-                  rows={2}
+                <AutoResizeTextarea
+                  minRows={3}
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
                   placeholder="e.g. Inquired about delivery timing and payment upon receipt."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-xl text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 resize-none"
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 leading-relaxed"
                 />
               </div>
 
@@ -855,13 +854,13 @@ export const AdminLeads: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-lg text-xs text-slate-400 hover:text-white"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-md cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-md cursor-pointer"
                 >
                   Add Walk-in Lead
                 </button>

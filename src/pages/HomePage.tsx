@@ -116,7 +116,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                     Aquaculture Feeds, Chemicals & Diagnostics
                   </div>
                   <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none drop-shadow-md">
-                    <span className="text-white">{siteSettings.heroTitle || 'SR AQUA FEEDS & NEEDS'}</span>
+                    <span className="text-white">
+                      {siteSettings.heroTitle && siteSettings.heroTitle !== 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers'
+                        ? siteSettings.heroTitle
+                        : (siteSettings.heroHeadline && siteSettings.heroHeadline !== 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers'
+                            ? siteSettings.heroHeadline
+                            : 'SR AQUA FEEDS & NEEDS')}
+                    </span>
                   </h1>
                   <p className="font-display text-lg sm:text-2xl text-emerald-300 font-semibold tracking-wide flex items-center justify-center sm:justify-start gap-2 pt-0.5">
                     <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />

@@ -1,16 +1,15 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../context/DataContext.tsx';
 import { Product, ProductCategory } from '../../types.ts';
 import { ImageUploader } from './ImageUploader.tsx';
+import { AutoResizeTextarea } from './AutoResizeTextarea.tsx';
 import {
   Package,
   Plus,
   Search,
   Edit2,
   Trash2,
-  Star,
   CheckCircle2,
-  X,
   RotateCcw,
   Copy,
   Table,
@@ -18,6 +17,8 @@ import {
   Droplet,
   FileText,
   ShieldCheck,
+  ArrowLeft,
+  Save,
 } from 'lucide-react';
 
 const CATEGORIES: ProductCategory[] = [
@@ -47,8 +48,8 @@ export const AdminProducts: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState<ProductCategory>('All');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  // Edit / Add modal state
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  // Separate page view mode: 'list' (catalog grid) or 'editor' (dedicated product editor page)
+  const [viewMode, setViewMode] = useState<'list' | 'editor'>('list');
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [modalTab, setModalTab] = useState<'general' | 'specs' | 'composition' | 'dosage_water'>('general');
 
@@ -90,7 +91,7 @@ export const AdminProducts: React.FC = () => {
     });
   }, [products, searchTerm, selectedCategory]);
 
-  const handleOpenAdd = () => {
+  const handleOpenAdd = (updateUrl = true) => {
     setEditingProduct(null);
     setModalTab('general');
     setFormData({
@@ -126,10 +127,14 @@ export const AdminProducts: React.FC = () => {
       { param: 'Dissolved Oxygen', target: '> 4.0 ppm', note: 'Essential for feed digestion' },
       { param: 'pH', target: '7.5 – 8.5', note: 'Maintain morning-evening stability' },
     ]);
-    setIsModalOpen(true);
+    setViewMode('editor');
+    if (updateUrl) {
+      window.history.pushState({}, '', '/admin?tab=products&action=new');
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleOpenEdit = (p: Product) => {
+  const handleOpenEdit = (p: Product, updateUrl = true) => {
     setEditingProduct(p);
     setModalTab('general');
     setFormData({ ...p });
@@ -160,8 +165,48 @@ export const AdminProducts: React.FC = () => {
             { param: 'pH', target: '7.5 – 8.5', note: 'Optimal brackish culture' },
           ]
     );
-    setIsModalOpen(true);
+    setViewMode('editor');
+    if (updateUrl) {
+      window.history.pushState({}, '', `/admin?tab=products&action=edit&id=${p.id}`);
+    }
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const handleBackToList = () => {
+    setViewMode('list');
+    setEditingProduct(null);
+    window.history.pushState({}, '', '/admin?tab=products');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Sync with browser URL search parameters and back/forward history navigation
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const params = new URLSearchParams(window.location.search);
+      const tab = params.get('tab');
+      if (tab && tab !== 'products') {
+        return;
+      }
+      const action = params.get('action');
+      const editId = params.get('id');
+
+      if (action === 'edit' && editId) {
+        const found = products.find((p) => p.id === editId);
+        if (found) {
+          handleOpenEdit(found, false);
+          return;
+        }
+      } else if (action === 'new') {
+        handleOpenAdd(false);
+        return;
+      }
+      setViewMode('list');
+    };
+
+    syncFromUrl();
+    window.addEventListener('popstate', syncFromUrl);
+    return () => window.removeEventListener('popstate', syncFromUrl);
+  }, [products]);
 
   const handleDuplicateProduct = (sourceProduct: Product) => {
     const duplicated: Product = {
@@ -247,14 +292,606 @@ export const AdminProducts: React.FC = () => {
       showToast(`Added new product "${productPayload.name}" to catalog`);
     }
 
-    setIsModalOpen(false);
+    handleBackToList();
   };
 
+  // ----------------------------------------------------
+  // VIEW 1: DEDICATED SEPARATE PRODUCT EDITOR PAGE
+  // ----------------------------------------------------
+  if (viewMode === 'editor') {
+    return (
+      <div className="space-y-6 animate-in fade-in duration-200">
+        {/* Toast Alert */}
+        {toastMessage && (
+          <div className="fixed top-20 right-6 z-50 p-4 rounded-lg bg-slate-900 text-white shadow-2xl border border-emerald-500/40 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
+            <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
+            <span className="text-sm font-medium">{toastMessage}</span>
+          </div>
+        )}
+
+        {/* Top Header & Navigation Bar */}
+        <div className="bg-slate-900 text-white rounded-xl p-5 sm:p-6 border border-slate-800 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 flex-wrap">
+              <button
+                type="button"
+                onClick={handleBackToList}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-bold transition-colors cursor-pointer"
+              >
+                <ArrowLeft className="w-4 h-4 text-emerald-400" />
+                <span>Back to Products Catalog</span>
+              </button>
+              <span className="text-slate-500 text-xs">/</span>
+              <span className="px-2.5 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] font-bold">
+                {editingProduct ? 'Product Editor' : 'New Product Registration'}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                <Package className="w-5 h-5" />
+              </div>
+              <div>
+                <h1 className="text-xl sm:text-2xl font-black text-white leading-tight">
+                  {editingProduct ? `Edit Product: ${editingProduct.name}` : 'Create New Aquaculture Product'}
+                </h1>
+                <p className="text-xs text-slate-400 mt-0.5">
+                  Full specification editor: ingredients, nutrient analysis, feeding guidelines & ideal water parameters
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-2.5 self-start md:self-auto pt-2 md:pt-0">
+            <button
+              type="button"
+              onClick={handleBackToList}
+              className="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold border border-slate-700 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const form = document.getElementById('product-editor-form') as HTMLFormElement | null;
+                if (form) form.requestSubmit();
+              }}
+              className="inline-flex items-center gap-2 px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer"
+            >
+              <Save className="w-4 h-4" />
+              <span>{editingProduct ? 'Save Specifications' : 'Create Product'}</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Tab Selector Bar */}
+        <div className="flex items-center gap-2 border-b border-slate-200 pb-2 overflow-x-auto scrollbar-none">
+          <button
+            type="button"
+            onClick={() => setModalTab('general')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              modalTab === 'general'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>1. General & Image</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setModalTab('specs')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              modalTab === 'specs'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <Table className="w-4 h-4" />
+            <span>2. Specs & Narrative</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
+              modalTab === 'specs' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {specsList.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setModalTab('composition')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              modalTab === 'composition'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            <span>3. Ingredients & %</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
+              modalTab === 'composition' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {compositionList.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setModalTab('dosage_water')}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              modalTab === 'dosage_water'
+                ? 'bg-emerald-600 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <Droplet className="w-4 h-4" />
+            <span>4. Dosage & Water Targets</span>
+            <span className={`text-[10px] px-1.5 py-0.5 rounded-md font-bold ${
+              modalTab === 'dosage_water' ? 'bg-emerald-700 text-emerald-100' : 'bg-slate-100 text-slate-600'
+            }`}>
+              {dosageList.length + waterParamsList.length}
+            </span>
+          </button>
+        </div>
+
+        {/* Dedicated Form Body */}
+        <form id="product-editor-form" onSubmit={handleSaveProduct} className="space-y-6">
+          {/* TAB 1: GENERAL */}
+          {modalTab === 'general' && (
+            <div className="space-y-5 animate-in fade-in duration-150">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Product Name <span className="text-emerald-600">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name || ''}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="e.g., Ultra Vannamei Feed 40"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Category <span className="text-emerald-600">*</span>
+                  </label>
+                  <select
+                    value={formData.category}
+                    onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white cursor-pointer"
+                  >
+                    {CATEGORIES.filter((c) => c !== 'All').map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Packaging Specification
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.packaging || ''}
+                    onChange={(e) => setFormData({ ...formData, packaging: e.target.value })}
+                    placeholder="e.g., 25 kg Bag, 10 Litre Can, 5 kg Bucket"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Curiosity / Quality Badge
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.curiosityBadge || ''}
+                    onChange={(e) => setFormData({ ...formData, curiosityBadge: e.target.value })}
+                    placeholder="e.g., 38% Marine Protein or 100% Water Soluble"
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Curiosity Highlight (Sub-badge)
+                </label>
+                <input
+                  type="text"
+                  value={formData.curiosityHighlight || ''}
+                  onChange={(e) => setFormData({ ...formData, curiosityHighlight: e.target.value })}
+                  placeholder="e.g., Highly bio-available chelated minerals"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Tagline (Catchy summary)
+                </label>
+                <input
+                  type="text"
+                  value={formData.tagline || ''}
+                  onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
+                  placeholder="e.g., High-protein, 3-hour water stable pellet for optimal FCR & uniform growth"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Short Overview Description
+                </label>
+                <AutoResizeTextarea
+                  minRows={3}
+                  value={formData.description || ''}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Scientifically balanced pellet enriched with marine lipids, cholesterol, and essential amino acids..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Key Highlights & Benefits (One per line)
+                </label>
+                <AutoResizeTextarea
+                  minRows={4}
+                  value={benefitsInput}
+                  onChange={(e) => setBenefitsInput(e.target.value)}
+                  placeholder="38% Crude Protein & Marine Phospholipids&#10;Low water-dusting, 3+ hour water stability&#10;Proven low FCR (1.1 - 1.2) for shrimp"
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono leading-relaxed"
+                />
+              </div>
+
+              {/* Image Uploader */}
+              <ImageUploader
+                label="Product Display Image"
+                value={formData.imageUrl || ''}
+                onChange={(img) => setFormData({ ...formData, imageUrl: img })}
+                presetImages={PRESET_IMAGES}
+              />
+
+              {/* Featured Checkbox */}
+              <div className="flex items-center gap-2 pt-1 p-3.5 rounded-lg bg-amber-50/60 border border-amber-200">
+                <input
+                  type="checkbox"
+                  id="product-is-popular"
+                  checked={!!formData.isPopular}
+                  onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
+                  className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
+                />
+                <label htmlFor="product-is-popular" className="text-xs font-bold text-slate-800 cursor-pointer">
+                  ⭐ Feature this product on the Homepage showcase and highlights carousel
+                </label>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 2: SPECS & NARRATIVE */}
+          {modalTab === 'specs' && (
+            <div className="space-y-5 animate-in fade-in duration-150">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Full In-Depth Product Narrative & Chemistry
+                </label>
+                <AutoResizeTextarea
+                  minRows={4}
+                  value={formData.fullDescription || ''}
+                  onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
+                  placeholder="Explain the cellular mechanism, manufacturing standards, marine ingredient sources, and coastal pond benefits..."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
+                />
+              </div>
+
+              {/* Dynamic Specifications Table */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Table className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Technical Specifications Table</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addSpecRow}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Row</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  {specsList.map((spec, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={spec.label}
+                        onChange={(e) => updateSpecRow(i, 'label', e.target.value)}
+                        placeholder="Spec Parameter (e.g. Moisture)"
+                        className="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold"
+                      />
+                      <input
+                        type="text"
+                        value={spec.value}
+                        onChange={(e) => updateSpecRow(i, 'value', e.target.value)}
+                        placeholder="Value (e.g. Max 10.0%)"
+                        className="w-1/2 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeSpecRow(i)}
+                        className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer"
+                        title="Delete specification row"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {specsList.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">No specifications added yet. Click &quot;Add Row&quot; above.</p>
+                  )}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Handling, Storage & Pallet Guidelines
+                </label>
+                <AutoResizeTextarea
+                  minRows={3}
+                  value={formData.handlingAndStorage || ''}
+                  onChange={(e) => setFormData({ ...formData, handlingAndStorage: e.target.value })}
+                  placeholder="e.g. Store on elevated wooden pallets in a cool, ventilated coastal warehouse. Protect from direct rain."
+                  className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: COMPOSITION */}
+          {modalTab === 'composition' && (
+            <div className="space-y-5 animate-in fade-in duration-150">
+              <div className="p-3.5 bg-emerald-50 border border-emerald-200 rounded-lg text-xs text-emerald-900 leading-relaxed">
+                <strong>Active Formula & Guaranteed Bio-Analysis:</strong> Add the exact mineral, protein, or bacterial CFU concentrations that display on the public product profile.
+              </div>
+
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-emerald-600" />
+                    <span>Active Ingredients & Percentages</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addCompRow}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Ingredient Row</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  {compositionList.map((comp, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={comp.component}
+                        onChange={(e) => updateCompRow(i, 'component', e.target.value)}
+                        placeholder="Component / Compound (e.g. Marine Protein)"
+                        className="w-2/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-semibold"
+                      />
+                      <input
+                        type="text"
+                        value={comp.percentage}
+                        onChange={(e) => updateCompRow(i, 'percentage', e.target.value)}
+                        placeholder="Percentage / Concentration (e.g. Min 38%)"
+                        className="w-1/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-800 font-mono"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeCompRow(i)}
+                        className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer"
+                        title="Delete ingredient row"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {compositionList.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">No ingredients added yet. Click &quot;Add Ingredient Row&quot; above.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 4: DOSAGE & WATER TARGETS */}
+          {modalTab === 'dosage_water' && (
+            <div className="space-y-6 animate-in fade-in duration-150">
+              {/* Dosage Schedule */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <Droplet className="w-3.5 h-3.5 text-teal-600" />
+                    <span>Dosage Schedule by Culture Stage</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addDosageRow}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-teal-50 text-teal-800 hover:bg-teal-100 text-xs font-bold cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Stage Row</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  {dosageList.map((dos, i) => (
+                    <div key={i} className="p-3 bg-white border border-slate-200 rounded-lg space-y-2.5">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        <input
+                          type="text"
+                          value={dos.stage}
+                          onChange={(e) => updateDosageRow(i, 'stage', e.target.value)}
+                          placeholder="Stage (e.g. DOC 1-30)"
+                          className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold"
+                        />
+                        <input
+                          type="text"
+                          value={dos.dose}
+                          onChange={(e) => updateDosageRow(i, 'dose', e.target.value)}
+                          placeholder="Dose (e.g. 2 kg/Acre)"
+                          className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                        />
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="text"
+                            value={dos.frequency}
+                            onChange={(e) => updateDosageRow(i, 'frequency', e.target.value)}
+                            placeholder="Frequency (e.g. Every 5 days)"
+                            className="flex-1 px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                          />
+                          <button
+                            type="button"
+                            onClick={() => removeDosageRow(i)}
+                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg cursor-pointer"
+                            title="Delete dosage stage"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                      <input
+                        type="text"
+                        value={dos.notes}
+                        onChange={(e) => updateDosageRow(i, 'notes', e.target.value)}
+                        placeholder="Special advice (e.g. Apply with 100L pond water at 9 AM aerators running)"
+                        className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-600"
+                      />
+                    </div>
+                  ))}
+                  {dosageList.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">No dosage stages added yet.</p>
+                  )}
+                </div>
+              </div>
+
+              {/* Water Parameters */}
+              <div className="space-y-2 pt-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
+                    <span>Recommended Pond Water Parameters</span>
+                  </label>
+                  <button
+                    type="button"
+                    onClick={addWaterParamRow}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-sky-50 text-sky-800 hover:bg-sky-100 text-xs font-bold cursor-pointer"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Parameter Row</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 bg-slate-50 p-4 rounded-lg border border-slate-200">
+                  {waterParamsList.map((wp, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <input
+                        type="text"
+                        value={wp.param}
+                        onChange={(e) => updateWaterParamRow(i, 'param', e.target.value)}
+                        placeholder="Parameter (e.g. Dissolved Oxygen)"
+                        className="w-1/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-semibold"
+                      />
+                      <input
+                        type="text"
+                        value={wp.target}
+                        onChange={(e) => updateWaterParamRow(i, 'target', e.target.value)}
+                        placeholder="Target (e.g. > 4.5 ppm)"
+                        className="w-1/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs font-mono"
+                      />
+                      <input
+                        type="text"
+                        value={wp.note}
+                        onChange={(e) => updateWaterParamRow(i, 'note', e.target.value)}
+                        placeholder="Field note (e.g. Keep aerators active)"
+                        className="w-1/3 px-3 py-2 bg-white border border-slate-200 rounded-lg text-xs text-slate-600"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeWaterParamRow(i)}
+                        className="p-2 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50 cursor-pointer"
+                        title="Delete water parameter row"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  ))}
+                  {waterParamsList.length === 0 && (
+                    <p className="text-xs text-slate-400 text-center py-4">No water parameters specified yet.</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bottom Actions */}
+          <div className="pt-6 flex items-center justify-between gap-3 border-t border-slate-200 flex-wrap">
+            {editingProduct ? (
+              <button
+                type="button"
+                onClick={() => {
+                  handleDuplicateProduct(editingProduct);
+                  handleBackToList();
+                }}
+                className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-lg bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200 text-xs font-bold transition-colors cursor-pointer"
+                title="Clone this product as a new entry"
+              >
+                <Copy className="w-4 h-4 text-sky-600" />
+                <span>Duplicate as New Entry</span>
+              </button>
+            ) : <div />}
+
+            <div className="flex items-center gap-3">
+              <button
+                type="button"
+                onClick={handleBackToList}
+                className="px-5 py-2.5 rounded-lg text-xs font-bold text-slate-600 hover:bg-slate-100 border border-slate-300 transition-colors cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+              >
+                <Save className="w-4 h-4" />
+                <span>{editingProduct ? 'Save All Specifications' : 'Create Product'}</span>
+              </button>
+            </div>
+          </div>
+        </form>
+      </div>
+    );
+  }
+
+  // ----------------------------------------------------
+  // VIEW 2: PRODUCTS CATALOG MANAGER GRID (DEFAULT LIST VIEW)
+  // ----------------------------------------------------
   return (
     <div className="space-y-6">
       {/* Toast Alert */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 p-4 rounded-xl bg-slate-900 text-white shadow-2xl border border-emerald-500/40 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-20 right-6 z-50 p-4 rounded-lg bg-slate-900 text-white shadow-2xl border border-emerald-500/40 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
           <span className="text-sm font-medium">{toastMessage}</span>
         </div>
@@ -280,15 +917,15 @@ export const AdminProducts: React.FC = () => {
                 showToast('Products catalog restored to default.');
               }
             }}
-            className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title="Reset to Factory Products"
           >
             <RotateCcw className="w-4 h-4" />
           </button>
 
           <button
-            onClick={handleOpenAdd}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+            onClick={() => handleOpenAdd(true)}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add New Product</span>
@@ -298,7 +935,7 @@ export const AdminProducts: React.FC = () => {
 
       {/* Category Pills & Search */}
       <div className="space-y-3">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs">
           <div className="relative w-full sm:w-80">
             <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
@@ -306,7 +943,7 @@ export const AdminProducts: React.FC = () => {
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search products by title, tagline, benefits..."
-              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+              className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white"
             />
           </div>
 
@@ -321,7 +958,7 @@ export const AdminProducts: React.FC = () => {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCategory === cat
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -338,7 +975,7 @@ export const AdminProducts: React.FC = () => {
         {filteredProducts.map((product) => (
           <div
             key={product.id}
-            className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
+            className="bg-white rounded-lg border border-slate-200 overflow-hidden shadow-2xs hover:shadow-md transition-all flex flex-col justify-between"
           >
             <div>
               {/* Product Image & Badges */}
@@ -348,17 +985,14 @@ export const AdminProducts: React.FC = () => {
                   alt={product.name}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform"
                 />
-                <div className="absolute top-2.5 left-2.5 flex items-center gap-1.5 flex-wrap">
-                  <span className="px-2 py-0.5 rounded-md bg-slate-900/85 text-white text-[10px] font-bold backdrop-blur-xs">
-                    {product.category}
+                <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-900/85 text-white text-[10px] font-bold backdrop-blur-xs">
+                  {product.category}
+                </span>
+                {product.isPopular && (
+                  <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs">
+                    ⭐ Featured
                   </span>
-                  {product.isPopular && (
-                    <span className="px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs">
-                      <Star className="w-3 h-3 fill-white" />
-                      Featured
-                    </span>
-                  )}
-                </div>
+                )}
                 {product.curiosityBadge && (
                   <span className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-bold shadow-xs">
                     {product.curiosityBadge}
@@ -366,91 +1000,80 @@ export const AdminProducts: React.FC = () => {
                 )}
               </div>
 
-              {/* Product Info */}
+              {/* Product Content Details */}
               <div className="p-4 space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                  <h3 className="font-extrabold text-base text-slate-900 leading-snug line-clamp-1">
+                  <h3 className="font-extrabold text-sm text-slate-900 line-clamp-1">
                     {product.name}
                   </h3>
-                  <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
-                    {product.packaging}
-                  </span>
+                  {product.packaging && (
+                    <span className="text-xs font-mono font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 whitespace-nowrap">
+                      {product.packaging}
+                    </span>
+                  )}
                 </div>
 
                 <p className="text-xs text-slate-600 line-clamp-2 leading-relaxed">
                   {product.tagline || product.description}
                 </p>
 
-                {/* Key Benefits */}
-                <div className="pt-1 flex flex-wrap gap-1">
-                  {(product.keyBenefits || []).slice(0, 2).map((b, i) => (
-                    <span key={i} className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
-                      ✓ {b}
-                    </span>
-                  ))}
-                  {(product.keyBenefits || []).length > 2 && (
-                    <span className="text-[10px] text-slate-400 self-center">
-                      +{product.keyBenefits.length - 2} more
-                    </span>
-                  )}
-                </div>
+                {/* Key Benefits Preview */}
+                {product.keyBenefits && product.keyBenefits.length > 0 && (
+                  <div className="flex flex-wrap gap-1 pt-1">
+                    {product.keyBenefits.slice(0, 2).map((benefit, i) => (
+                      <span key={i} className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md">
+                        ✓ {benefit}
+                      </span>
+                    ))}
+                    {product.keyBenefits.length > 2 && (
+                      <span className="text-[10px] text-slate-400">+{product.keyBenefits.length - 2} more</span>
+                    )}
+                  </div>
+                )}
 
-                {/* Technical badges indicator */}
-                <div className="pt-1 flex items-center gap-2 text-[10px] text-slate-400 font-mono">
-                  <span>{(product.specs || []).length} Specs</span>
-                  <span>•</span>
-                  <span>{(product.composition || []).length} Ingredients</span>
-                  <span>•</span>
-                  <span>{(product.dosageSchedule || []).length} Dosages</span>
+                {/* Deep Specs Count Indicator */}
+                <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-500">
+                  <span className="flex items-center gap-1">
+                    <Table className="w-3 h-3 text-slate-400" />
+                    <span>{product.specs?.length || 0} Specs</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Layers className="w-3 h-3 text-slate-400" />
+                    <span>{product.composition?.length || 0} Compounds</span>
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <Droplet className="w-3 h-3 text-slate-400" />
+                    <span>{product.dosageSchedule?.length || 0} Stages</span>
+                  </span>
                 </div>
               </div>
             </div>
 
-            {/* Bottom Actions */}
-            <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
+            {/* Action Buttons */}
+            <div className="p-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-1 flex-wrap">
               <button
-                onClick={() => {
-                  updateProduct({ ...product, isPopular: !product.isPopular });
-                  showToast(
-                    product.isPopular
-                      ? `Removed "${product.name}" from homepage featured.`
-                      : `Set "${product.name}" as featured on homepage!`
-                  );
-                }}
-                className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer ${
-                  product.isPopular
-                    ? 'text-amber-700 bg-amber-100 hover:bg-amber-200'
-                    : 'text-slate-600 hover:bg-slate-200'
-                }`}
-                title="Toggle featured status on homepage"
+                onClick={() => handleDuplicateProduct(product)}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-200 transition-colors cursor-pointer"
+                title="Duplicate product"
               >
-                <Star className={`w-3.5 h-3.5 ${product.isPopular ? 'fill-amber-500 text-amber-500' : ''}`} />
-                <span>{product.isPopular ? 'Featured' : 'Feature'}</span>
+                <Copy className="w-3.5 h-3.5 text-slate-500" />
+                <span className="hidden sm:inline">Duplicate</span>
               </button>
 
-              <div className="flex items-center gap-1.5 flex-wrap justify-end">
+              <div className="flex items-center gap-1.5">
                 <button
-                  onClick={() => handleDuplicateProduct(product)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-sky-50 text-sky-800 hover:bg-sky-100 text-xs font-bold transition-colors cursor-pointer"
-                  title={`Duplicate "${product.name}"`}
+                  onClick={() => handleOpenEdit(product, true)}
+                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-bold transition-colors cursor-pointer shadow-xs"
                 >
-                  <Copy className="w-3.5 h-3.5 text-sky-600" />
-                  <span>Duplicate</span>
-                </button>
-
-                <button
-                  onClick={() => handleOpenEdit(product)}
-                  className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors cursor-pointer"
-                >
-                  <Edit2 className="w-3.5 h-3.5 text-emerald-700" />
-                  <span>Edit All</span>
+                  <Edit2 className="w-3.5 h-3.5 text-white" />
+                  <span>Edit Product</span>
                 </button>
 
                 <button
                   onClick={() => {
-                    if (confirm(`Are you sure you want to delete product "${product.name}"?`)) {
+                    if (confirm(`Are you sure you want to delete "${product.name}"?`)) {
                       deleteProduct(product.id);
-                      showToast(`Product "${product.name}" deleted.`);
+                      showToast(`Removed "${product.name}" from catalog.`);
                     }
                   }}
                   className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
@@ -463,532 +1086,6 @@ export const AdminProducts: React.FC = () => {
           </div>
         ))}
       </div>
-
-      {/* Product Add / Full Edit Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-3xl w-full p-5 sm:p-7 shadow-2xl border border-slate-200 space-y-4 my-6 max-h-[92vh] flex flex-col">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 flex-shrink-0">
-              <div className="flex items-center gap-2">
-                <Package className="w-5 h-5 text-emerald-600" />
-                <div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
-                    {editingProduct ? `Full Product Editor: ${editingProduct.name}` : 'Create New Aquaculture Product'}
-                  </h3>
-                  <p className="text-[11px] text-slate-400">Complete access to specs, composition, dosage & water targets</p>
-                </div>
-              </div>
-              <button
-                onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100 cursor-pointer"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* Modal Sub-Tabs */}
-            <div className="flex items-center gap-1.5 border-b border-slate-100 pb-2 overflow-x-auto scrollbar-none flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => setModalTab('general')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  modalTab === 'general'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>1. General & Image</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setModalTab('specs')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  modalTab === 'specs'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                <Table className="w-3.5 h-3.5" />
-                <span>2. Specs & Narrative</span>
-                <span className="text-[10px] opacity-80">({specsList.length})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setModalTab('composition')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  modalTab === 'composition'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                <Layers className="w-3.5 h-3.5" />
-                <span>3. Ingredients & %</span>
-                <span className="text-[10px] opacity-80">({compositionList.length})</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setModalTab('dosage_water')}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                  modalTab === 'dosage_water'
-                    ? 'bg-emerald-600 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                <Droplet className="w-3.5 h-3.5" />
-                <span>4. Dosage & Water Targets</span>
-                <span className="text-[10px] opacity-80">({dosageList.length + waterParamsList.length})</span>
-              </button>
-            </div>
-
-            {/* Scrollable Form Body */}
-            <form onSubmit={handleSaveProduct} className="flex-1 overflow-y-auto pr-1 space-y-4">
-              {/* TAB 1: GENERAL */}
-              {modalTab === 'general' && (
-                <div className="space-y-4 animate-in fade-in duration-150">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Product Name <span className="text-emerald-600">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        required
-                        value={formData.name || ''}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                        placeholder="e.g., Ultra Vannamei Feed 40"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Category <span className="text-emerald-600">*</span>
-                      </label>
-                      <select
-                        value={formData.category}
-                        onChange={(e) => setFormData({ ...formData, category: e.target.value as ProductCategory })}
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white cursor-pointer"
-                      >
-                        {CATEGORIES.filter((c) => c !== 'All').map((cat) => (
-                          <option key={cat} value={cat}>
-                            {cat}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Packaging Specification
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.packaging || ''}
-                        onChange={(e) => setFormData({ ...formData, packaging: e.target.value })}
-                        placeholder="e.g., 25 kg Bag, 10 Litre Can, 5 kg Bucket"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-slate-700 mb-1">
-                        Curiosity / Quality Badge
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.curiosityBadge || ''}
-                        onChange={(e) => setFormData({ ...formData, curiosityBadge: e.target.value })}
-                        placeholder="e.g., 38% Marine Protein or 100% Water Soluble"
-                        className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                      />
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Curiosity Highlight (Sub-badge)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.curiosityHighlight || ''}
-                      onChange={(e) => setFormData({ ...formData, curiosityHighlight: e.target.value })}
-                      placeholder="e.g., Highly bio-available chelated minerals"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Tagline (Catchy summary)
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.tagline || ''}
-                      onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                      placeholder="e.g., High-protein, 3-hour water stable pellet for optimal FCR & uniform growth"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Short Overview Description
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={formData.description || ''}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Scientifically balanced pellet enriched with marine lipids, cholesterol, and essential amino acids..."
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Key Highlights & Benefits (One per line)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={benefitsInput}
-                      onChange={(e) => setBenefitsInput(e.target.value)}
-                      placeholder="38% Crude Protein & Marine Phospholipids&#10;Low water-dusting, 3+ hour water stability&#10;Proven low FCR (1.1 - 1.2) for shrimp"
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
-                    />
-                  </div>
-
-                  {/* Image Uploader */}
-                  <ImageUploader
-                    label="Product Display Image"
-                    value={formData.imageUrl || ''}
-                    onChange={(img) => setFormData({ ...formData, imageUrl: img })}
-                    presetImages={PRESET_IMAGES}
-                  />
-
-                  {/* Featured Checkbox */}
-                  <div className="flex items-center gap-2 pt-1 p-3 rounded-xl bg-amber-50/60 border border-amber-200">
-                    <input
-                      type="checkbox"
-                      id="product-is-popular"
-                      checked={!!formData.isPopular}
-                      onChange={(e) => setFormData({ ...formData, isPopular: e.target.checked })}
-                      className="w-4 h-4 text-emerald-600 rounded border-slate-300 focus:ring-emerald-500 cursor-pointer"
-                    />
-                    <label htmlFor="product-is-popular" className="text-xs font-bold text-slate-800 cursor-pointer">
-                      ⭐ Feature this product on the Homepage showcase and highlights carousel
-                    </label>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 2: SPECS & NARRATIVE */}
-              {modalTab === 'specs' && (
-                <div className="space-y-4 animate-in fade-in duration-150">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Full In-Depth Product Narrative & Chemistry
-                    </label>
-                    <textarea
-                      rows={4}
-                      value={formData.fullDescription || ''}
-                      onChange={(e) => setFormData({ ...formData, fullDescription: e.target.value })}
-                      placeholder="Explain the cellular mechanism, manufacturing standards, marine ingredient sources, and coastal pond benefits..."
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                    />
-                  </div>
-
-                  {/* Dynamic Specifications Table */}
-                  <div className="space-y-2 pt-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <Table className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Technical Specifications Table</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={addSpecRow}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-[11px] font-bold cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span>Add Row</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                      {specsList.map((spec, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={spec.label}
-                            onChange={(e) => updateSpecRow(i, 'label', e.target.value)}
-                            placeholder="Spec Parameter (e.g. Moisture)"
-                            className="w-1/2 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold"
-                          />
-                          <input
-                            type="text"
-                            value={spec.value}
-                            onChange={(e) => updateSpecRow(i, 'value', e.target.value)}
-                            placeholder="Value (e.g. Max 10.0%)"
-                            className="w-1/2 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeSpecRow(i)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                      {specsList.length === 0 && (
-                        <p className="text-xs text-slate-400 text-center py-2">No specifications added yet. Click &quot;Add Row&quot; above.</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-700 mb-1">
-                      Handling, Storage & Pallet Guidelines
-                    </label>
-                    <textarea
-                      rows={2}
-                      value={formData.handlingAndStorage || ''}
-                      onChange={(e) => setFormData({ ...formData, handlingAndStorage: e.target.value })}
-                      placeholder="e.g. Store on elevated wooden pallets in a cool, ventilated coastal warehouse. Protect from direct rain."
-                      className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
-                    />
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 3: COMPOSITION */}
-              {modalTab === 'composition' && (
-                <div className="space-y-4 animate-in fade-in duration-150">
-                  <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs text-emerald-900 leading-relaxed">
-                    <strong>Active Formula & Guaranteed Bio-Analysis:</strong> Add the exact mineral, protein, or bacterial CFU concentrations that display on the public product profile.
-                  </div>
-
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <Layers className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Active Ingredients & Percentages</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={addCompRow}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-[11px] font-bold cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span>Add Ingredient Row</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                      {compositionList.map((comp, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={comp.component}
-                            onChange={(e) => updateCompRow(i, 'component', e.target.value)}
-                            placeholder="Component / Compound (e.g. Marine Protein)"
-                            className="w-2/3 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-semibold"
-                          />
-                          <input
-                            type="text"
-                            value={comp.percentage}
-                            onChange={(e) => updateCompRow(i, 'percentage', e.target.value)}
-                            placeholder="Percentage / Concentration (e.g. Min 38%)"
-                            className="w-1/3 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-800 font-mono"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeCompRow(i)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                      {compositionList.length === 0 && (
-                        <p className="text-xs text-slate-400 text-center py-2">No ingredients added yet. Click &quot;Add Ingredient Row&quot; above.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* TAB 4: DOSAGE & WATER TARGETS */}
-              {modalTab === 'dosage_water' && (
-                <div className="space-y-5 animate-in fade-in duration-150">
-                  {/* Dosage Schedule */}
-                  <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <Droplet className="w-3.5 h-3.5 text-teal-600" />
-                        <span>Dosage Schedule by Culture Stage</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={addDosageRow}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-teal-50 text-teal-800 hover:bg-teal-100 text-[11px] font-bold cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span>Add Stage Row</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                      {dosageList.map((dos, i) => (
-                        <div key={i} className="p-2.5 bg-white border border-slate-200 rounded-xl space-y-2">
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                            <input
-                              type="text"
-                              value={dos.stage}
-                              onChange={(e) => updateDosageRow(i, 'stage', e.target.value)}
-                              placeholder="Stage (e.g. DOC 1-30)"
-                              className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold"
-                            />
-                            <input
-                              type="text"
-                              value={dos.dose}
-                              onChange={(e) => updateDosageRow(i, 'dose', e.target.value)}
-                              placeholder="Dose (e.g. 2 kg/Acre)"
-                              className="px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                            />
-                            <div className="flex items-center gap-2">
-                              <input
-                                type="text"
-                                value={dos.frequency}
-                                onChange={(e) => updateDosageRow(i, 'frequency', e.target.value)}
-                                placeholder="Frequency (e.g. Every 5 days)"
-                                className="flex-1 px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-xs"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => removeDosageRow(i)}
-                                className="p-1 text-slate-400 hover:text-rose-600 rounded-lg"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                              </button>
-                            </div>
-                          </div>
-                          <input
-                            type="text"
-                            value={dos.notes}
-                            onChange={(e) => updateDosageRow(i, 'notes', e.target.value)}
-                            placeholder="Special advice (e.g. Apply with 100L pond water at 9 AM aerators running)"
-                            className="w-full px-2 py-1 bg-slate-50 border border-slate-200 rounded-lg text-[11px] text-slate-600"
-                          />
-                        </div>
-                      ))}
-                      {dosageList.length === 0 && (
-                        <p className="text-xs text-slate-400 text-center py-2">No dosage stages added yet.</p>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Water Parameters */}
-                  <div className="space-y-2 pt-2">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
-                        <ShieldCheck className="w-3.5 h-3.5 text-sky-600" />
-                        <span>Recommended Pond Water Parameters</span>
-                      </label>
-                      <button
-                        type="button"
-                        onClick={addWaterParamRow}
-                        className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sky-50 text-sky-800 hover:bg-sky-100 text-[11px] font-bold cursor-pointer"
-                      >
-                        <Plus className="w-3 h-3" />
-                        <span>Add Parameter Row</span>
-                      </button>
-                    </div>
-
-                    <div className="space-y-2 bg-slate-50 p-3 rounded-2xl border border-slate-200">
-                      {waterParamsList.map((wp, i) => (
-                        <div key={i} className="flex items-center gap-2">
-                          <input
-                            type="text"
-                            value={wp.param}
-                            onChange={(e) => updateWaterParamRow(i, 'param', e.target.value)}
-                            placeholder="Parameter (e.g. Dissolved Oxygen)"
-                            className="w-1/3 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-semibold"
-                          />
-                          <input
-                            type="text"
-                            value={wp.target}
-                            onChange={(e) => updateWaterParamRow(i, 'target', e.target.value)}
-                            placeholder="Target (e.g. > 4.5 ppm)"
-                            className="w-1/3 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-mono"
-                          />
-                          <input
-                            type="text"
-                            value={wp.note}
-                            onChange={(e) => updateWaterParamRow(i, 'note', e.target.value)}
-                            placeholder="Field note (e.g. Keep aerators active)"
-                            className="w-1/3 px-2.5 py-1.5 bg-white border border-slate-200 rounded-xl text-xs text-slate-600"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeWaterParamRow(i)}
-                            className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-rose-50"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      ))}
-                      {waterParamsList.length === 0 && (
-                        <p className="text-xs text-slate-400 text-center py-2">No water parameters specified yet.</p>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-
-              {/* Bottom Actions */}
-              <div className="pt-4 flex items-center justify-between gap-2.5 border-t border-slate-100 flex-wrap">
-                {editingProduct ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      handleDuplicateProduct(editingProduct);
-                      setIsModalOpen(false);
-                    }}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl bg-sky-50 text-sky-800 hover:bg-sky-100 border border-sky-200 text-xs font-bold transition-colors cursor-pointer"
-                    title="Clone this product as a new entry"
-                  >
-                    <Copy className="w-3.5 h-3.5 text-sky-600" />
-                    <span>Duplicate as New Entry</span>
-                  </button>
-                ) : <div />}
-
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsModalOpen(false)}
-                    className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
-                  >
-                    {editingProduct ? 'Save All Specifications' : 'Create Product'}
-                  </button>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

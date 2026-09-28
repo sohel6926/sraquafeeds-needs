@@ -33,7 +33,8 @@ export const DEFAULT_SITE_SETTINGS: SiteSettings = {
   coveredRadius: '35 km Coastal Pond Belt',
   announcementEnabled: true,
   announcementText: '🌊 Fresh High-Protein Vannamei Feed Batch Ready for Dispatch • Free DO & Salinity Testing at Ulavapadu Showroom • Call 9493243244',
-  heroHeadline: 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers',
+  heroHeadline: 'SR AQUA FEEDS & NEEDS',
+  heroTitle: 'SR AQUA FEEDS & NEEDS',
   heroSubheadline: 'Your trusted retail partner in Ulavapadu for certified Vannamei and Tiger shrimp feeds, essential pond ionic minerals, bio-secure probiotics, and 24/7 emergency water care solutions. Supporting coastal farmers with reliable stock and rapid farm delivery.',
   heroBadge1: 'Newly Established & Rapidly Growing Aquaculture Partner',
   heroBadge2: 'Fresh Stock Daily',
@@ -493,7 +494,15 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed && typeof parsed === 'object') return { ...DEFAULT_SITE_SETTINGS, ...parsed };
+        if (parsed && typeof parsed === 'object') {
+          if (parsed.heroHeadline === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers') {
+            parsed.heroHeadline = 'SR AQUA FEEDS & NEEDS';
+          }
+          if (parsed.heroTitle === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers') {
+            parsed.heroTitle = 'SR AQUA FEEDS & NEEDS';
+          }
+          return { ...DEFAULT_SITE_SETTINGS, ...parsed };
+        }
       }
     } catch {
       // Fallback
@@ -572,8 +581,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         if (settingsRes.data) {
           const mapped = mapSettingsFromDb(settingsRes.data);
+          if (mapped.heroHeadline === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers') {
+            mapped.heroHeadline = 'SR AQUA FEEDS & NEEDS';
+          }
+          if (mapped.heroTitle === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers') {
+            mapped.heroTitle = 'SR AQUA FEEDS & NEEDS';
+          }
           setSiteSettings(mapped);
           hasData = true;
+
+          if (
+            settingsRes.data.hero_headline === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers' ||
+            settingsRes.data.hero_title === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers'
+          ) {
+            supabase
+              .from('site_settings')
+              .update({ hero_headline: 'SR AQUA FEEDS & NEEDS', hero_title: 'SR AQUA FEEDS & NEEDS' })
+              .eq('id', 'default')
+              .then();
+          }
         }
 
         if (adminAuthRes.data && adminAuthRes.data.pin_code) {

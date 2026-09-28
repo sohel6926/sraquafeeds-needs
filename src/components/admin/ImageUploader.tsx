@@ -158,9 +158,9 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       {/* Main Upload Box */}
       {value ? (
-        <div className="relative rounded-2xl border-2 border-emerald-500/30 bg-emerald-50/20 p-3 sm:p-4 flex items-center gap-4 transition-all">
+        <div className="relative rounded-lg border-2 border-emerald-500/30 bg-emerald-50/20 p-3 sm:p-4 flex items-center gap-4 transition-all">
           {/* Thumbnail preview */}
-          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-xl overflow-hidden bg-slate-100 border border-slate-200 shadow-sm flex-shrink-0">
+          <div className="relative w-24 h-24 sm:w-28 sm:h-28 rounded-md overflow-hidden bg-slate-100 border border-slate-200 shadow-sm flex-shrink-0">
             <img src={value} alt="Preview" className="w-full h-full object-cover" />
           </div>
 
@@ -212,13 +212,13 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-2 ${
+          className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all flex flex-col items-center justify-center space-y-2 ${
             isDragging
               ? 'border-emerald-500 bg-emerald-50/60 scale-[1.01]'
               : 'border-slate-300 hover:border-emerald-500 hover:bg-slate-50/70 bg-slate-50/40'
           }`}
         >
-          <div className="w-12 h-12 rounded-2xl bg-emerald-100/80 text-emerald-700 flex items-center justify-center shadow-xs">
+          <div className="w-12 h-12 rounded-lg bg-emerald-100/80 text-emerald-700 flex items-center justify-center shadow-xs">
             {isProcessing ? (
               <RefreshCw className="w-6 h-6 animate-spin" />
             ) : (
@@ -243,7 +243,7 @@ export const ImageUploader: React.FC<ImageUploaderProps> = ({
 
       {/* Secondary URL & Preset Drawer if toggled */}
       {showUrlOption && (
-        <div className="p-3.5 rounded-xl bg-slate-100/80 border border-slate-200 space-y-2.5 animate-in fade-in duration-150">
+        <div className="p-3.5 rounded-md bg-slate-100/80 border border-slate-200 space-y-2.5 animate-in fade-in duration-150">
           <div className="text-[11px] font-bold text-slate-700">Paste Image Web Link (URL):</div>
           <div className="flex gap-2">
             <input

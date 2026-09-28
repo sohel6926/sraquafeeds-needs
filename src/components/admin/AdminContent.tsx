@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext.tsx';
 import { SiteSettings } from '../../types.ts';
+import { AutoResizeTextarea } from './AutoResizeTextarea.tsx';
 import {
   FileText,
   Save,
@@ -64,7 +65,7 @@ export const AdminContent: React.FC = () => {
           <button
             type="button"
             onClick={handleReset}
-            className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title="Reset to Factory Defaults"
           >
             <RotateCcw className="w-4 h-4" />
@@ -74,7 +75,7 @@ export const AdminContent: React.FC = () => {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Section 1: Homepage Hero Section & Brand Badges */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Sparkles className="w-5 h-5 text-emerald-600" />
             <h3 className="font-extrabold text-base text-slate-900">Homepage Hero Banner & Slogans</h3>
@@ -89,7 +90,7 @@ export const AdminContent: React.FC = () => {
                 type="text"
                 value={formState.businessName}
                 onChange={(e) => setFormState({ ...formState, businessName: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -101,7 +102,7 @@ export const AdminContent: React.FC = () => {
                 type="text"
                 value={formState.tagline}
                 onChange={(e) => setFormState({ ...formState, tagline: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
           </div>
@@ -110,11 +111,11 @@ export const AdminContent: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Hero Section Subheadline / Value Proposition Narrative
             </label>
-            <textarea
-              rows={3}
+            <AutoResizeTextarea
+              minRows={3}
               value={formState.heroSubheadline}
               onChange={(e) => setFormState({ ...formState, heroSubheadline: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
             />
           </div>
 
@@ -126,7 +127,7 @@ export const AdminContent: React.FC = () => {
                 type="text"
                 value={formState.heroBadge1}
                 onChange={(e) => setFormState({ ...formState, heroBadge1: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs"
               />
             </div>
             <div>
@@ -135,7 +136,7 @@ export const AdminContent: React.FC = () => {
                 type="text"
                 value={formState.heroBadge2}
                 onChange={(e) => setFormState({ ...formState, heroBadge2: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs"
               />
             </div>
             <div>
@@ -144,14 +145,14 @@ export const AdminContent: React.FC = () => {
                 type="text"
                 value={formState.heroBadge3}
                 onChange={(e) => setFormState({ ...formState, heroBadge3: e.target.value })}
-                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs"
+                className="w-full px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-md text-xs"
               />
             </div>
           </div>
         </div>
 
         {/* Section 2: 4 Key Statistical Counters */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <TrendingUp className="w-5 h-5 text-emerald-600" />
             <h3 className="font-extrabold text-base text-slate-900">Homepage Statistical Counters & Metrics</h3>
@@ -159,85 +160,85 @@ export const AdminContent: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             {/* Stat 1 */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+            <div className="p-3.5 rounded-md bg-slate-50 border border-slate-200 space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Stat Counter 1</label>
               <input
                 type="text"
                 value={formState.heroStat1Number}
                 onChange={(e) => setFormState({ ...formState, heroStat1Number: e.target.value })}
                 placeholder="500+"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-sm font-black text-emerald-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-sm font-black text-emerald-700"
               />
               <input
                 type="text"
                 value={formState.heroStat1Label}
                 onChange={(e) => setFormState({ ...formState, heroStat1Label: e.target.value })}
                 placeholder="Happy Coastal Farmers"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-[11px] text-slate-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-[11px] text-slate-700"
               />
             </div>
 
             {/* Stat 2 */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+            <div className="p-3.5 rounded-md bg-slate-50 border border-slate-200 space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Stat Counter 2</label>
               <input
                 type="text"
                 value={formState.heroStat2Number}
                 onChange={(e) => setFormState({ ...formState, heroStat2Number: e.target.value })}
                 placeholder="15+"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-sm font-black text-sky-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-sm font-black text-sky-700"
               />
               <input
                 type="text"
                 value={formState.heroStat2Label}
                 onChange={(e) => setFormState({ ...formState, heroStat2Label: e.target.value })}
                 placeholder="Years Field Wisdom"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-[11px] text-slate-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-[11px] text-slate-700"
               />
             </div>
 
             {/* Stat 3 */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+            <div className="p-3.5 rounded-md bg-slate-50 border border-slate-200 space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Stat Counter 3</label>
               <input
                 type="text"
                 value={formState.heroStat3Number}
                 onChange={(e) => setFormState({ ...formState, heroStat3Number: e.target.value })}
                 placeholder="35 km"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-sm font-black text-amber-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-sm font-black text-amber-700"
               />
               <input
                 type="text"
                 value={formState.heroStat3Label}
                 onChange={(e) => setFormState({ ...formState, heroStat3Label: e.target.value })}
                 placeholder="Direct Dyke Delivery"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-[11px] text-slate-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-[11px] text-slate-700"
               />
             </div>
 
             {/* Stat 4 */}
-            <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1.5">
+            <div className="p-3.5 rounded-md bg-slate-50 border border-slate-200 space-y-1.5">
               <label className="block text-[10px] font-bold text-slate-500 uppercase">Stat Counter 4</label>
               <input
                 type="text"
                 value={formState.heroStat4Number}
                 onChange={(e) => setFormState({ ...formState, heroStat4Number: e.target.value })}
                 placeholder="100%"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-sm font-black text-purple-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-sm font-black text-purple-700"
               />
               <input
                 type="text"
                 value={formState.heroStat4Label}
                 onChange={(e) => setFormState({ ...formState, heroStat4Label: e.target.value })}
                 placeholder="Genuine Sealed Stock"
-                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-lg text-[11px] text-slate-700"
+                className="w-full px-2.5 py-1 bg-white border border-slate-300 rounded-md text-[11px] text-slate-700"
               />
             </div>
           </div>
         </div>
 
         {/* Section 3: About Us Page - Founder Story & Core Mission */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Quote className="w-5 h-5 text-emerald-600" />
             <h3 className="font-extrabold text-base text-slate-900">About Us Page - Founder Quote & Story</h3>
@@ -247,11 +248,11 @@ export const AdminContent: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Founder Utukuri Rambabu Personal Quote
             </label>
-            <textarea
-              rows={2}
+            <AutoResizeTextarea
+              minRows={2}
               value={formState.aboutFounderMessage}
               onChange={(e) => setFormState({ ...formState, aboutFounderMessage: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none italic"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white italic leading-relaxed"
             />
           </div>
 
@@ -259,11 +260,11 @@ export const AdminContent: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               About Us Story - Paragraph 1
             </label>
-            <textarea
-              rows={3}
+            <AutoResizeTextarea
+              minRows={3}
               value={formState.aboutStoryPart1}
               onChange={(e) => setFormState({ ...formState, aboutStoryPart1: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
             />
           </div>
 
@@ -271,11 +272,11 @@ export const AdminContent: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               About Us Story - Paragraph 2
             </label>
-            <textarea
-              rows={3}
+            <AutoResizeTextarea
+              minRows={3}
               value={formState.aboutStoryPart2}
               onChange={(e) => setFormState({ ...formState, aboutStoryPart2: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
             />
           </div>
 
@@ -283,17 +284,17 @@ export const AdminContent: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Core Business Mission Statement
             </label>
-            <textarea
-              rows={2}
+            <AutoResizeTextarea
+              minRows={3}
               value={formState.aboutMission}
               onChange={(e) => setFormState({ ...formState, aboutMission: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
             />
           </div>
         </div>
 
         {/* Section 4: Coastal Dispatch Turnaround */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Truck className="w-5 h-5 text-emerald-600" />
             <h3 className="font-extrabold text-base text-slate-900">Coastal Delivery & Dispatch Badge</h3>
@@ -309,7 +310,7 @@ export const AdminContent: React.FC = () => {
                 value={formState.dispatchTurnaround}
                 onChange={(e) => setFormState({ ...formState, dispatchTurnaround: e.target.value })}
                 placeholder="e.g., < 45 Mins Express Delivery"
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -322,7 +323,7 @@ export const AdminContent: React.FC = () => {
                 value={formState.coveredRadius}
                 onChange={(e) => setFormState({ ...formState, coveredRadius: e.target.value })}
                 placeholder="e.g., 35 km Coastal Pond Belt"
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 font-bold focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
           </div>
@@ -332,7 +333,7 @@ export const AdminContent: React.FC = () => {
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>Save All Page Content Changes</span>

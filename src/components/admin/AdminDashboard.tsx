@@ -50,7 +50,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
   return (
     <div className="space-y-7">
       {/* 1. Welcome Hero Banner */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-6 sm:p-8 shadow-xl border border-white/10">
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 text-white p-6 sm:p-8 shadow-xl border border-white/10">
         <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
           <div className="space-y-2 max-w-2xl">
             <div className="flex items-center gap-2 flex-wrap">
@@ -74,7 +74,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
           <div className="flex items-center gap-3 flex-wrap">
             <button
               onClick={() => onNavigateTab('leads')}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer"
             >
               <Users className="w-4 h-4" />
               <span>Customer Inquiries {newLeads.length > 0 && `(${newLeads.length} New)`}</span>
@@ -82,7 +82,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
             <button
               onClick={onExitToWebsite}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-xs backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
+              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white/10 hover:bg-white/20 text-white border border-white/20 font-semibold text-xs backdrop-blur-xs transition-all active:scale-95 cursor-pointer"
             >
               <ExternalLink className="w-4 h-4" />
               <span>View Live Website</span>
@@ -93,7 +93,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
       {/* 2. Top Urgent Announcement Alert (if active) */}
       {siteSettings.announcementEnabled && siteSettings.announcementText && (
-        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200/80 flex items-center justify-between gap-4 shadow-2xs">
+        <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200/80 flex items-center justify-between gap-4 shadow-2xs">
           <div className="flex items-center gap-2.5 text-xs text-emerald-950 font-medium">
             <Megaphone className="w-4 h-4 text-emerald-600 flex-shrink-0 animate-bounce" />
             <span>
@@ -112,10 +112,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
       {/* 3. Primary 3 High-Impact Cards (Spacious & Easy to Understand) */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {/* Card 1: Leads */}
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
+        <div className="p-6 rounded-lg bg-white border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                 <Users className="w-5 h-5" />
               </div>
               <div>
@@ -142,7 +142,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
           <button
             onClick={() => onNavigateTab('leads')}
-            className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 group-hover:bg-emerald-50 text-slate-700 group-hover:text-emerald-800 text-xs font-bold transition-colors cursor-pointer border border-slate-200/80"
+            className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-50 group-hover:bg-emerald-50 text-slate-700 group-hover:text-emerald-800 text-xs font-bold transition-colors cursor-pointer border border-slate-200/80"
           >
             <span>Open Leads CRM</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -150,10 +150,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
         </div>
 
         {/* Card 2: Products Catalog */}
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
+        <div className="p-6 rounded-lg bg-white border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
                 <Package className="w-5 h-5" />
               </div>
               <div>
@@ -178,7 +178,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
           <button
             onClick={() => onNavigateTab('products')}
-            className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 group-hover:bg-sky-50 text-slate-700 group-hover:text-sky-800 text-xs font-bold transition-colors cursor-pointer border border-slate-200/80"
+            className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-50 group-hover:bg-sky-50 text-slate-700 group-hover:text-sky-800 text-xs font-bold transition-colors cursor-pointer border border-slate-200/80"
           >
             <span>Manage Catalog & Specs</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -186,10 +186,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
         </div>
 
         {/* Card 3: Farmer Reviews */}
-        <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
+        <div className="p-6 rounded-lg bg-white border border-slate-200 shadow-2xs hover:shadow-md transition-all flex flex-col justify-between group">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+              <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
                 <MessageSquare className="w-5 h-5" />
               </div>
               <div>
@@ -215,7 +215,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
           <button
             onClick={() => onNavigateTab('stories')}
-            className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-xl bg-slate-50 group-hover:bg-amber-50 text-slate-700 group-hover:text-amber-800 text-xs font-bold transition-colors cursor-pointer border border-slate-200/80"
+            className="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-lg bg-slate-50 group-hover:bg-amber-50 text-slate-700 group-hover:text-amber-800 text-xs font-bold transition-colors cursor-pointer border border-slate-200/80"
           >
             <span>Edit Farmer Testimonials</span>
             <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
@@ -231,9 +231,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <button
             onClick={() => onNavigateTab('content')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
+            className="p-4 rounded-lg bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
           >
-            <div className="p-2.5 rounded-xl bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white transition-colors">
+            <div className="p-2.5 rounded-md bg-teal-50 text-teal-700 group-hover:bg-teal-600 group-hover:text-white transition-colors">
               <FileText className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -248,9 +248,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
           <button
             onClick={() => onNavigateTab('faqs')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
+            className="p-4 rounded-lg bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
           >
-            <div className="p-2.5 rounded-xl bg-indigo-50 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
+            <div className="p-2.5 rounded-md bg-indigo-50 text-indigo-700 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
               <HelpCircle className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -265,9 +265,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
           <button
             onClick={() => onNavigateTab('gallery')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
+            className="p-4 rounded-lg bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
           >
-            <div className="p-2.5 rounded-xl bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+            <div className="p-2.5 rounded-md bg-purple-50 text-purple-700 group-hover:bg-purple-600 group-hover:text-white transition-colors">
               <ImageIcon className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -282,9 +282,9 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
           <button
             onClick={() => onNavigateTab('settings')}
-            className="p-4 rounded-2xl bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
+            className="p-4 rounded-lg bg-white border border-slate-200 hover:border-emerald-400/80 shadow-2xs hover:shadow-md transition-all text-left flex items-start gap-3.5 cursor-pointer group"
           >
-            <div className="p-2.5 rounded-xl bg-amber-50 text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-colors">
+            <div className="p-2.5 rounded-md bg-amber-50 text-amber-700 group-hover:bg-amber-600 group-hover:text-white transition-colors">
               <Settings className="w-5 h-5" />
             </div>
             <div className="min-w-0">
@@ -300,10 +300,10 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
       </div>
 
       {/* 5. Recent Customer Inquiries / Leads Stream */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-md bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
               <Users className="w-4 h-4" />
             </div>
             <div>
@@ -328,7 +328,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
             {recentLeads.map((lead) => (
               <div
                 key={lead.id}
-                className="p-4 rounded-2xl bg-slate-50/80 border border-slate-200/80 hover:bg-slate-100/80 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
+                className="p-4 rounded-md bg-slate-50/80 border border-slate-200/80 hover:bg-slate-100/80 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3"
               >
                 <div className="space-y-1 min-w-0">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -357,7 +357,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
                 <div className="flex items-center gap-2 flex-shrink-0 self-end sm:self-auto">
                   <a
                     href={`tel:${lead.phone}`}
-                    className="p-2 rounded-xl bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors"
+                    className="p-2 rounded-md bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors"
                     title="Call Farmer"
                   >
                     <Phone className="w-4 h-4" />
@@ -365,7 +365,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
 
                   <button
                     onClick={() => handleWhatsAppFarmer(lead)}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-colors cursor-pointer"
                     title="Send WhatsApp Greeting"
                   >
                     <WhatsAppIcon className="w-3.5 h-3.5 text-white" />

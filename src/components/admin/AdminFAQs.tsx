@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext.tsx';
 import { FAQItem } from '../../types.ts';
+import { AutoResizeTextarea } from './AutoResizeTextarea.tsx';
 import {
   HelpCircle,
   Plus,
@@ -136,7 +137,7 @@ export const AdminFAQs: React.FC = () => {
                 showToast('FAQs reset to defaults.');
               }
             }}
-            className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title="Reset to Factory Defaults"
           >
             <RotateCcw className="w-4 h-4" />
@@ -144,7 +145,7 @@ export const AdminFAQs: React.FC = () => {
 
           <button
             onClick={handleOpenAdd}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>Add FAQ Question</span>
@@ -153,7 +154,7 @@ export const AdminFAQs: React.FC = () => {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-2xl border border-slate-200 shadow-2xs">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-white p-3.5 rounded-lg border border-slate-200 shadow-2xs">
         <div className="relative w-full sm:w-80">
           <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
@@ -161,7 +162,7 @@ export const AdminFAQs: React.FC = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder="Search questions or keywords..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white"
           />
         </div>
 
@@ -170,7 +171,7 @@ export const AdminFAQs: React.FC = () => {
             <button
               key={cat}
               onClick={() => setSelectedCat(cat)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all cursor-pointer ${
                 selectedCat === cat
                   ? 'bg-emerald-600 text-white shadow-xs'
                   : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
@@ -187,7 +188,7 @@ export const AdminFAQs: React.FC = () => {
         {filteredFaqs.map((faq) => (
           <div
             key={faq.id}
-            className="bg-white rounded-2xl border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-all space-y-3"
+            className="bg-white rounded-lg border border-slate-200 p-5 shadow-2xs hover:shadow-sm transition-all space-y-3"
           >
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1 flex-1">
@@ -204,7 +205,7 @@ export const AdminFAQs: React.FC = () => {
               <div className="flex items-center gap-1.5 flex-shrink-0">
                 <button
                   onClick={() => handleDuplicate(faq)}
-                  className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-md transition-colors cursor-pointer"
                   title="Duplicate FAQ"
                 >
                   <Copy className="w-3.5 h-3.5" />
@@ -212,7 +213,7 @@ export const AdminFAQs: React.FC = () => {
 
                 <button
                   onClick={() => handleOpenEdit(faq)}
-                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors cursor-pointer"
+                  className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-md bg-emerald-50 text-emerald-800 hover:bg-emerald-100 text-xs font-bold transition-colors cursor-pointer"
                 >
                   <Edit2 className="w-3.5 h-3.5 text-emerald-700" />
                   <span>Edit</span>
@@ -225,7 +226,7 @@ export const AdminFAQs: React.FC = () => {
                       showToast('FAQ deleted.');
                     }
                   }}
-                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                  className="p-1.5 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-md transition-colors cursor-pointer"
                   title="Delete FAQ"
                 >
                   <Trash2 className="w-3.5 h-3.5" />
@@ -233,7 +234,7 @@ export const AdminFAQs: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+            <div className="text-xs text-slate-600 leading-relaxed bg-slate-50 p-3.5 rounded-md border border-slate-100">
               {faq.answer}
             </div>
 
@@ -253,7 +254,7 @@ export const AdminFAQs: React.FC = () => {
       {/* Add / Edit Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-white rounded-3xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
+          <div className="bg-white rounded-xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-4 my-8 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <HelpCircle className="w-5 h-5 text-emerald-600" />
@@ -263,7 +264,7 @@ export const AdminFAQs: React.FC = () => {
               </div>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                className="p-1 rounded-md text-slate-400 hover:text-slate-600 hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -277,7 +278,7 @@ export const AdminFAQs: React.FC = () => {
                 <select
                   value={category}
                   onChange={(e) => setCategory(e.target.value as FAQItem['category'])}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white cursor-pointer"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white cursor-pointer"
                 >
                   {FAQ_CATEGORIES.map((c) => (
                     <option key={c} value={c}>
@@ -297,7 +298,7 @@ export const AdminFAQs: React.FC = () => {
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
                   placeholder="e.g., Why is 3-hour water stability critical in shrimp feed?"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                 />
               </div>
 
@@ -305,13 +306,13 @@ export const AdminFAQs: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Detailed Answer <span className="text-emerald-600">*</span>
                 </label>
-                <textarea
-                  rows={4}
+                <AutoResizeTextarea
+                  minRows={4}
                   required
                   value={answer}
                   onChange={(e) => setAnswer(e.target.value)}
                   placeholder="Provide comprehensive, practical aquaculture advice for local farmers..."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
                 />
               </div>
 
@@ -319,12 +320,12 @@ export const AdminFAQs: React.FC = () => {
                 <label className="block text-xs font-semibold text-slate-700 mb-1">
                   Key Takeaway Bullet Points (One per line)
                 </label>
-                <textarea
-                  rows={3}
+                <AutoResizeTextarea
+                  minRows={3}
                   value={keyPointsInput}
                   onChange={(e) => setKeyPointsInput(e.target.value)}
                   placeholder="3+ hours water stability with zero check-tray dusting.&#10;Prevents nutrient leaching into pond bottom mud.&#10;Saves up to 15% in feed costs."
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono leading-relaxed"
                 />
               </div>
 
@@ -332,13 +333,13 @@ export const AdminFAQs: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
                 >
                   {editingFaq ? 'Save Changes' : 'Create FAQ'}
                 </button>

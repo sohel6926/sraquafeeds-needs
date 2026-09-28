@@ -71,7 +71,7 @@ export const AdminBackup: React.FC = () => {
     <div className="space-y-6 max-w-4xl">
       {/* Toast */}
       {toastMessage && (
-        <div className="fixed top-20 right-6 z-50 p-4 rounded-xl bg-slate-900 text-white shadow-2xl border border-emerald-500/40 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
+        <div className="fixed top-20 right-6 z-50 p-4 rounded-lg bg-slate-900 text-white shadow-2xl border border-emerald-500/40 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
           <span className="text-sm font-medium">{toastMessage}</span>
         </div>
@@ -89,7 +89,7 @@ export const AdminBackup: React.FC = () => {
       </div>
 
       {/* Export Section */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
           <Download className="w-5 h-5 text-emerald-600" />
           <h3 className="font-extrabold text-base text-slate-900">Export Complete Site Snapshot</h3>
@@ -102,7 +102,7 @@ export const AdminBackup: React.FC = () => {
         <div>
           <button
             onClick={handleDownloadBackup}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <FileJson className="w-4 h-4" />
             <span>Download Complete Backup (.json)</span>
@@ -111,7 +111,7 @@ export const AdminBackup: React.FC = () => {
       </div>
 
       {/* Import Section */}
-      <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+      <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
           <Upload className="w-5 h-5 text-sky-600" />
           <h3 className="font-extrabold text-base text-slate-900">Restore from Backup File</h3>
@@ -122,14 +122,14 @@ export const AdminBackup: React.FC = () => {
         </p>
 
         {importStatus && (
-          <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-900 flex items-center gap-2">
+          <div className="p-3.5 rounded-lg bg-sky-50 border border-sky-200 text-xs text-sky-900 flex items-center gap-2">
             <CheckCircle2 className="w-4 h-4 text-sky-600 flex-shrink-0" />
             <span>{importStatus}</span>
           </div>
         )}
 
         <div>
-          <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
+          <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer">
             <Upload className="w-4 h-4" />
             <span>Choose JSON File to Restore</span>
             <input type="file" accept=".json" onChange={handleFileUpload} className="hidden" />
@@ -138,7 +138,7 @@ export const AdminBackup: React.FC = () => {
       </div>
 
       {/* Factory Reset Section */}
-      <div className="bg-white rounded-3xl border border-rose-200 p-6 shadow-2xs space-y-4">
+      <div className="bg-white rounded-lg border border-rose-200 p-6 shadow-2xs space-y-4">
         <div className="flex items-center gap-2 pb-3 border-b border-rose-100">
           <AlertTriangle className="w-5 h-5 text-rose-600" />
           <h3 className="font-extrabold text-base text-rose-950">Factory Reset Website Data</h3>
@@ -151,7 +151,7 @@ export const AdminBackup: React.FC = () => {
         <div>
           <button
             onClick={handleFactoryReset}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <RotateCcw className="w-4 h-4" />
             <span>Reset All Data to Factory Defaults</span>
@@ -160,7 +160,7 @@ export const AdminBackup: React.FC = () => {
       </div>
 
       {/* Cloud & Supabase Infrastructure Summary */}
-      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-3xl border border-slate-700 p-6 text-white space-y-4 shadow-xl">
+      <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-emerald-950 rounded-lg border border-slate-700 p-6 text-white space-y-4 shadow-xl">
         <div className="flex items-center justify-between gap-4 pb-3 border-b border-white/10 flex-wrap">
           <div className="flex items-center gap-2.5">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
@@ -172,37 +172,37 @@ export const AdminBackup: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs">
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-3 rounded-md bg-white/5 border border-white/10 space-y-1">
             <span className="text-[10px] text-slate-400 font-semibold block uppercase">Products Table</span>
             <div className="font-mono text-emerald-300 font-bold text-sm">public.products</div>
             <span className="text-[11px] text-slate-300">Live synced table</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-3 rounded-md bg-white/5 border border-white/10 space-y-1">
             <span className="text-[10px] text-slate-400 font-semibold block uppercase">Gallery Table</span>
             <div className="font-mono text-emerald-300 font-bold text-sm">public.gallery</div>
             <span className="text-[11px] text-slate-300">Showroom & warehouse</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-3 rounded-md bg-white/5 border border-white/10 space-y-1">
             <span className="text-[10px] text-slate-400 font-semibold block uppercase">Leads Table</span>
             <div className="font-mono text-emerald-300 font-bold text-sm">public.leads</div>
             <span className="text-[11px] text-slate-300">Farmer CRM inquiries</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-3 rounded-md bg-white/5 border border-white/10 space-y-1">
             <span className="text-[10px] text-slate-400 font-semibold block uppercase">Stories Table</span>
             <div className="font-mono text-emerald-300 font-bold text-sm">public.farmer_stories</div>
             <span className="text-[11px] text-slate-300">Verified harvest stories</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-3 rounded-md bg-white/5 border border-white/10 space-y-1">
             <span className="text-[10px] text-slate-400 font-semibold block uppercase">FAQs Table</span>
             <div className="font-mono text-emerald-300 font-bold text-sm">public.faqs</div>
             <span className="text-[11px] text-slate-300">Pond science knowledgebase</span>
           </div>
 
-          <div className="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-3 rounded-md bg-white/5 border border-white/10 space-y-1">
             <span className="text-[10px] text-slate-400 font-semibold block uppercase">Settings Table</span>
             <div className="font-mono text-emerald-300 font-bold text-sm">public.site_settings</div>
             <span className="text-[11px] text-slate-300">Store hours, phones, GSTIN</span>

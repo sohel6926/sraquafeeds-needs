@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext.tsx';
 import { SiteSettings } from '../../types.ts';
+import { AutoResizeTextarea } from './AutoResizeTextarea.tsx';
 import {
   Settings,
   Save,
@@ -18,7 +19,13 @@ import {
 
 export const AdminSettings: React.FC = () => {
   const { siteSettings, updateSiteSettings, resetSiteSettings } = useData();
-  const [formState, setFormState] = useState<SiteSettings>({ ...siteSettings });
+  const [formState, setFormState] = useState<SiteSettings>(() => {
+    const s = { ...siteSettings };
+    if (s.heroHeadline === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers') {
+      s.heroHeadline = 'SR AQUA FEEDS & NEEDS';
+    }
+    return s;
+  });
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const showToast = (msg: string) => {
@@ -28,7 +35,10 @@ export const AdminSettings: React.FC = () => {
 
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    updateSiteSettings(formState);
+    updateSiteSettings({
+      ...formState,
+      heroTitle: formState.heroHeadline,
+    });
     showToast('Website business settings and announcement saved successfully!');
   };
 
@@ -68,7 +78,7 @@ export const AdminSettings: React.FC = () => {
           <button
             type="button"
             onClick={handleReset}
-            className="p-2 rounded-xl border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
+            className="p-2 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-50 text-xs font-semibold shadow-2xs transition-colors cursor-pointer"
             title="Reset to Factory Defaults"
           >
             <RotateCcw className="w-4 h-4" />
@@ -78,7 +88,7 @@ export const AdminSettings: React.FC = () => {
 
       <form onSubmit={handleSave} className="space-y-6">
         {/* Section 1: Live Announcement Strip */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
           <div className="flex items-center justify-between pb-3 border-b border-slate-100">
             <div className="flex items-center gap-2">
               <Megaphone className="w-5 h-5 text-emerald-600" />
@@ -104,7 +114,7 @@ export const AdminSettings: React.FC = () => {
               value={formState.announcementText}
               onChange={(e) => setFormState({ ...formState, announcementText: e.target.value })}
               placeholder="e.g., 🌊 Fresh High-Protein Vannamei Feed Batch Ready for Dispatch • Free DO & Salinity Testing..."
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
             />
             <p className="text-[11px] text-slate-400 mt-1">
               Appears prominently across the very top of all pages. Great for stock arrival updates, emergency rain advisories, or free testing announcements.
@@ -113,7 +123,7 @@ export const AdminSettings: React.FC = () => {
         </div>
 
         {/* Section 2: Business Profile & Proprietor Contacts */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-5">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-5">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Building2 className="w-5 h-5 text-emerald-600" />
             <h3 className="font-extrabold text-base text-slate-900">Business Identity & Contact Numbers</h3>
@@ -129,7 +139,7 @@ export const AdminSettings: React.FC = () => {
                 required
                 value={formState.businessName}
                 onChange={(e) => setFormState({ ...formState, businessName: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold"
               />
             </div>
 
@@ -142,7 +152,7 @@ export const AdminSettings: React.FC = () => {
                 required
                 value={formState.proprietor}
                 onChange={(e) => setFormState({ ...formState, proprietor: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold"
               />
             </div>
           </div>
@@ -157,7 +167,7 @@ export const AdminSettings: React.FC = () => {
                 required
                 value={formState.primaryPhone}
                 onChange={(e) => setFormState({ ...formState, primaryPhone: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
               />
             </div>
 
@@ -169,7 +179,7 @@ export const AdminSettings: React.FC = () => {
                 type="tel"
                 value={formState.secondaryPhone}
                 onChange={(e) => setFormState({ ...formState, secondaryPhone: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
               />
             </div>
 
@@ -181,7 +191,7 @@ export const AdminSettings: React.FC = () => {
                 type="tel"
                 value={formState.whatsappNumber}
                 onChange={(e) => setFormState({ ...formState, whatsappNumber: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono"
               />
             </div>
           </div>
@@ -195,7 +205,7 @@ export const AdminSettings: React.FC = () => {
                 type="email"
                 value={formState.primaryEmail}
                 onChange={(e) => setFormState({ ...formState, primaryEmail: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -207,7 +217,7 @@ export const AdminSettings: React.FC = () => {
                 type="email"
                 value={formState.secondaryEmail}
                 onChange={(e) => setFormState({ ...formState, secondaryEmail: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -219,7 +229,7 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={formState.gstin}
                 onChange={(e) => setFormState({ ...formState, gstin: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono uppercase font-bold"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-mono uppercase font-bold"
               />
             </div>
           </div>
@@ -233,7 +243,7 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={formState.shopHours}
                 onChange={(e) => setFormState({ ...formState, shopHours: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
 
@@ -245,7 +255,7 @@ export const AdminSettings: React.FC = () => {
                 type="text"
                 value={formState.coveredRadius}
                 onChange={(e) => setFormState({ ...formState, coveredRadius: e.target.value })}
-                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
           </div>
@@ -254,17 +264,17 @@ export const AdminSettings: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Physical Showroom & Warehouse Address
             </label>
-            <textarea
-              rows={2}
+            <AutoResizeTextarea
+              minRows={2}
               value={formState.address}
               onChange={(e) => setFormState({ ...formState, address: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
             />
           </div>
         </div>
 
         {/* Section 3: Hero Headline & Payment Security Notice */}
-        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-2xs space-y-4">
+        <div className="bg-white rounded-lg border border-slate-200 p-6 shadow-2xs space-y-4">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
             <Sparkles className="w-5 h-5 text-emerald-600" />
             <h3 className="font-extrabold text-base text-slate-900">Hero Section & Anti-Fraud Notice</h3>
@@ -278,7 +288,7 @@ export const AdminSettings: React.FC = () => {
               type="text"
               value={formState.heroHeadline}
               onChange={(e) => setFormState({ ...formState, heroHeadline: e.target.value })}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold"
             />
           </div>
 
@@ -286,11 +296,11 @@ export const AdminSettings: React.FC = () => {
             <label className="block text-xs font-semibold text-slate-700 mb-1">
               Homepage Hero Subheadline
             </label>
-            <textarea
-              rows={2}
+            <AutoResizeTextarea
+              minRows={2}
               value={formState.heroSubheadline}
               onChange={(e) => setFormState({ ...formState, heroSubheadline: e.target.value })}
-              className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white resize-none"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
             />
           </div>
 
@@ -299,11 +309,11 @@ export const AdminSettings: React.FC = () => {
               <ShieldAlert className="w-4 h-4 text-amber-600" />
               <span>Farmer Payment Security Warning Notice</span>
             </label>
-            <textarea
-              rows={2}
+            <AutoResizeTextarea
+              minRows={2}
               value={formState.paymentNotice}
               onChange={(e) => setFormState({ ...formState, paymentNotice: e.target.value })}
-              className="w-full px-3.5 py-2 bg-amber-50/60 border border-amber-300 rounded-xl text-xs text-amber-950 focus:ring-2 focus:ring-amber-500 focus:bg-white resize-none"
+              className="w-full px-3.5 py-2.5 bg-amber-50/60 border border-amber-300 rounded-lg text-xs text-amber-950 focus:ring-2 focus:ring-amber-500 focus:bg-white leading-relaxed"
             />
             <p className="text-[11px] text-slate-400 mt-1">
               Warns farmers against fraudulent callers and emphasizes verified payment contact.
@@ -315,7 +325,7 @@ export const AdminSettings: React.FC = () => {
         <div className="flex justify-end pt-2">
           <button
             type="submit"
-            className="inline-flex items-center gap-2 px-6 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-6 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm shadow-md hover:shadow-lg transition-all active:scale-95 cursor-pointer"
           >
             <Save className="w-4 h-4" />
             <span>Save All Website Settings</span>
