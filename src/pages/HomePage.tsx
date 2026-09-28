@@ -124,16 +124,13 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                             : 'SR AQUA FEEDS & NEEDS')}
                     </span>
                   </h1>
-                  <p className="font-display text-lg sm:text-2xl text-emerald-300 font-semibold tracking-wide flex items-center justify-center sm:justify-start gap-2 pt-0.5">
-                    <Sparkles className="w-5 h-5 text-emerald-400 flex-shrink-0" />
-                    <span>&ldquo;{siteSettings.heroSubtitle || siteSettings.heroSubheadline || siteSettings.tagline || 'Nourishing Life. Growing Future.'}&rdquo;</span>
-                  </p>
+
                 </div>
               </div>
 
               {/* Value proposition paragraph */}
               <p className="text-white text-base sm:text-lg max-w-2xl mx-auto lg:mx-0 leading-relaxed font-normal drop-shadow-xs">
-                Your trusted retail partner in Ulavapadu for certified Vannamei and Tiger shrimp feeds, essential pond ionic minerals, bio-secure probiotics, and 24/7 emergency water care solutions. Supporting coastal farmers with reliable stock and rapid farm delivery.
+                {siteSettings.heroSubheadline || 'Your trusted retail partner in Ulavapadu for certified Vannamei and Tiger shrimp feeds, essential pond ionic minerals, bio-secure probiotics, and 24/7 emergency water care solutions. Supporting coastal farmers with reliable stock and rapid farm delivery.'}
               </p>
 
               {/* Prominent Primary Call & WhatsApp CTA Buttons */}
