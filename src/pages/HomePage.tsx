@@ -117,11 +117,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate }) => {
                   </div>
                   <h1 className="font-display text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-none drop-shadow-md">
                     <span className="text-white">
-                      {siteSettings.heroTitle && siteSettings.heroTitle !== 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers'
-                        ? siteSettings.heroTitle
-                        : (siteSettings.heroHeadline && siteSettings.heroHeadline !== 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers'
-                            ? siteSettings.heroHeadline
-                            : 'SR AQUA FEEDS & NEEDS')}
+                      {siteSettings.businessName || siteSettings.heroHeadline || siteSettings.heroTitle || 'SR AQUA FEEDS & NEEDS'}
                     </span>
                   </h1>
 

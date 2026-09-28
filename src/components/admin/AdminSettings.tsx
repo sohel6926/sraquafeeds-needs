@@ -83,6 +83,15 @@ export const AdminSettings: React.FC = () => {
           >
             <RotateCcw className="w-4 h-4" />
           </button>
+
+          <button
+            type="button"
+            onClick={handleSave}
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
+          >
+            <Save className="w-4 h-4" />
+            <span>Save Settings</span>
+          </button>
         </div>
       </div>
 
@@ -287,7 +296,15 @@ export const AdminSettings: React.FC = () => {
             <input
               type="text"
               value={formState.heroHeadline}
-              onChange={(e) => setFormState({ ...formState, heroHeadline: e.target.value })}
+              onChange={(e) => {
+                const val = e.target.value;
+                setFormState({
+                  ...formState,
+                  heroHeadline: val,
+                  heroTitle: val,
+                  businessName: val,
+                });
+              }}
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white font-bold"
             />
           </div>
