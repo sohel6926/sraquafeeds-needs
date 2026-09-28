@@ -217,43 +217,43 @@ export const AdminLeads: React.FC = () => {
   const getStatusBadgeStyle = (status: LeadStatus) => {
     switch (status) {
       case 'new':
-        return 'bg-rose-950/80 text-rose-300 border-rose-800/80 hover:bg-rose-900';
+        return 'bg-rose-50 text-rose-700 border-rose-200 hover:bg-rose-100';
       case 'contacted':
-        return 'bg-sky-950/80 text-sky-300 border-sky-800/80 hover:bg-sky-900';
+        return 'bg-sky-50 text-sky-700 border-sky-200 hover:bg-sky-100';
       case 'quote_sent':
-        return 'bg-amber-950/80 text-amber-300 border-amber-800/80 hover:bg-amber-900';
+        return 'bg-amber-50 text-amber-800 border-amber-200 hover:bg-amber-100';
       case 'order_placed':
-        return 'bg-emerald-950/80 text-emerald-300 border-emerald-800/80 hover:bg-emerald-900';
+        return 'bg-emerald-50 text-emerald-800 border-emerald-200 hover:bg-emerald-100';
       case 'closed':
-        return 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-750';
+        return 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200';
       default:
-        return 'bg-slate-800 text-slate-300 border-slate-700';
+        return 'bg-slate-100 text-slate-700 border-slate-200';
     }
   };
 
   return (
-    <div className="space-y-5 text-slate-100 font-sans">
+    <div className="space-y-5 text-slate-800 font-sans">
       {/* Toast Alert */}
       {toastMessage && (
         <div className="fixed top-20 right-6 z-50 p-4 rounded-lg bg-slate-900 text-white shadow-2xl border border-emerald-500/50 flex items-center gap-3 animate-in fade-in slide-in-from-top-4 duration-200">
           <CheckCircle2 className="w-5 h-5 text-emerald-400 flex-shrink-0" />
           <span className="text-xs font-semibold">{toastMessage}</span>
         </div>
-      )}      {/* 1. Main Title Card Block (Matching Screenshot) */}
-      <div className="bg-slate-950/90 rounded-lg p-5 sm:p-7 border border-slate-800/90 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-5">
+      )}      {/* 1. Main Title Card Block */}
+      <div className="bg-white rounded-xl p-5 sm:p-7 border border-slate-200 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-5">
         <div className="space-y-1.5">
           <div className="flex items-center gap-3 flex-wrap">
-            <div className="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+            <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
               <Users className="w-5 h-5" />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white tracking-tight">
+            <h2 className="text-xl sm:text-2xl font-black text-slate-900 tracking-tight">
               Customer Inquiries & Leads CRM
             </h2>
-            <span className="px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold">
+            <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold">
               {counts.total} Total Leads
             </span>
           </div>
-          <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+          <p className="text-xs text-slate-500 max-w-2xl leading-relaxed">
             Real-time table tracking online inquiries, walk-ins, and free WhatsApp / Call button inquiries across all products.
           </p>
         </div>
@@ -261,15 +261,15 @@ export const AdminLeads: React.FC = () => {
         <div className="flex items-center gap-3 flex-wrap self-start md:self-auto">
           <button
             onClick={handleExportCSV}
-            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-slate-800/90 hover:bg-slate-750 text-slate-200 border border-slate-700 text-xs font-bold transition-all shadow-sm cursor-pointer active:scale-95"
+            className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs font-bold transition-all shadow-2xs cursor-pointer active:scale-95"
           >
-            <Download className="w-4 h-4 text-slate-400" />
+            <Download className="w-4 h-4 text-slate-500" />
             <span>Export CSV</span>
           </button>
 
           <button
             onClick={() => setIsAddModalOpen(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-gradient-to-r from-orange-500 via-amber-500 to-amber-600 hover:from-orange-600 hover:to-amber-700 text-white text-xs font-black shadow-lg shadow-orange-950/40 transition-all active:scale-95 cursor-pointer"
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
             <span>+ Add Walk-in Lead</span>
@@ -283,10 +283,10 @@ export const AdminLeads: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none w-full max-w-full min-w-0">
           <button
             onClick={() => setChannelFilter('all')}
-            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
               channelFilter === 'all'
-                ? 'bg-slate-800 text-white border border-slate-700 shadow-md ring-2 ring-emerald-500/20'
-                : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+                ? 'bg-emerald-700 text-white shadow-xs'
+                : 'bg-white text-slate-600 hover:bg-slate-50 border border-slate-200'
             }`}
           >
             All Inquiries ({counts.total})
@@ -294,25 +294,25 @@ export const AdminLeads: React.FC = () => {
 
           <button
             onClick={() => setChannelFilter('form')}
-            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               channelFilter === 'form'
-                ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/50 shadow-md ring-2 ring-emerald-500/20'
-                : 'bg-slate-900/60 text-emerald-400 hover:text-emerald-300 border border-slate-800'
+                ? 'bg-emerald-700 text-white shadow-xs'
+                : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-emerald-400" />
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span>Online Forms ({counts.formsCount})</span>
           </button>
 
           <button
             onClick={() => setChannelFilter('whatsapp_call')}
-            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
+            className={`px-4 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 ${
               channelFilter === 'whatsapp_call'
-                ? 'bg-sky-950 text-sky-300 border border-sky-500/50 shadow-md ring-2 ring-sky-500/20'
-                : 'bg-slate-900/60 text-sky-400 hover:text-sky-300 border border-slate-800'
+                ? 'bg-sky-700 text-white shadow-xs'
+                : 'bg-white text-slate-700 hover:bg-slate-50 border border-slate-200'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-sky-400" />
+            <span className="w-2 h-2 rounded-full bg-sky-500" />
             <span>WhatsApp / Call Leads ({counts.whatsappCallCount})</span>
           </button>
         </div>
@@ -320,18 +320,18 @@ export const AdminLeads: React.FC = () => {
         {/* Search Bar & Status Dropdown */}
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <div className="relative flex-1 w-full">
-            <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search leads by client name, mobile, service, enquired property, or village..."
-              className="w-full pl-10 pr-4 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-inner"
+              placeholder="Search leads by client name, mobile, service, enquired product, or village..."
+              className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white shadow-2xs"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white text-xs cursor-pointer"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs cursor-pointer"
               >
                 ✕
               </button>
@@ -342,7 +342,7 @@ export const AdminLeads: React.FC = () => {
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-950/80 border border-slate-800 rounded-lg text-xs font-semibold text-slate-300 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 cursor-pointer"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-700 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white cursor-pointer shadow-2xs"
             >
               <option value="all">All Pipeline Statuses ({counts.total})</option>
               <option value="new">New ({leads.filter((l) => l.status === 'new').length})</option>
@@ -362,8 +362,8 @@ export const AdminLeads: React.FC = () => {
       </div>
 
       {/* 3. Table Header & Subtext */}
-      <div className="flex items-center justify-between text-xs px-2 pt-2 text-slate-400">
-        <span className="text-[11px] font-black uppercase tracking-wider text-slate-400">
+      <div className="flex items-center justify-between text-xs px-2 pt-2 text-slate-500">
+        <span className="text-[11px] font-black uppercase tracking-wider text-slate-600">
           SHOWING {filteredLeads.length} INQUIRIES
         </span>
         <span className="text-[11px] text-slate-400 hidden sm:inline">
@@ -372,11 +372,11 @@ export const AdminLeads: React.FC = () => {
       </div>
 
       {/* 4. CRM Leads Data Table */}
-      <div className="bg-slate-950/90 rounded-lg border border-slate-800 overflow-hidden shadow-2xl w-full max-w-full min-w-0">
+      <div className="bg-white rounded-xl border border-slate-200 overflow-hidden shadow-2xs w-full max-w-full min-w-0">
         <div className="overflow-x-auto w-full max-w-full min-w-0">
           <table className="w-full text-left border-collapse text-xs">
             <thead>
-              <tr className="border-b border-slate-800 bg-slate-900/60 text-[10px] font-black uppercase tracking-widest text-slate-400">
+              <tr className="border-b border-slate-200 bg-slate-50 text-[10px] font-black uppercase tracking-wider text-slate-500">
                 <th className="py-3.5 px-4">CUSTOMER DETAILS</th>
                 <th className="py-3.5 px-4">WHAT THEY SELECTED</th>
                 <th className="py-3.5 px-4">PAYMENT & LEAD TYPE</th>
@@ -386,13 +386,13 @@ export const AdminLeads: React.FC = () => {
                 <th className="py-3.5 px-4 text-right">ACTIONS</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/80">
+            <tbody className="divide-y divide-slate-100 bg-white">
               {filteredLeads.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-14 text-center text-slate-500">
-                    <Users className="w-10 h-10 mx-auto text-slate-600 mb-2 opacity-60" />
-                    <p className="font-semibold text-slate-400">No matching customer leads found</p>
-                    <p className="text-[11px] mt-1 text-slate-600">
+                  <td colSpan={7} className="py-14 text-center text-slate-400">
+                    <Users className="w-10 h-10 mx-auto text-slate-300 mb-2 opacity-60" />
+                    <p className="font-semibold text-slate-600">No matching customer leads found</p>
+                    <p className="text-[11px] mt-1 text-slate-400">
                       When farmers contact via WhatsApp, Call, or forms, they will show up here.
                     </p>
                   </td>
@@ -410,21 +410,21 @@ export const AdminLeads: React.FC = () => {
                   return (
                     <tr
                       key={lead.id}
-                      className="hover:bg-slate-900/50 transition-colors group cursor-pointer"
+                      className="hover:bg-slate-50/80 transition-colors group cursor-pointer"
                       onClick={() => setSelectedLead(lead)}
                     >
                       {/* Column 1: Customer Details */}
                       <td className="py-4 px-4 align-top">
                         <div className="space-y-1">
-                          <strong className="text-white text-sm font-bold block group-hover:text-emerald-300 transition-colors">
+                          <strong className="text-slate-900 text-sm font-extrabold block group-hover:text-emerald-700 transition-colors">
                             {lead.farmerName}
                           </strong>
-                          <div className="flex items-center gap-1.5 text-slate-400 font-mono text-[11px]">
-                            <Phone className="w-3 h-3 text-slate-500" />
+                          <div className="flex items-center gap-1.5 text-slate-600 font-mono text-xs font-medium">
+                            <Phone className="w-3 h-3 text-slate-400" />
                             <span>{lead.phone}</span>
                           </div>
                           {lead.village && (
-                            <span className="text-[10px] text-slate-500 block truncate max-w-[150px]">
+                            <span className="text-[11px] text-slate-500 block truncate max-w-[170px]">
                               {lead.village}
                             </span>
                           )}
@@ -434,14 +434,14 @@ export const AdminLeads: React.FC = () => {
                       {/* Column 2: What They Selected */}
                       <td className="py-4 px-4 align-top">
                         <div className="space-y-1.5">
-                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-sky-950/80 border border-sky-600/40 text-sky-300 text-[10px] font-bold">
+                          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-sky-50 border border-sky-200 text-sky-800 text-[10px] font-bold">
                             {lead.category || '🦐 Aqua Feed'}
                           </span>
-                          <div className="text-white font-semibold text-xs leading-snug">
+                          <div className="text-slate-900 font-bold text-xs leading-snug">
                             {lead.productName || lead.topic}
                           </div>
                           {lead.amountOrAcres && (
-                            <div className="text-[11px] text-slate-400 font-mono">
+                            <div className="text-[11px] text-slate-500 font-medium">
                               {lead.amountOrAcres}
                             </div>
                           )}
@@ -452,17 +452,17 @@ export const AdminLeads: React.FC = () => {
                       <td className="py-4 px-4 align-top">
                         <div className="space-y-1">
                           {isLeadTypeForm ? (
-                            <span className="inline-flex items-center gap-1 text-emerald-400 font-bold text-xs">
-                              <span className="w-2 h-2 rounded-full bg-emerald-400" />
+                            <span className="inline-flex items-center gap-1.5 text-emerald-700 font-bold text-xs">
+                              <span className="w-2 h-2 rounded-full bg-emerald-500" />
                               <span>Online Form</span>
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 text-sky-400 font-bold text-xs">
-                              <span className="w-2 h-2 rounded-full bg-sky-400" />
+                            <span className="inline-flex items-center gap-1.5 text-sky-700 font-bold text-xs">
+                              <span className="w-2 h-2 rounded-full bg-sky-500" />
                               <span>Direct WhatsApp / Call</span>
                             </span>
                           )}
-                          <span className="text-[10px] text-slate-500 block">
+                          <span className="text-[10px] text-slate-400 block">
                             {lead.source || (lead.leadType === 'call' ? 'Store Line' : 'WhatsApp Lead')}
                           </span>
                         </div>
@@ -471,7 +471,7 @@ export const AdminLeads: React.FC = () => {
                       {/* Column 4: City / Profile */}
                       <td className="py-4 px-4 align-top">
                         <div className="space-y-0.5">
-                          <span className="text-slate-200 font-semibold block text-xs">
+                          <span className="text-slate-800 font-bold block text-xs">
                             {lead.village || 'Coastal Belt'}
                           </span>
                           <span className="text-[10px] text-slate-500 block">
@@ -492,7 +492,7 @@ export const AdminLeads: React.FC = () => {
                               updateLeadStatus(lead.id, e.target.value as LeadStatus);
                               showToast(`Status updated to ${e.target.value.toUpperCase()}`);
                             }}
-                            className={`appearance-none px-3 py-1 pr-6 rounded-xl border text-[11px] font-black uppercase tracking-wider cursor-pointer focus:outline-hidden transition-all shadow-sm ${getStatusBadgeStyle(
+                            className={`appearance-none px-3 py-1 pr-6 rounded-lg border text-[11px] font-black uppercase tracking-wider cursor-pointer focus:outline-hidden transition-all shadow-2xs ${getStatusBadgeStyle(
                               lead.status
                             )}`}
                           >
@@ -502,12 +502,12 @@ export const AdminLeads: React.FC = () => {
                             <option value="order_placed">Order Placed</option>
                             <option value="closed">Closed</option>
                           </select>
-                          <ChevronDown className="w-3 h-3 text-slate-400 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
+                          <ChevronDown className="w-3 h-3 text-slate-500 absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none" />
                         </div>
                       </td>
 
                       {/* Column 6: Date */}
-                      <td className="py-4 px-4 align-top text-slate-400 text-xs font-mono whitespace-nowrap">
+                      <td className="py-4 px-4 align-top text-slate-500 text-xs font-mono whitespace-nowrap">
                         {dateShort}
                       </td>
 
@@ -520,7 +520,7 @@ export const AdminLeads: React.FC = () => {
                           {/* Open dossier button */}
                           <button
                             onClick={() => setSelectedLead(lead)}
-                            className="p-1.5 rounded-lg bg-slate-800 text-slate-400 hover:text-white hover:bg-slate-700 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-slate-100 text-slate-600 hover:text-slate-900 hover:bg-slate-200 border border-slate-200 transition-colors cursor-pointer"
                             title="Open Client Dossier & Discussion Notes"
                           >
                             <FileText className="w-3.5 h-3.5" />
@@ -529,16 +529,16 @@ export const AdminLeads: React.FC = () => {
                           {/* Direct WhatsApp button */}
                           <button
                             onClick={() => handleWhatsAppFarmer(lead)}
-                            className="p-1.5 rounded-lg bg-emerald-950 text-emerald-400 hover:bg-emerald-900 border border-emerald-800/80 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-colors cursor-pointer"
                             title="Chat with Farmer on WhatsApp"
                           >
-                            <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-400" />
+                            <WhatsAppIcon className="w-3.5 h-3.5 text-emerald-700" />
                           </button>
 
                           {/* Direct Phone Call button */}
                           <a
                             href={`tel:${lead.phone}`}
-                            className="p-1.5 rounded-lg bg-sky-950 text-sky-400 hover:bg-sky-900 border border-sky-800/80 transition-colors"
+                            className="p-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 transition-colors"
                             title="Dial Farmer Phone"
                           >
                             <Phone className="w-3.5 h-3.5" />
@@ -552,7 +552,7 @@ export const AdminLeads: React.FC = () => {
                                 showToast(`Deleted inquiry for ${lead.farmerName}`);
                               }
                             }}
-                            className="p-1.5 rounded-lg text-slate-500 hover:text-rose-400 hover:bg-rose-950/40 transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors cursor-pointer"
                             title="Delete Lead"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -570,63 +570,63 @@ export const AdminLeads: React.FC = () => {
 
       {/* 5. Client Dossier & Discussion Notes Modal */}
       {selectedLead && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-slate-900 text-white rounded-xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-700/80 space-y-5 my-6 animate-in zoom-in-95 duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white text-slate-900 rounded-xl max-w-xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-5 my-6 animate-in zoom-in-95 duration-200">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                <div className="w-10 h-10 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center font-bold">
                   <FileText className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base sm:text-lg font-bold text-white">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
                     Client Notes & Discussion Dossier
                   </h3>
-                  <span className="text-[11px] text-slate-400">
-                    Lead ID: <strong className="font-mono text-slate-300">{selectedLead.id}</strong>
+                  <span className="text-[11px] text-slate-500">
+                    Lead ID: <strong className="font-mono text-slate-700">{selectedLead.id}</strong>
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setSelectedLead(null)}
-                className="p-1.5 rounded-md text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer"
+                className="p-1.5 rounded-md text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Profile Overview */}
-            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-lg bg-slate-950/80 border border-slate-800 text-xs">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Farmer Name</span>
-                <strong className="text-sm text-white block mt-0.5">{selectedLead.farmerName}</strong>
+                <span className="text-[10px] text-slate-500 block font-semibold">Farmer Name</span>
+                <strong className="text-sm text-slate-900 block mt-0.5">{selectedLead.farmerName}</strong>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Mobile Number</span>
-                <span className="font-mono text-emerald-400 font-bold block mt-0.5">
+                <span className="text-[10px] text-slate-500 block font-semibold">Mobile Number</span>
+                <span className="font-mono text-emerald-700 font-bold block mt-0.5">
                   {selectedLead.phone}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Location</span>
-                <span className="text-slate-300 block mt-0.5">{selectedLead.village || 'N/A'}</span>
+                <span className="text-[10px] text-slate-500 block font-semibold">Location</span>
+                <span className="text-slate-800 block mt-0.5 font-medium">{selectedLead.village || 'N/A'}</span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Category</span>
-                <span className="text-sky-300 font-semibold block mt-0.5">
+                <span className="text-[10px] text-slate-500 block font-semibold">Category</span>
+                <span className="text-sky-700 font-bold block mt-0.5">
                   {selectedLead.category || selectedLead.topic}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Amount / Acres</span>
-                <span className="text-amber-300 font-mono block mt-0.5">
+                <span className="text-[10px] text-slate-500 block font-semibold">Amount / Acres</span>
+                <span className="text-amber-800 font-mono font-bold block mt-0.5">
                   {selectedLead.amountOrAcres || 'Not specified'}
                 </span>
               </div>
               <div>
-                <span className="text-[10px] text-slate-400 block font-medium">Pipeline Status</span>
+                <span className="text-[10px] text-slate-500 block font-semibold">Pipeline Status</span>
                 <span
-                  className={`inline-block px-2 py-0.5 rounded-md text-[10px] font-bold mt-0.5 border ${getStatusBadgeStyle(
+                  className={`inline-block px-2.5 py-0.5 rounded-md text-[10px] font-bold mt-0.5 border ${getStatusBadgeStyle(
                     selectedLead.status
                   )}`}
                 >
@@ -637,34 +637,34 @@ export const AdminLeads: React.FC = () => {
 
             {/* Farmer Inquiry Message */}
             <div className="space-y-1">
-              <label className="text-xs font-bold text-slate-300">Farmer Inquiry Details</label>
-              <div className="p-3.5 bg-slate-950 border border-slate-800 rounded-lg text-xs text-slate-200 leading-relaxed font-sans">
+              <label className="text-xs font-bold text-slate-700">Farmer Inquiry Details</label>
+              <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 leading-relaxed font-sans">
                 {selectedLead.message || 'No specific text submitted.'}
               </div>
             </div>
 
             {/* Internal Admin Discussion Dossier Notes */}
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-slate-300 flex items-center justify-between">
+              <label className="text-xs font-bold text-slate-700 flex items-center justify-between">
                 <span>Internal Discussion Dossier & Price Quote Notes</span>
-                <span className="text-[10px] text-slate-500 font-normal">Private to Admin</span>
+                <span className="text-[10px] text-slate-400 font-normal">Private to Admin</span>
               </label>
               <textarea
                 rows={3}
                 defaultValue={selectedLead.notes || ''}
                 id="modal-lead-notes"
                 placeholder="Write negotiation notes, delivery address details, vehicle driver phone, or batch numbers..."
-                className="w-full p-3 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:outline-hidden focus:ring-2 focus:ring-emerald-500"
+                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:outline-hidden focus:ring-2 focus:ring-emerald-500 focus:bg-white leading-relaxed"
               />
             </div>
 
             {/* Bottom Actions */}
-            <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-800 flex-wrap">
+            <div className="pt-2 flex items-center justify-between gap-3 border-t border-slate-100 flex-wrap">
               <div className="flex items-center gap-2">
                 <button
                   type="button"
                   onClick={() => handleWhatsAppFarmer(selectedLead)}
-                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold shadow-md cursor-pointer"
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs cursor-pointer"
                 >
                   <WhatsAppIcon className="w-3.5 h-3.5 text-white" />
                   <span>WhatsApp Farmer</span>
@@ -672,7 +672,7 @@ export const AdminLeads: React.FC = () => {
 
                 <a
                   href={`tel:${selectedLead.phone}`}
-                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-500 text-white text-xs font-bold shadow-md"
+                  className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shadow-xs"
                 >
                   <Phone className="w-3.5 h-3.5 text-white" />
                   <span>Call Direct</span>
@@ -683,7 +683,7 @@ export const AdminLeads: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setSelectedLead(null)}
-                  className="px-4 py-2 rounded-lg text-xs text-slate-400 hover:text-white cursor-pointer"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 cursor-pointer"
                 >
                   Close
                 </button>
@@ -697,7 +697,7 @@ export const AdminLeads: React.FC = () => {
                     showToast('Saved discussion dossier notes.');
                     setSelectedLead(null);
                   }}
-                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white text-xs font-bold shadow-md cursor-pointer"
+                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold shadow-xs cursor-pointer"
                 >
                   Save Dossier Notes
                 </button>
@@ -709,23 +709,23 @@ export const AdminLeads: React.FC = () => {
 
       {/* 6. Add Walk-in Lead Modal */}
       {isAddModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-xs overflow-y-auto">
-          <div className="bg-slate-900 text-white rounded-xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-700/80 space-y-4 my-6 animate-in zoom-in-95 duration-200">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white text-slate-900 rounded-xl max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-slate-200 space-y-4 my-6 animate-in zoom-in-95 duration-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
               <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-lg bg-orange-500/20 text-orange-400 flex items-center justify-center font-bold">
+                <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
                   <Plus className="w-5 h-5" />
                 </div>
                 <div>
-                  <h3 className="text-base font-bold text-white">Record New Walk-in Farmer Lead</h3>
-                  <span className="text-[11px] text-slate-400">
+                  <h3 className="text-base font-bold text-slate-900">Record New Walk-in Farmer Lead</h3>
+                  <span className="text-[11px] text-slate-500">
                     Counter visit or phone inquiry log
                   </span>
                 </div>
               </div>
               <button
                 onClick={() => setIsAddModalOpen(false)}
-                className="p-1 rounded-lg text-slate-400 hover:text-white"
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -734,8 +734,8 @@ export const AdminLeads: React.FC = () => {
             <form onSubmit={handleAddWalkinSubmit} className="space-y-3.5">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Farmer Name <span className="text-orange-400">*</span>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Farmer Name <span className="text-emerald-600">*</span>
                   </label>
                   <input
                     type="text"
@@ -743,13 +743,13 @@ export const AdminLeads: React.FC = () => {
                     value={newFarmerName}
                     onChange={(e) => setNewFarmerName(e.target.value)}
                     placeholder="e.g. Gandam Bhagyalaxmi"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
-                    Mobile Number <span className="text-orange-400">*</span>
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
+                    Mobile Number <span className="text-emerald-600">*</span>
                   </label>
                   <input
                     type="tel"
@@ -757,20 +757,20 @@ export const AdminLeads: React.FC = () => {
                     value={newPhone}
                     onChange={(e) => setNewPhone(e.target.value)}
                     placeholder="e.g. 9989715441"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 font-mono"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500 font-mono"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Category Tag
                   </label>
                   <select
                     value={newCategory}
                     onChange={(e) => setNewCategory(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:bg-white focus:ring-2 focus:ring-emerald-500 cursor-pointer"
                   >
                     <option value="🦐 Aqua Feed">🦐 Aqua Feed</option>
                     <option value="⚡ Emergency DO">⚡ Emergency DO</option>
@@ -783,7 +783,7 @@ export const AdminLeads: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Quantity / Acreage
                   </label>
                   <input
@@ -791,14 +791,14 @@ export const AdminLeads: React.FC = () => {
                     value={newAmountOrAcres}
                     onChange={(e) => setNewAmountOrAcres(e.target.value)}
                     placeholder="e.g. 60 Bags (DOC 55)"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Village / Mandal
                   </label>
                   <input
@@ -806,12 +806,12 @@ export const AdminLeads: React.FC = () => {
                     value={newVillage}
                     onChange={(e) => setNewVillage(e.target.value)}
                     placeholder="e.g. Chakicherla / Ulavapadu"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-bold text-slate-300 mb-1">
+                  <label className="block text-xs font-bold text-slate-700 mb-1">
                     Farmer Profile / Culture
                   </label>
                   <input
@@ -819,13 +819,13 @@ export const AdminLeads: React.FC = () => {
                     value={newFarmerProfile}
                     onChange={(e) => setNewFarmerProfile(e.target.value)}
                     placeholder="e.g. Semi-Intensive Vannamei"
-                    className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Enquired Product / Service
                 </label>
                 <input
@@ -833,12 +833,12 @@ export const AdminLeads: React.FC = () => {
                   value={newProductName}
                   onChange={(e) => setNewProductName(e.target.value)}
                   placeholder="e.g. Ultra Vannamei Feed 40 (38% Protein)"
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-300 mb-1">
+                <label className="block text-xs font-bold text-slate-700 mb-1">
                   Discussion Dossier Notes
                 </label>
                 <AutoResizeTextarea
@@ -846,21 +846,21 @@ export const AdminLeads: React.FC = () => {
                   value={newNotes}
                   onChange={(e) => setNewNotes(e.target.value)}
                   placeholder="e.g. Inquired about delivery timing and payment upon receipt."
-                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-xs text-white placeholder:text-slate-500 focus:ring-2 focus:ring-orange-500 leading-relaxed"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-emerald-500 leading-relaxed"
                 />
               </div>
 
-              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-800">
+              <div className="pt-3 flex items-center justify-end gap-2 border-t border-slate-100">
                 <button
                   type="button"
                   onClick={() => setIsAddModalOpen(false)}
-                  className="px-4 py-2 rounded-lg text-xs text-slate-400 hover:text-white"
+                  className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs shadow-md cursor-pointer"
+                  className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs cursor-pointer"
                 >
                   Add Walk-in Lead
                 </button>
