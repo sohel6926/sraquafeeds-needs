@@ -8,7 +8,6 @@ import {
   Package,
   Image as ImageIcon,
   Settings,
-  Database,
   Lock,
   Unlock,
   LogOut,
@@ -31,7 +30,6 @@ import { AdminStories } from '../components/admin/AdminStories.tsx';
 import { AdminFAQs } from '../components/admin/AdminFAQs.tsx';
 import { AdminGallery } from '../components/admin/AdminGallery.tsx';
 import { AdminSettings } from '../components/admin/AdminSettings.tsx';
-import { AdminBackup } from '../components/admin/AdminBackup.tsx';
 
 interface AdminPageProps {
   onNavigate: (page: PageType) => void;
@@ -45,8 +43,7 @@ export type AdminTabType =
   | 'stories'
   | 'faqs'
   | 'gallery'
-  | 'settings'
-  | 'backup';
+  | 'settings';
 
 interface NavGroup {
   groupTitle: string;
@@ -70,7 +67,6 @@ const VALID_ADMIN_TABS: AdminTabType[] = [
   'faqs',
   'gallery',
   'settings',
-  'backup',
 ];
 
 export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
@@ -86,7 +82,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
     // 2. Check URL hash (e.g. #admin?tab=products or #products)
     const hash = window.location.hash.toLowerCase();
-    const hashMatch = hash.match(/(?:tab=|\/|#)(dashboard|leads|products|content|stories|faqs|gallery|settings|backup)/);
+    const hashMatch = hash.match(/(?:tab=|\/|#)(dashboard|leads|products|content|stories|faqs|gallery|settings)/);
     if (hashMatch && hashMatch[1] && VALID_ADMIN_TABS.includes(hashMatch[1] as AdminTabType)) {
       return hashMatch[1] as AdminTabType;
     }
@@ -330,12 +326,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           description: 'Phone, GSTIN, top alert banner',
           icon: <Settings className="w-4 h-4" />,
         },
-        {
-          id: 'backup',
-          label: 'Backup & Restore',
-          description: 'Export & import JSON database',
-          icon: <Database className="w-4 h-4" />,
-        },
       ],
     },
   ];
@@ -578,7 +568,6 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
             {activeTab === 'faqs' && <AdminFAQs />}
             {activeTab === 'gallery' && <AdminGallery />}
             {activeTab === 'settings' && <AdminSettings />}
-            {activeTab === 'backup' && <AdminBackup />}
           </div>
         </main>
       </div>

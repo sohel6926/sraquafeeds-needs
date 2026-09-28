@@ -21,17 +21,16 @@ import {
   Star,
   ChevronRight,
   Sparkles,
-  Database,
 } from 'lucide-react';
 import { WhatsAppIcon } from '../Icons.tsx';
 
 interface AdminDashboardProps {
-  onNavigateTab: (tab: 'dashboard' | 'leads' | 'products' | 'content' | 'stories' | 'faqs' | 'gallery' | 'settings' | 'backup') => void;
+  onNavigateTab: (tab: 'dashboard' | 'leads' | 'products' | 'content' | 'stories' | 'faqs' | 'gallery' | 'settings') => void;
   onExitToWebsite: () => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, onExitToWebsite }) => {
-  const { leads, products, gallery, siteSettings, farmerStories, faqs, updateLeadStatus, isSupabaseConnected } = useData();
+  const { leads, products, gallery, siteSettings, farmerStories, faqs, updateLeadStatus } = useData();
 
   const newLeads = leads.filter((l) => l.status === 'new');
   const recentLeads = leads.slice(0, 5);
@@ -57,10 +56,6 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onNavigateTab, o
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold uppercase tracking-wider">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
                 <span>Admin Management Portal</span>
-              </div>
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-500/20 text-teal-300 border border-teal-400/30 text-xs font-semibold">
-                <Database className="w-3.5 h-3.5 text-teal-400" />
-                <span>{isSupabaseConnected ? 'Supabase Live Sync' : 'Supabase Connecting...'}</span>
               </div>
             </div>
             <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
