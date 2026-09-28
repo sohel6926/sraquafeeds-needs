@@ -18,7 +18,8 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 20);
+      const scrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+      setIsScrolled(scrollY > 15);
     };
     
     // Check initial scroll position
@@ -43,9 +44,19 @@ export const Header: React.FC<HeaderProps> = ({ currentPage, onNavigate }) => {
   };
 
   return (
-    <header className={`sticky top-0 z-40 w-full backdrop-blur-md shadow-sm border-b border-slate-200/80 transition-all duration-300 ${isScrolled ? 'bg-white/98' : 'bg-white/95'}`}>
+    <header
+      className={`sticky top-0 z-40 w-full transition-all duration-300 ${
+        isScrolled
+          ? 'bg-white/95 backdrop-blur-md shadow-lg border-b border-slate-200/80 rounded-b-2xl sm:rounded-b-3xl'
+          : 'bg-white/95 backdrop-blur-md shadow-sm border-b border-slate-200/80'
+      }`}
+    >
       {/* Top Advisory & Business Identity Strip */}
-      <div className={`bg-gradient-to-r from-slate-900 via-sky-950 to-emerald-950 text-slate-200 text-xs px-4 sm:px-6 overflow-hidden transition-all duration-300 transform origin-top ${isScrolled ? 'max-h-0 opacity-0 py-0' : 'max-h-20 opacity-100 py-1.5'}`}>
+      <div
+        className={`bg-gradient-to-r from-slate-900 via-sky-950 to-emerald-950 text-slate-200 text-xs px-4 sm:px-6 overflow-hidden transition-all duration-300 transform origin-top ${
+          isScrolled ? 'max-h-0 opacity-0 py-0' : 'max-h-20 opacity-100 py-1.5'
+        }`}
+      >
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
           {/* GSTIN & Proprietor */}
           <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
