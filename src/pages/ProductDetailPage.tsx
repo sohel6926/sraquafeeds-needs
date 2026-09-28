@@ -203,19 +203,20 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 </div>
               )}
 
-              {/* Packaging Badge Bottom Left */}
-              <div className="absolute bottom-4 left-4 z-10 flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md text-white text-xs font-medium border border-white/10">
-                <Package className="w-4 h-4 text-emerald-400" />
-                <span>Pack: {product.packaging}</span>
-              </div>
-
-              {/* Curiosity Highlight Badge Bottom Right */}
-              {product.curiosityBadge && (
-                <div className="absolute bottom-4 right-4 z-10 flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-600/95 backdrop-blur-md text-white text-xs font-bold border border-emerald-400/40 shadow-md">
-                  <Sparkles className="w-3.5 h-3.5 text-yellow-300" />
-                  <span>{product.curiosityBadge}</span>
+              {/* Packaging Badge Bottom Left & Curiosity Badge Bottom Right (Flexbox prevents overlap) */}
+              <div className="absolute bottom-4 inset-x-4 z-10 flex items-center justify-between gap-3 min-w-0 pointer-events-none">
+                <div className="flex items-center gap-2 px-3 py-1 rounded-xl bg-slate-900/90 backdrop-blur-md text-white text-xs font-medium border border-white/10 min-w-0 max-w-[55%] pointer-events-auto shadow-md">
+                  <Package className="w-4 h-4 text-emerald-400 flex-shrink-0" />
+                  <span className="truncate">Pack: {product.packaging}</span>
                 </div>
-              )}
+
+                {product.curiosityBadge && (
+                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-emerald-600/95 backdrop-blur-md text-white text-xs font-bold border border-emerald-400/40 shadow-md min-w-0 max-w-[45%] flex-shrink-0 pointer-events-auto ml-auto">
+                    <Sparkles className="w-3.5 h-3.5 text-yellow-300 flex-shrink-0" />
+                    <span className="truncate">{product.curiosityBadge}</span>
+                  </div>
+                )}
+              </div>
             </div>
 
             {/* Gallery Thumbnails Strip */}

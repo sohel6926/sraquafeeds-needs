@@ -50,20 +50,27 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
       {/* Top subtle aquatic accent line */}
       <div className="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-sky-400 via-emerald-400 to-teal-500 opacity-0 group-hover:opacity-100 transition-opacity z-20" />
 
-      {/* Popular / Recommended Badge */}
-      {product.isPopular && (
-        <div className="absolute top-3 right-3 z-10">
-          <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-[11px] font-bold px-2.5 py-1 rounded-full shadow-md tracking-wide uppercase border border-emerald-400/40">
-            Top Demand
-          </span>
-        </div>
-      )}
-
-      {/* Category Pill Over Image */}
-      <div className="absolute top-3 left-3 z-10">
-        <span className="inline-block bg-slate-900/80 backdrop-blur-md text-emerald-200 border border-emerald-400/30 text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-xs">
+      {/* Top Overlay Badges: Category on Left, Top Demand & Photos on Right */}
+      <div className="absolute top-3 inset-x-3 z-10 flex items-center justify-between gap-2 pointer-events-none">
+        {/* Category Pill */}
+        <span className="inline-block bg-slate-900/80 backdrop-blur-md text-emerald-200 border border-emerald-400/30 text-[11px] font-semibold px-2.5 py-1 rounded-full shadow-xs truncate max-w-[55%] pointer-events-auto">
           {product.category}
         </span>
+
+        {/* Top Right Badges: Popular & Photo Gallery */}
+        <div className="flex items-center gap-1.5 justify-end flex-wrap pointer-events-auto">
+          {product.isPopular && (
+            <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-md tracking-wide uppercase border border-emerald-400/40 whitespace-nowrap">
+              Top Demand
+            </span>
+          )}
+          {product.images && product.images.length > 1 && (
+            <span className="inline-flex items-center gap-1 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs border border-white/20 whitespace-nowrap">
+              <Images className="w-3 h-3 text-emerald-400" />
+              <span>{product.images.length} Photos</span>
+            </span>
+          )}
+        </div>
       </div>
 
       {/* Product Image Slot */}
@@ -95,29 +102,30 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
 
         <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent opacity-70 group-hover:opacity-50 transition-opacity" />
 
-        {/* Packaging spec badge */}
-        <div className="absolute bottom-2.5 left-3 flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-900/85 backdrop-blur-xs text-white text-[11px] font-medium border border-white/10">
-          <Package className="w-3 h-3 text-emerald-400" />
-          <span>Pack: {product.packaging}</span>
+        {/* Bottom Badges Container: Packaging on left, Curiosity Highlight on right (Flexbox prevents any overlap) */}
+        <div className="absolute bottom-2.5 inset-x-2.5 z-10 flex items-center justify-between gap-1.5 min-w-0 pointer-events-none">
+          {/* Packaging spec badge */}
+          {product.packaging && (
+            <div
+              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-slate-900/90 backdrop-blur-xs text-white text-[10px] font-medium border border-white/15 min-w-0 max-w-[52%] shadow-xs pointer-events-auto"
+              title={`Packaging: ${product.packaging}`}
+            >
+              <Package className="w-3 h-3 text-emerald-400 flex-shrink-0" />
+              <span className="truncate">{product.packaging}</span>
+            </div>
+          )}
+
+          {/* Curiosity Micro-Badge floating bottom-right of image */}
+          {product.curiosityBadge && (
+            <div
+              className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-600/95 backdrop-blur-xs text-white text-[10px] font-bold border border-emerald-400/40 shadow-xs min-w-0 max-w-[48%] flex-shrink-0 pointer-events-auto ml-auto"
+              title={product.curiosityBadge}
+            >
+              <Sparkles className="w-2.5 h-2.5 text-yellow-300 flex-shrink-0" />
+              <span className="truncate">{product.curiosityBadge}</span>
+            </div>
+          )}
         </div>
-
-        {/* Photo Gallery Count Badge */}
-        {product.images && product.images.length > 1 && (
-          <div className="absolute top-3 right-3 z-10">
-            <span className="inline-flex items-center gap-1 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs border border-white/20">
-              <Images className="w-3 h-3 text-emerald-400" />
-              <span>{product.images.length} Photos</span>
-            </span>
-          </div>
-        )}
-
-        {/* Curiosity Micro-Badge floating bottom-right of image */}
-        {product.curiosityBadge && (
-          <div className="absolute bottom-2.5 right-3 flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-emerald-600/90 backdrop-blur-xs text-white text-[10px] font-bold border border-emerald-400/40 shadow-xs">
-            <Sparkles className="w-2.5 h-2.5 text-yellow-300" />
-            <span>{product.curiosityBadge}</span>
-          </div>
-        )}
       </div>
 
       {/* Product Card Body: Curiosity-Oriented, Clean & Compelling */}
