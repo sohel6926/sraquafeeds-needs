@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Product } from '../types.ts';
-import { Package, Droplets, Sparkles, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Package, Droplets, Sparkles, ArrowRight, ShieldCheck, Images } from 'lucide-react';
 import { WhatsAppIcon } from './Icons.tsx';
 
 import cleanWaterTexture from '../assets/images/clean_water_texture_1790105872350.jpg';
@@ -100,6 +100,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
           <Package className="w-3 h-3 text-emerald-400" />
           <span>Pack: {product.packaging}</span>
         </div>
+
+        {/* Photo Gallery Count Badge */}
+        {product.images && product.images.length > 1 && (
+          <div className="absolute top-3 right-3 z-10">
+            <span className="inline-flex items-center gap-1 bg-slate-900/85 backdrop-blur-xs text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-xs border border-white/20">
+              <Images className="w-3 h-3 text-emerald-400" />
+              <span>{product.images.length} Photos</span>
+            </span>
+          </div>
+        )}
 
         {/* Curiosity Micro-Badge floating bottom-right of image */}
         {product.curiosityBadge && (

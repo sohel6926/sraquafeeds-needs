@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Product, PageType } from '../types.ts';
 import { ProductCard } from '../components/ProductCard.tsx';
 import { InquiryForm } from '../components/InquiryForm.tsx';
@@ -18,6 +18,9 @@ import {
   Truck,
   FileText,
   Clock,
+  ChevronLeft,
+  ChevronRight,
+  Images,
 } from 'lucide-react';
 
 import cleanWaterTexture from '../assets/images/clean_water_texture_1790105872350.jpg';
@@ -67,6 +70,30 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
   const req = calculateRequirement();
 
   // Related products
+  // Image Gallery State
+  const allImages = useMemo(() => {
+    const list = product.images && product.images.length > 0
+      ? product.images
+      : (product.imageUrl ? [product.imageUrl] : []);
+    return list.filter(Boolean);
+  }, [product]);
+
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [product.id]);
+
+  const currentImage = allImages[activeImageIndex] || product.imageUrl;
+
+  const handlePrevImage = () => {
+    setActiveImageIndex((prev) => (prev > 0 ? prev - 1 : allImages.length - 1));
+  };
+
+  const handleNextImage = () => {
+    setActiveImageIndex((prev) => (prev < allImages.length - 1 ? prev + 1 : 0));
+  };
+
   const relatedProducts = products.filter((p) => p.id !== product.id && (p.category === product.category || p.isPopular)).slice(0, 3);
 
 
@@ -113,9 +140,9 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start">
           {/* Left Column: Product Imagery & Physical Guarantee */}
           <div className="lg:col-span-5 space-y-4">
-            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-tr from-slate-900 via-slate-800 to-sky-950 border border-slate-200/90 shadow-xl aspect-4/3 flex items-center justify-center group">
+            <div className="relative rounded-3xl overflow-hidden bg-gradient-to-tr from-slate-900 via-slate-800 to-sky-950 border border-slate-200/90 shadow-xl aspect-4/3 flex items-center justify-center group select-none">
               <img
-                src={product.imageUrl}
+                src={currentImage}
                 alt={product.name}
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -132,6 +159,33 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
 
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 via-transparent to-transparent opacity-80" />
 
+              {/* Multiple Images Navigation Arrows */}
+              {allImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handlePrevImage}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-900/80 hover:bg-emerald-600 text-white flex items-center justify-center transition-all shadow-md cursor-pointer backdrop-blur-xs hover:scale-110 active:scale-95"
+                    aria-label="Previous image"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleNextImage}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-slate-900/80 hover:bg-emerald-600 text-white flex items-center justify-center transition-all shadow-md cursor-pointer backdrop-blur-xs hover:scale-110 active:scale-95"
+                    aria-label="Next image"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+
+                  <div className="absolute top-4 right-4 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-900/85 backdrop-blur-md text-white text-[11px] font-bold border border-white/20 shadow-md">
+                    <Images className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>{activeImageIndex + 1} / {allImages.length}</span>
+                  </div>
+                </>
+              )}
+
               {/* Category Pill */}
               <div className="absolute top-4 left-4 z-10">
                 <span className="inline-block bg-slate-900/85 backdrop-blur-md text-emerald-300 border border-emerald-400/40 text-xs font-semibold px-3 py-1 rounded-full shadow-md">
@@ -139,8 +193,8 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 </span>
               </div>
 
-              {/* Popular Badge */}
-              {product.isPopular && (
+              {/* Popular Badge (shown if not overlapped with photo counter) */}
+              {product.isPopular && allImages.length <= 1 && (
                 <div className="absolute top-4 right-4 z-10">
                   <span className="inline-flex items-center gap-1 bg-emerald-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg uppercase border border-emerald-400/40">
                     <Sparkles className="w-3 h-3" />
@@ -163,6 +217,26 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({
                 </div>
               )}
             </div>
+
+            {/* Gallery Thumbnails Strip */}
+            {allImages.length > 1 && (
+              <div className="flex items-center gap-2.5 overflow-x-auto pb-1 scrollbar-none pt-0.5">
+                {allImages.map((img, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`relative rounded-xl overflow-hidden border-2 transition-all flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 cursor-pointer ${
+                      activeImageIndex === idx
+                        ? 'border-emerald-500 ring-2 ring-emerald-500/30 scale-105 shadow-md'
+                        : 'border-slate-200 opacity-70 hover:opacity-100 hover:border-slate-300'
+                    }`}
+                  >
+                    <img src={img} alt={`Product photo ${idx + 1}`} className="w-full h-full object-cover" />
+                  </button>
+                ))}
+              </div>
+            )}
 
             {/* Verification Reassurance Chips */}
             <div className="grid grid-cols-2 gap-3">

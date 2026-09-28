@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useData } from '../../context/DataContext.tsx';
 import { GalleryItem } from '../../types.ts';
 import { ImageUploader } from './ImageUploader.tsx';
+import { MultiImageUploader } from './MultiImageUploader.tsx';
 import { AutoResizeTextarea } from './AutoResizeTextarea.tsx';
 import {
-
   Image as ImageIcon,
   Plus,
   Trash2,
@@ -12,9 +12,10 @@ import {
   CheckCircle2,
   X,
   RotateCcw,
-  Copy
+  Copy,
+  Upload,
+  Layers
 } from 'lucide-react';
-
 
 const GALLERY_CATEGORIES: GalleryItem['category'][] = [
   'Shop Interior',
@@ -45,6 +46,47 @@ export const AdminGallery: React.FC = () => {
   const [category, setCategory] = useState<GalleryItem['category']>('Shop Interior');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+
+  // Batch Multi-Upload State
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [batchCategory, setBatchCategory] = useState<GalleryItem['category']>('Shop Interior');
+  const [batchTitlePrefix, setBatchTitlePrefix] = useState('');
+  const [batchDescription, setBatchDescription] = useState('');
+  const [batchImages, setBatchImages] = useState<string[]>([]);
+
+  const handleOpenBatch = () => {
+    setBatchCategory('Shop Interior');
+    setBatchTitlePrefix('');
+    setBatchDescription('');
+    setBatchImages([]);
+    setIsBatchModalOpen(true);
+  };
+
+  const handleSaveBatch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (batchImages.length === 0) {
+      alert('Please upload or select at least one photo.');
+      return;
+    }
+
+    const baseTime = Date.now();
+    batchImages.forEach((img, idx) => {
+      const itemTitle = batchTitlePrefix.trim()
+        ? `${batchTitlePrefix.trim()} (${idx + 1})`
+        : `${batchCategory} ${gallery.length + idx + 1}`;
+
+      addGalleryItem({
+        id: `gal-${baseTime}-${idx}-${Math.random().toString(36).substring(2, 6)}`,
+        title: itemTitle,
+        category: batchCategory,
+        description: batchDescription.trim() || `SR Aqua Feeds showroom and pond facility - ${batchCategory}.`,
+        imageUrl: img,
+      });
+    });
+
+    showToast(`Successfully added ${batchImages.length} photos to the gallery!`);
+    setIsBatchModalOpen(false);
+  };
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -143,11 +185,19 @@ export const AdminGallery: React.FC = () => {
           </button>
 
           <button
+            onClick={handleOpenBatch}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 text-xs font-bold shadow-2xs transition-all active:scale-95 cursor-pointer"
+          >
+            <Upload className="w-4 h-4 text-emerald-600" />
+            <span>Upload Multiple Photos</span>
+          </button>
+
+          <button
             onClick={handleOpenAdd}
             className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Gallery Photo</span>
+            <span>Add Single Photo</span>
           </button>
         </div>
       </div>
@@ -302,6 +352,117 @@ export const AdminGallery: React.FC = () => {
                 >
                   {editingItem ? 'Save Photo' : 'Add Photo'}
                 </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Batch Upload Multiple Photos Modal */}
+      {isBatchModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-xs overflow-y-auto w-full max-w-full">
+          <div className="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 shadow-2xl border border-slate-200 animate-in fade-in zoom-in-95 duration-150 my-8">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-200">
+              <div className="flex items-center gap-2.5">
+                <div className="w-9 h-9 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+                  <Upload className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="text-base font-extrabold text-slate-900">
+                    Upload Multiple Photos to Gallery
+                  </h3>
+                  <p className="text-[11px] text-slate-500">
+                    Select multiple pictures from your phone or PC to add to the gallery at once.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsBatchModalOpen(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveBatch} className="space-y-4 pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Target Gallery Category <span className="text-emerald-600">*</span>
+                  </label>
+                  <select
+                    value={batchCategory}
+                    onChange={(e) => setBatchCategory(e.target.value as any)}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  >
+                    {GALLERY_CATEGORIES.map((cat) => (
+                      <option key={cat} value={cat}>
+                        {cat}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Photo Title Prefix <span className="text-slate-400 font-normal">(Optional)</span>
+                  </label>
+                  <input
+                    type="text"
+                    value={batchTitlePrefix}
+                    onChange={(e) => setBatchTitlePrefix(e.target.value)}
+                    placeholder="e.g. Warehouse Rack or Pond Dispatch"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1">
+                  Common Description / Caption <span className="text-slate-400 font-normal">(Optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={batchDescription}
+                  onChange={(e) => setBatchDescription(e.target.value)}
+                  placeholder="e.g. Fresh batch arriving at SR Aqua Feeds & Needs Ulavapadu showroom"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                />
+              </div>
+
+              {/* Multi-Image Uploader Component */}
+              <div className="pt-1">
+                <MultiImageUploader
+                  label="Select Multiple Photos (Drop or Pick Files)"
+                  images={batchImages}
+                  maxImages={20}
+                  onChange={(newImgs) => setBatchImages(newImgs)}
+                  presetImages={PRESET_GALLERY_IMAGES}
+                />
+              </div>
+
+              <div className="pt-4 flex items-center justify-between gap-3 border-t border-slate-200 flex-wrap">
+                <span className="text-xs font-semibold text-slate-600">
+                  {batchImages.length} photo(s) selected
+                </span>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsBatchModalOpen(false)}
+                    className="px-4 py-2 rounded-lg text-xs font-semibold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={batchImages.length === 0}
+                    className="px-5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Upload className="w-3.5 h-3.5" />
+                    <span>Upload & Add {batchImages.length > 0 ? `(${batchImages.length})` : ''} to Gallery</span>
+                  </button>
+                </div>
               </div>
             </form>
           </div>

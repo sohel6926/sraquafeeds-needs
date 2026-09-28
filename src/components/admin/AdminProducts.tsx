@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { useData } from '../../context/DataContext.tsx';
 import { Product, ProductCategory } from '../../types.ts';
 import { ImageUploader } from './ImageUploader.tsx';
+import { MultiImageUploader } from './MultiImageUploader.tsx';
 import { AutoResizeTextarea } from './AutoResizeTextarea.tsx';
 import {
   Package,
@@ -62,6 +63,7 @@ export const AdminProducts: React.FC = () => {
     packaging: '25 kg Bag',
     keyBenefits: ['High Protein Formulation', 'Rapid Digestion', 'Clean Water Formula'],
     imageUrl: PRESET_IMAGES[0].url,
+    images: [PRESET_IMAGES[0].url],
     isPopular: false,
     curiosityBadge: 'Premium Grade',
     curiosityHighlight: 'High Bio-Availability',
@@ -102,6 +104,7 @@ export const AdminProducts: React.FC = () => {
       packaging: '25 kg Bag',
       keyBenefits: ['High Protein Formulation', 'Rapid Water Stability', 'Optimal FCR Conversion'],
       imageUrl: PRESET_IMAGES[0].url,
+      images: [PRESET_IMAGES[0].url],
       isPopular: false,
       curiosityBadge: 'Premium Stock',
       curiosityHighlight: 'Coastal Tested',
@@ -137,7 +140,11 @@ export const AdminProducts: React.FC = () => {
   const handleOpenEdit = (p: Product, updateUrl = true) => {
     setEditingProduct(p);
     setModalTab('general');
-    setFormData({ ...p });
+    setFormData({
+      ...p,
+      images: p.images && p.images.length > 0 ? [...p.images] : (p.imageUrl ? [p.imageUrl] : []),
+      imageUrl: p.imageUrl || (p.images && p.images[0]) || '',
+    });
     setBenefitsInput((p.keyBenefits || []).join('\n'));
     setSpecsList(
       p.specs && p.specs.length > 0
@@ -264,6 +271,11 @@ export const AdminProducts: React.FC = () => {
       .map((s) => s.trim())
       .filter(Boolean);
 
+    const productImages = (formData.images && formData.images.length > 0)
+      ? formData.images
+      : (formData.imageUrl ? [formData.imageUrl] : [PRESET_IMAGES[0].url]);
+    const primaryImg = formData.imageUrl?.trim() || productImages[0] || PRESET_IMAGES[0].url;
+
     const productPayload: Product = {
       id: editingProduct ? editingProduct.id : `prod-${Date.now()}`,
       name: formData.name.trim(),
@@ -272,7 +284,8 @@ export const AdminProducts: React.FC = () => {
       description: formData.description?.trim() || '',
       packaging: formData.packaging?.trim() || '25 kg Bag',
       keyBenefits: benefits.length > 0 ? benefits : ['Reliable Quality', 'Fast Acting'],
-      imageUrl: formData.imageUrl?.trim() || PRESET_IMAGES[0].url,
+      imageUrl: primaryImg,
+      images: productImages,
       isPopular: !!formData.isPopular,
       curiosityBadge: formData.curiosityBadge?.trim() || undefined,
       curiosityHighlight: formData.curiosityHighlight?.trim() || undefined,
@@ -552,11 +565,25 @@ export const AdminProducts: React.FC = () => {
                 />
               </div>
 
-              {/* Image Uploader */}
-              <ImageUploader
-                label="Product Display Image"
-                value={formData.imageUrl || ''}
-                onChange={(img) => setFormData({ ...formData, imageUrl: img })}
+              {/* Multi-Image Uploader for Product & Gallery */}
+              <MultiImageUploader
+                label="Product Photos & Gallery"
+                images={formData.images && formData.images.length > 0 ? formData.images : (formData.imageUrl ? [formData.imageUrl] : [])}
+                primaryImage={formData.imageUrl}
+                onChange={(newImages) => {
+                  const primary = (formData.imageUrl && newImages.includes(formData.imageUrl)) ? formData.imageUrl : (newImages[0] || '');
+                  setFormData({
+                    ...formData,
+                    images: newImages,
+                    imageUrl: primary,
+                  });
+                }}
+                onPrimaryChange={(primaryUrl) => {
+                  setFormData({
+                    ...formData,
+                    imageUrl: primaryUrl,
+                  });
+                }}
                 presetImages={PRESET_IMAGES}
               />
 
@@ -988,6 +1015,12 @@ export const AdminProducts: React.FC = () => {
                 <span className="absolute top-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-900/85 text-white text-[10px] font-bold backdrop-blur-xs">
                   {product.category}
                 </span>
+                {product.images && product.images.length > 1 && (
+                  <span className="absolute bottom-2.5 left-2.5 px-2 py-0.5 rounded-md bg-slate-900/85 text-white text-[10px] font-bold backdrop-blur-xs flex items-center gap-1 shadow-xs border border-white/20">
+                    <Layers className="w-3 h-3 text-emerald-400" />
+                    <span>{product.images.length} Photos</span>
+                  </span>
+                )}
                 {product.isPopular && (
                   <span className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-md bg-amber-500 text-white text-[10px] font-bold flex items-center gap-1 shadow-xs">
                     ⭐ Featured

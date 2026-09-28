@@ -19,6 +19,7 @@ export interface Product {
   packaging: string;
   keyBenefits: string[];
   imageUrl: string;
+  images?: string[];
   isPopular?: boolean;
   curiosityHighlight?: string;
   curiosityBadge?: string;

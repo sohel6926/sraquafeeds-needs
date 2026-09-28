@@ -35,7 +35,10 @@ export const mapProductFromDb = (row: any): Product => ({
   description: row.description || '',
   packaging: row.packaging || '',
   keyBenefits: Array.isArray(row.key_benefits) ? row.key_benefits : [],
-  imageUrl: row.image_url || '',
+  imageUrl: row.image_url || (Array.isArray(row.images) && row.images[0]) || '',
+  images: Array.isArray(row.images) && row.images.length > 0
+    ? row.images
+    : (row.image_url ? [row.image_url] : []),
   isPopular: Boolean(row.is_popular),
   curiosityHighlight: row.curiosity_highlight || '',
   curiosityBadge: row.curiosity_badge || '',
@@ -55,7 +58,8 @@ export const mapProductToDb = (p: Partial<Product>) => ({
   description: p.description,
   packaging: p.packaging,
   key_benefits: p.keyBenefits,
-  image_url: p.imageUrl,
+  image_url: p.imageUrl || (p.images && p.images[0]) || '',
+  images: p.images && p.images.length > 0 ? p.images : (p.imageUrl ? [p.imageUrl] : []),
   is_popular: p.isPopular,
   curiosity_highlight: p.curiosityHighlight,
   curiosity_badge: p.curiosityBadge,
