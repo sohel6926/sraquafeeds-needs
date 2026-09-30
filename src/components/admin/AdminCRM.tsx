@@ -37,6 +37,28 @@ export const AdminCRM: React.FC = () => {
 
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
 
+  const STANDARD_UNITS = [
+    'kg',
+    'Tonnes',
+    'Litres',
+    'Grams',
+    'Units (Pieces)',
+    '25 kg Bag',
+    '50 kg Bag',
+    '10 kg Bag',
+    '5 kg Bag',
+    '1 kg Zip Foil Pack',
+    '25 kg Moisture-Proof Bag',
+    '10 kg Bucket',
+    '5 kg Bucket',
+    '10 kg Drum',
+    '1 Litre Bottle',
+    '5 Litre Can',
+    '1 Litre & 5 Litre Bottles'
+  ];
+  const [isCustomUnit, setIsCustomUnit] = useState(false);
+  const [customUnitValue, setCustomUnitValue] = useState('');
+
   // Categories Add State
   const [newCategoryName, setNewCategoryName] = useState('');
 
@@ -128,7 +150,10 @@ export const AdminCRM: React.FC = () => {
 
   const handleAddInventory = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!invName.trim() || !invUnit.trim() || invStock === '' || invCost === '' || invPrice === '') {
+
+    const finalUnit = isCustomUnit ? customUnitValue.trim() : invUnit.trim();
+
+    if (!invName.trim() || !finalUnit || invStock === '' || invCost === '' || invPrice === '') {
       alert('Please fill out all fields for the new product.');
       return;
     }
@@ -140,7 +165,7 @@ export const AdminCRM: React.FC = () => {
           ...existingProduct,
           name: invName.trim(),
           category: invCategory,
-          packaging: invUnit.trim(),
+          packaging: finalUnit,
           stock: Number(invStock),
           costPrice: Number(invCost),
           sellingPrice: Number(invPrice),
@@ -154,7 +179,7 @@ export const AdminCRM: React.FC = () => {
         category: invCategory,
         tagline: 'Standard Inventory Item',
         description: 'Added via Quick Inventory',
-        packaging: invUnit.trim(),
+        packaging: finalUnit,
         keyBenefits: [],
         imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
         stock: Number(invStock),
@@ -178,6 +203,8 @@ export const AdminCRM: React.FC = () => {
     setEditingInventoryId(null);
     setInvName('');
     setInvUnit('');
+    setIsCustomUnit(false);
+    setCustomUnitValue('');
     setInvStock('');
     setInvCost('');
     setInvPrice('');
@@ -188,7 +215,18 @@ export const AdminCRM: React.FC = () => {
     setEditingInventoryId(p.id);
     setInvName(p.name);
     setInvCategory(p.category);
-    setInvUnit(p.packaging || '');
+    
+    const unit = p.packaging || '';
+    if (unit && !STANDARD_UNITS.includes(unit)) {
+      setInvUnit('Other');
+      setIsCustomUnit(true);
+      setCustomUnitValue(unit);
+    } else {
+      setInvUnit(unit);
+      setIsCustomUnit(false);
+      setCustomUnitValue('');
+    }
+
     setInvStock(p.stock !== undefined ? p.stock : '');
     setInvCost(p.costPrice !== undefined ? p.costPrice : '');
     setInvPrice(p.sellingPrice !== undefined ? p.sellingPrice : '');
@@ -455,15 +493,20 @@ export const AdminCRM: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Quantity ({selectedProductUnit})
+                  Quantity
                 </label>
-                <input 
-                  type="number"
-                  value={quantity}
-                  onChange={e => setQuantity(Number(e.target.value))}
-                  placeholder={`e.g. 10`}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
-                />
+                <div className="flex items-center">
+                  <input 
+                    type="number"
+                    value={quantity}
+                    onChange={e => setQuantity(Number(e.target.value))}
+                    placeholder={`e.g. 10`}
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 border-r-0 rounded-l-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:z-10 relative"
+                  />
+                  <div className="bg-slate-100 border border-slate-200 border-l-0 px-3 py-2 rounded-r-lg text-xs font-semibold text-slate-500 whitespace-nowrap min-w-[60px] text-center shadow-sm h-full flex items-center shrink-0">
+                    {selectedProductUnit || 'Units'}
+                  </div>
+                </div>
               </div>
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Unit Price (₹)</label>
@@ -666,13 +709,32 @@ export const AdminCRM: React.FC = () => {
 
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">Unit Metric</label>
-                <input 
-                  type="text"
+                <select
                   value={invUnit}
-                  onChange={e => setInvUnit(e.target.value)}
-                  placeholder="e.g. kg, Tons, Litres, 50kg Bags"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
-                />
+                  onChange={e => {
+                    const val = e.target.value;
+                    setInvUnit(val);
+                    setIsCustomUnit(val === 'Other');
+                    if (val !== 'Other') setCustomUnitValue('');
+                  }}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 mb-2"
+                >
+                  <option value="">-- Select Unit Metric --</option>
+                  {STANDARD_UNITS.map(u => (
+                    <option key={u} value={u}>{u}</option>
+                  ))}
+                  <option value="Other">Other (Custom)</option>
+                </select>
+
+                {isCustomUnit && (
+                  <input 
+                    type="text"
+                    value={customUnitValue}
+                    onChange={e => setCustomUnitValue(e.target.value)}
+                    placeholder="Type custom unit (e.g. 15 kg Box)"
+                    className="w-full px-3 py-2 bg-white border border-emerald-300 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500 shadow-sm"
+                  />
+                )}
               </div>
 
               <div className="grid grid-cols-2 gap-3">
