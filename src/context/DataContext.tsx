@@ -517,7 +517,29 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return [];
   });
 
-  // 7. Site Settings state
+  // 7. Categories state
+  const [categories, setCategories] = useState<Category[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.CATEGORIES);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // Fallback
+    }
+    return [
+      { id: 'cat-1', name: 'Shrimp & Fish Feed' },
+      { id: 'cat-2', name: 'Pond Minerals' },
+      { id: 'cat-3', name: 'Probiotics & Enzymes' },
+      { id: 'cat-4', name: 'Ammonia & Gas Control' },
+      { id: 'cat-5', name: 'Oxygen Enhancers' },
+      { id: 'cat-6', name: 'Disinfectants & Sanitizers' },
+      { id: 'cat-7', name: 'Growth Promoters & Immunity' }
+    ];
+  });
+
+  // 8. Site Settings state
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
