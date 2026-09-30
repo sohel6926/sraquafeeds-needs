@@ -36,26 +36,7 @@ export const AdminCRM: React.FC = () => {
   const [editingInventoryId, setEditingInventoryId] = useState<string | null>(null);
 
 
-
-  const STANDARD_UNITS = [
-    'kg',
-    'Tonnes',
-    'Litres',
-    'Grams',
-    'Units (Pieces)',
-    '25 kg Bag',
-    '50 kg Bag',
-    '10 kg Bag',
-    '5 kg Bag',
-    '1 kg Zip Foil Pack',
-    '25 kg Moisture-Proof Bag',
-    '10 kg Bucket',
-    '5 kg Bucket',
-    '10 kg Drum',
-    '1 Litre Bottle',
-    '5 Litre Can',
-    '1 Litre & 5 Litre Bottles'
-  ];
+  const STANDARD_UNITS = ['kg', 'Litres', 'Tonnes', 'Grams', 'Units'];
   const [isCustomUnit, setIsCustomUnit] = useState(false);
   const [customUnitValue, setCustomUnitValue] = useState('');
 
@@ -75,18 +56,6 @@ export const AdminCRM: React.FC = () => {
   };
 
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
-  const [saleSpecificUnit, setSaleSpecificUnit] = useState<string>('Units');
-
-  const parseUnits = (packaging: string) => {
-    if (!packaging) return ['Units'];
-    if (packaging.includes('&')) {
-      return packaging.split('&').map(s => s.trim());
-    }
-    if (packaging.toLowerCase().includes('and')) {
-      return packaging.split(/and/i).map(s => s.trim());
-    }
-    return [packaging];
-  };
 
   const handleProductSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const pId = e.target.value;
@@ -97,14 +66,10 @@ export const AdminCRM: React.FC = () => {
       if (prod) {
         setSellingPrice(prod.sellingPrice || 0);
         setSelectedProductUnit(prod.packaging || 'Units');
-        
-        const parsed = parseUnits(prod.packaging || '');
-        setSaleSpecificUnit(parsed[0]);
       }
     } else {
       setSellingPrice('');
       setSelectedProductUnit('Units');
-      setSaleSpecificUnit('Units');
     }
   };
 
@@ -511,29 +476,18 @@ export const AdminCRM: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Quantity
+                  Quantity ({selectedProductUnit})
                 </label>
-                <div className="flex items-center">
-                  <input 
-                    type="number"
-                    value={quantity}
-                    onChange={e => setQuantity(Number(e.target.value))}
-                    placeholder={`e.g. 10`}
-                    className="flex-1 min-w-0 px-3 py-2 bg-slate-50 border border-slate-200 border-r-0 rounded-l-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white focus:z-10 relative"
-                  />
-                  <select
-                    value={saleSpecificUnit}
-                    onChange={e => setSaleSpecificUnit(e.target.value)}
-                    className="bg-slate-100 border border-slate-200 border-l-0 px-2 py-2 rounded-r-lg text-xs font-semibold text-slate-700 max-w-[130px] shadow-sm h-full flex items-center shrink-0 focus:ring-0 focus:outline-none truncate cursor-pointer hover:bg-slate-200 transition-colors"
-                  >
-                    {parseUnits(selectedProductUnit).map(opt => (
-                      <option key={opt} value={opt}>{opt}</option>
-                    ))}
-                  </select>
-                </div>
+                <input 
+                  type="number"
+                  value={quantity}
+                  onChange={e => setQuantity(Number(e.target.value))}
+                  placeholder={`e.g. 10`}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Unit Price (₹)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Price per {selectedProductUnit} (₹)</label>
                 <input 
                   type="number"
                   value={sellingPrice}
@@ -763,7 +717,7 @@ export const AdminCRM: React.FC = () => {
 
               <div className="grid grid-cols-2 gap-3">
                 <div className="col-span-2">
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Initial Stock</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Initial Stock ({isCustomUnit ? customUnitValue || 'Units' : invUnit || 'Units'})</label>
                   <input 
                     type="number"
                     value={invStock}
@@ -774,7 +728,7 @@ export const AdminCRM: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Your Buy Price (Cost) ₹
+                    Cost per {isCustomUnit ? customUnitValue || 'Unit' : invUnit || 'Unit'} (₹)
                   </label>
                   <input 
                     type="number"
@@ -786,7 +740,7 @@ export const AdminCRM: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                    Customer Price (Sale) ₹
+                    Sell per {isCustomUnit ? customUnitValue || 'Unit' : invUnit || 'Unit'} (₹)
                   </label>
                   <input 
                     type="number"
