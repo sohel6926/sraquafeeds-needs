@@ -6,13 +6,15 @@ import {
   ShoppingCart, 
   TrendingUp, 
   Package, 
-  Search,
   CheckCircle2,
-  Plus
+  Plus,
+  Box,
+  Save
 } from 'lucide-react';
 
 export const AdminCRM: React.FC = () => {
-  const { products, sales, addSale, updateProduct } = useData();
+  const { products, sales, addSale, updateProduct, addProduct } = useData();
+  const [activeTab, setActiveTab] = useState<'sales' | 'inventory'>('sales');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Form State
@@ -20,6 +22,14 @@ export const AdminCRM: React.FC = () => {
   const [customerName, setCustomerName] = useState('');
   const [quantity, setQuantity] = useState<number | ''>('');
   const [sellingPrice, setSellingPrice] = useState<number | ''>('');
+
+  // Inventory Add State
+  const [invName, setInvName] = useState('');
+  const [invCategory, setInvCategory] = useState<any>('All');
+  const [invUnit, setInvUnit] = useState('');
+  const [invStock, setInvStock] = useState<number | ''>('');
+  const [invCost, setInvCost] = useState<number | ''>('');
+  const [invPrice, setInvPrice] = useState<number | ''>('');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -98,6 +108,42 @@ export const AdminCRM: React.FC = () => {
     setSellingPrice('');
   };
 
+  const handleAddInventory = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invName.trim() || !invUnit.trim() || invStock === '' || invCost === '' || invPrice === '') {
+      alert('Please fill out all fields for the new product.');
+      return;
+    }
+
+    const newProd: Omit<Product, 'id'> = {
+      name: invName.trim(),
+      category: invCategory,
+      tagline: 'Standard Inventory Item',
+      description: 'Added via Quick Inventory',
+      packaging: invUnit.trim(),
+      keyBenefits: [],
+      imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+      stock: Number(invStock),
+      costPrice: Number(invCost),
+      sellingPrice: Number(invPrice),
+      isPopular: false,
+      curiosityHighlight: '',
+      composition: [],
+      specs: [],
+      dosageSchedule: [],
+      idealWaterParams: []
+    };
+
+    await addProduct(newProd);
+    showToast(`${invName} added to inventory successfully!`);
+    
+    setInvName('');
+    setInvUnit('');
+    setInvStock('');
+    setInvCost('');
+    setInvPrice('');
+  };
+
   // Compute CRM metrics
   const totalRevenue = sales.reduce((sum, s) => sum + s.totalAmount, 0);
   const totalProfit = sales.reduce((sum, s) => sum + s.profit, 0);
@@ -115,15 +161,41 @@ export const AdminCRM: React.FC = () => {
       )}
 
       {/* Header */}
-      <div className="flex items-center gap-3 pb-2 border-b border-slate-200">
-        <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
-          <BarChart3 className="w-5 h-5" />
+      <div className="flex items-center justify-between pb-4 border-b border-slate-200">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+            <BarChart3 className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-black text-slate-900">Inventory & CRM</h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Manage stock, record sales, and quick-add inventory.
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-black text-slate-900">Inventory & CRM</h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Manage stock, record sales, and track profit margins automatically.
-          </p>
+
+        {/* Tabs */}
+        <div className="flex bg-slate-100 p-1 rounded-lg">
+          <button
+            onClick={() => setActiveTab('sales')}
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
+              activeTab === 'sales'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Sales Desk
+          </button>
+          <button
+            onClick={() => setActiveTab('inventory')}
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
+              activeTab === 'inventory'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Manage Inventory
+          </button>
         </div>
       </div>
 
@@ -162,8 +234,8 @@ export const AdminCRM: React.FC = () => {
         </div>
       </div>
 
-      {/* Record Sale & Current Stock Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      {activeTab === 'sales' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Record Sale Form */}
         <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
@@ -276,6 +348,143 @@ export const AdminCRM: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
+
+      {activeTab === 'inventory' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Quick Add Form */}
+          <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-2xs p-5 self-start">
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4">
+              <Box className="w-4 h-4 text-emerald-600" />
+              <h3 className="font-extrabold text-sm text-slate-900">Quick Add Item</h3>
+            </div>
+            
+            <form onSubmit={handleAddInventory} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Product Name</label>
+                <input 
+                  type="text"
+                  value={invName}
+                  onChange={e => setInvName(e.target.value)}
+                  placeholder="e.g. Urea, Raw Salt"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Category</label>
+                <select 
+                  value={invCategory}
+                  onChange={e => setInvCategory(e.target.value)}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="All">General (All)</option>
+                  <option value="Pond Minerals">Pond Minerals</option>
+                  <option value="Ammonia & Gas Control">Ammonia & Gas Control</option>
+                  <option value="Disinfectants & Sanitizers">Disinfectants & Sanitizers</option>
+                  <option value="Shrimp & Fish Feed">Feed</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Packaging / Unit</label>
+                <input 
+                  type="text"
+                  value={invUnit}
+                  onChange={e => setInvUnit(e.target.value)}
+                  placeholder="e.g. 50kg Bag, 1 Ton"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div className="col-span-2">
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Initial Stock</label>
+                  <input 
+                    type="number"
+                    value={invStock}
+                    onChange={e => setInvStock(Number(e.target.value))}
+                    placeholder="0"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Cost Price (₹)</label>
+                  <input 
+                    type="number"
+                    value={invCost}
+                    onChange={e => setInvCost(Number(e.target.value))}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Selling Price (₹)</label>
+                  <input 
+                    type="number"
+                    value={invPrice}
+                    onChange={e => setInvPrice(Number(e.target.value))}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+              </div>
+
+              <button 
+                type="submit"
+                className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mt-2"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add to Inventory</span>
+              </button>
+            </form>
+          </div>
+
+          {/* Current Inventory Table */}
+          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-extrabold text-sm text-slate-900">Current Stock Levels</h3>
+              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">{products.length} Items</span>
+            </div>
+
+            <div className="flex-1 overflow-auto max-h-[600px]">
+              <table className="w-full text-left border-collapse min-w-[600px]">
+                <thead>
+                  <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 sticky top-0">
+                    <th className="px-4 py-3">Product / Unit</th>
+                    <th className="px-4 py-3 text-right">Stock</th>
+                    <th className="px-4 py-3 text-right">Cost (₹)</th>
+                    <th className="px-4 py-3 text-right">Price (₹)</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {products.map(p => (
+                    <tr key={p.id} className="hover:bg-slate-50 transition-colors text-xs text-slate-800">
+                      <td className="px-4 py-3">
+                        <div className="font-bold text-slate-900">{p.name}</div>
+                        <div className="text-[10px] text-slate-500">{p.packaging}</div>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <span className={`px-2 py-1 rounded font-bold ${
+                          (p.stock || 0) <= 5 ? 'bg-red-100 text-red-700' : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {p.stock || 0}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right font-medium text-slate-600">
+                        {p.costPrice || 0}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-slate-900">
+                        {p.sellingPrice || 0}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
