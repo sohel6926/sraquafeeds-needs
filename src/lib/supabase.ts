@@ -8,6 +8,7 @@ import {
   FAQItem,
   SiteSettings,
   Sale,
+  Category,
 } from '../types.ts';
 
 const SUPABASE_URL =
@@ -293,4 +294,16 @@ export const mapSaleToDb = (s: Partial<Sale>) => ({
   profit: s.profit,
   date: s.date,
   updated_at: new Date().toISOString(),
+});
+
+// 8. Categories
+export const mapCategoryFromDb = (row: any): Category => ({
+  id: row.id,
+  name: row.name,
+});
+
+export const mapCategoryToDb = (c: Partial<Category>) => ({
+  id: c.id,
+  name: c.name,
+  created_at: new Date().toISOString(),
 });

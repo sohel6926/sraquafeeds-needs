@@ -1,14 +1,11 @@
 export type PageType = 'home' | 'about' | 'products' | 'gallery' | 'contact' | 'product-detail' | 'admin';
 
-export type ProductCategory =
-  | 'All'
-  | 'Shrimp & Fish Feed'
-  | 'Pond Minerals'
-  | 'Probiotics & Enzymes'
-  | 'Ammonia & Gas Control'
-  | 'Oxygen Enhancers'
-  | 'Disinfectants & Sanitizers'
-  | 'Growth Promoters & Immunity';
+export type ProductCategory = string;
+
+export interface Category {
+  id: string;
+  name: string;
+}
 
 export interface Product {
   id: string;

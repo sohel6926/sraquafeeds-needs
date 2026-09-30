@@ -170,6 +170,13 @@ CREATE TABLE IF NOT EXISTS public.sales (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 9. CATEGORIES TABLE
+CREATE TABLE IF NOT EXISTS public.categories (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Insert default admin auth if not exists
 INSERT INTO public.admin_auth (id, pin_code)
 VALUES ('admin', '1234')
@@ -214,11 +221,15 @@ ALTER TABLE public.sales ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access on sales" ON public.sales;
 CREATE POLICY "Public access on sales" ON public.sales FOR ALL USING (true) WITH CHECK (true);
 
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access on categories" ON public.categories;
+CREATE POLICY "Public access on categories" ON public.categories FOR ALL USING (true) WITH CHECK (true);
+
 -- Enable Realtime for all tables
 DO $$
 BEGIN
   BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.products, public.gallery, public.leads, public.farmer_stories, public.faqs, public.site_settings, public.sales;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.products, public.gallery, public.leads, public.farmer_stories, public.faqs, public.site_settings, public.sales, public.categories;
   EXCEPTION
     WHEN duplicate_object THEN NULL;
     WHEN others THEN NULL;

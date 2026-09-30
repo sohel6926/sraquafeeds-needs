@@ -16,8 +16,8 @@ import {
 } from 'lucide-react';
 
 export const AdminCRM: React.FC = () => {
-  const { products, sales, addSale, updateProduct, addProduct, deleteProduct } = useData();
-  const [activeTab, setActiveTab] = useState<'sales' | 'inventory'>('sales');
+  const { products, sales, categories, addCategory, deleteCategory, addSale, updateProduct, addProduct, deleteProduct } = useData();
+  const [activeTab, setActiveTab] = useState<'sales' | 'inventory' | 'categories'>('sales');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   // Form State
@@ -36,6 +36,16 @@ export const AdminCRM: React.FC = () => {
   const [editingInventoryId, setEditingInventoryId] = useState<string | null>(null);
 
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
+
+  // Categories Add State
+  const [newCategoryName, setNewCategoryName] = useState('');
+
+  // Sales History Filters & Pagination
+  const [saleCategoryFilter, setSaleCategoryFilter] = useState('All');
+  const [saleProductFilter, setSaleProductFilter] = useState('All');
+  const [salesPage, setSalesPage] = useState(1);
+  const [salesPerPage, setSalesPerPage] = useState(10);
+  const [selectedSaleProduct, setSelectedSaleProduct] = useState<string | null>(null); // For performance modal
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -195,14 +205,123 @@ export const AdminCRM: React.FC = () => {
     }
   };
 
+  const handleAddCategorySubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newCategoryName.trim()) return;
+    
+    // Check if category already exists
+    if (categories.some(c => c.name.toLowerCase() === newCategoryName.trim().toLowerCase())) {
+      alert('Category already exists!');
+      return;
+    }
+
+    await addCategory({ name: newCategoryName.trim() });
+    showToast(`Category "${newCategoryName}" added successfully.`);
+    setNewCategoryName('');
+  };
+
+  const handleDeleteCategorySubmit = async (id: string, name: string) => {
+    if (confirm(`Delete category "${name}"? This cannot be undone.`)) {
+      await deleteCategory(id);
+      showToast(`Category deleted.`);
+    }
+  };
+
   // Compute CRM metrics
   const totalRevenue = sales.reduce((sum, s) => sum + s.totalAmount, 0);
   const totalProfit = sales.reduce((sum, s) => sum + s.profit, 0);
   const totalItemsSold = sales.reduce((sum, s) => sum + s.quantity, 0);
   const currentStockTotal = products.reduce((sum, p) => sum + (p.stock || 0), 0);
 
+  // Derived filtered sales
+  const filteredSales = sales.filter(s => {
+    if (saleProductFilter !== 'All' && s.productId !== saleProductFilter) return false;
+    
+    // If category filter is active, find the product and check its category
+    if (saleCategoryFilter !== 'All') {
+      const prod = products.find(p => p.id === s.productId);
+      if (!prod || prod.category !== saleCategoryFilter) return false;
+    }
+
+    return true;
+  });
+
+  const totalPages = Math.ceil(filteredSales.length / salesPerPage);
+  const currentSales = filteredSales.slice((salesPage - 1) * salesPerPage, salesPage * salesPerPage);
+
+  // Product performance stats
+  const selectedProductStats = selectedSaleProduct ? products.find(p => p.id === selectedSaleProduct) : null;
+  const selectedProductSales = selectedSaleProduct ? sales.filter(s => s.productId === selectedSaleProduct) : [];
+  const selectedProductTotalRevenue = selectedProductSales.reduce((sum, s) => sum + s.totalAmount, 0);
+  const selectedProductTotalProfit = selectedProductSales.reduce((sum, s) => sum + s.profit, 0);
+  const selectedProductTotalSold = selectedProductSales.reduce((sum, s) => sum + s.quantity, 0);
+
   return (
-    <div className="space-y-6 max-w-5xl w-full">
+    <div className="space-y-6 max-w-5xl w-full relative">
+      {/* Product Performance Modal */}
+      {selectedSaleProduct && selectedProductStats && (
+        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh]">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-lg text-slate-900">{selectedProductStats.name} Performance</h3>
+                <p className="text-xs text-slate-500 mt-1">Detailed sales history and profitability</p>
+              </div>
+              <button 
+                onClick={() => setSelectedSaleProduct(null)}
+                className="p-2 bg-slate-100 text-slate-500 hover:text-slate-800 rounded-lg"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-5 grid grid-cols-3 gap-4 border-b border-slate-100 bg-slate-50">
+              <div className="p-4 bg-white rounded-lg shadow-2xs border border-slate-200">
+                <div className="text-[10px] font-bold text-slate-500 uppercase">Total Units Sold</div>
+                <div className="text-xl font-black text-slate-900 mt-1">{selectedProductTotalSold}</div>
+              </div>
+              <div className="p-4 bg-white rounded-lg shadow-2xs border border-slate-200">
+                <div className="text-[10px] font-bold text-slate-500 uppercase">Total Revenue</div>
+                <div className="text-xl font-black text-slate-900 mt-1">₹{selectedProductTotalRevenue.toLocaleString('en-IN')}</div>
+              </div>
+              <div className="p-4 bg-white rounded-lg shadow-2xs border border-slate-200">
+                <div className="text-[10px] font-bold text-slate-500 uppercase">Total Profit</div>
+                <div className="text-xl font-black text-emerald-600 mt-1">₹{selectedProductTotalProfit.toLocaleString('en-IN')}</div>
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-auto p-0">
+              {selectedProductSales.length === 0 ? (
+                <div className="p-8 text-center text-sm text-slate-500">No sales for this product yet.</div>
+              ) : (
+                <table className="w-full text-left border-collapse">
+                  <thead className="bg-slate-50 sticky top-0">
+                    <tr className="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                      <th className="px-4 py-3">Date</th>
+                      <th className="px-4 py-3">Customer</th>
+                      <th className="px-4 py-3 text-right">Qty</th>
+                      <th className="px-4 py-3 text-right">Profit</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {selectedProductSales.map(s => (
+                      <tr key={s.id} className="text-xs text-slate-800">
+                        <td className="px-4 py-3 whitespace-nowrap text-slate-500">
+                          {new Date(s.date).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3 font-semibold">{s.customerName}</td>
+                        <td className="px-4 py-3 text-right">{s.quantity}</td>
+                        <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{s.profit.toLocaleString('en-IN')}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Toast */}
       {toastMessage && (
         <div className="fixed top-20 right-6 z-50 p-4 rounded-xl bg-slate-900 text-white shadow-2xl border border-emerald-500/40 flex items-center gap-3 animate-in fade-in duration-200">
@@ -246,6 +365,16 @@ export const AdminCRM: React.FC = () => {
             }`}
           >
             Manage Inventory
+          </button>
+          <button
+            onClick={() => setActiveTab('categories')}
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
+              activeTab === 'categories'
+                ? 'bg-white text-slate-900 shadow-sm'
+                : 'text-slate-500 hover:text-slate-700'
+            }`}
+          >
+            Categories
           </button>
         </div>
       </div>
@@ -360,15 +489,49 @@ export const AdminCRM: React.FC = () => {
 
         {/* Sales History List */}
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col">
-          <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-            <h3 className="font-extrabold text-sm text-slate-900">Recent Sales History</h3>
-            <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">{sales.length} Records</span>
+          <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-2">
+              <h3 className="font-extrabold text-sm text-slate-900">Sales History</h3>
+              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">{filteredSales.length}</span>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              <select
+                value={saleCategoryFilter}
+                onChange={(e) => {
+                  setSaleCategoryFilter(e.target.value);
+                  setSalesPage(1);
+                }}
+                className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700"
+              >
+                <option value="All">All Categories</option>
+                {categories.map(c => (
+                  <option key={c.id} value={c.name}>{c.name}</option>
+                ))}
+              </select>
+
+              <select
+                value={saleProductFilter}
+                onChange={(e) => {
+                  setSaleProductFilter(e.target.value);
+                  setSalesPage(1);
+                }}
+                className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 max-w-[150px]"
+              >
+                <option value="All">All Products</option>
+                {products
+                  .filter(p => saleCategoryFilter === 'All' || p.category === saleCategoryFilter)
+                  .map(p => (
+                  <option key={p.id} value={p.id}>{p.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <div className="flex-1 overflow-auto max-h-[400px]">
-            {sales.length === 0 ? (
+            {currentSales.length === 0 ? (
               <div className="p-8 text-center text-sm text-slate-500">
-                No sales recorded yet.
+                No sales match your filters.
               </div>
             ) : (
               <table className="w-full text-left border-collapse min-w-[600px]">
@@ -383,13 +546,19 @@ export const AdminCRM: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
-                  {sales.map(s => (
+                  {currentSales.map(s => (
                     <tr key={s.id} className="hover:bg-slate-50 transition-colors text-xs text-slate-800">
                       <td className="px-4 py-3 whitespace-nowrap text-slate-500">
                         {new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
                       </td>
                       <td className="px-4 py-3 font-semibold">{s.customerName}</td>
-                      <td className="px-4 py-3 truncate max-w-[150px]" title={s.productName}>{s.productName}</td>
+                      <td 
+                        className="px-4 py-3 truncate max-w-[150px] cursor-pointer hover:text-emerald-600 transition-colors font-semibold" 
+                        title="Click to view product performance"
+                        onClick={() => setSelectedSaleProduct(s.productId)}
+                      >
+                        {s.productName}
+                      </td>
                       <td className="px-4 py-3 text-right font-medium">{s.quantity}</td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900">₹{s.totalAmount.toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{s.profit.toLocaleString('en-IN')}</td>
@@ -399,6 +568,49 @@ export const AdminCRM: React.FC = () => {
               </table>
             )}
           </div>
+
+          {/* Pagination Controls */}
+          {filteredSales.length > 0 && (
+            <div className="p-3 border-t border-slate-100 flex items-center justify-between bg-slate-50 rounded-b-xl">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">Rows per page:</span>
+                <select 
+                  value={salesPerPage} 
+                  onChange={e => {
+                    setSalesPerPage(Number(e.target.value));
+                    setSalesPage(1);
+                  }}
+                  className="bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-700"
+                >
+                  <option value={5}>5</option>
+                  <option value={10}>10</option>
+                  <option value={20}>20</option>
+                  <option value={50}>50</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-[10px] font-bold text-slate-500 uppercase">
+                  Page {salesPage} of {totalPages}
+                </span>
+                <div className="flex gap-1">
+                  <button 
+                    disabled={salesPage === 1}
+                    onClick={() => setSalesPage(p => p - 1)}
+                    className="px-2 py-1 rounded bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-100 text-xs font-bold"
+                  >
+                    Prev
+                  </button>
+                  <button 
+                    disabled={salesPage === totalPages}
+                    onClick={() => setSalesPage(p => p + 1)}
+                    className="px-2 py-1 rounded bg-white border border-slate-200 text-slate-600 disabled:opacity-50 hover:bg-slate-100 text-xs font-bold"
+                  >
+                    Next
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       )}
@@ -434,7 +646,7 @@ export const AdminCRM: React.FC = () => {
                   value={invName}
                   onChange={e => setInvName(e.target.value)}
                   placeholder="e.g. Urea, Raw Salt"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -443,13 +655,12 @@ export const AdminCRM: React.FC = () => {
                 <select 
                   value={invCategory}
                   onChange={e => setInvCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                 >
                   <option value="All">General (All)</option>
-                  <option value="Pond Minerals">Pond Minerals</option>
-                  <option value="Ammonia & Gas Control">Ammonia & Gas Control</option>
-                  <option value="Disinfectants & Sanitizers">Disinfectants & Sanitizers</option>
-                  <option value="Shrimp & Fish Feed">Feed</option>
+                  {categories.map(c => (
+                    <option key={c.id} value={c.name}>{c.name}</option>
+                  ))}
                 </select>
               </div>
 
@@ -460,7 +671,7 @@ export const AdminCRM: React.FC = () => {
                   value={invUnit}
                   onChange={e => setInvUnit(e.target.value)}
                   placeholder="e.g. kg, Tons, Litres, 50kg Bags"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
 
@@ -472,7 +683,7 @@ export const AdminCRM: React.FC = () => {
                     value={invStock}
                     onChange={e => setInvStock(Number(e.target.value))}
                     placeholder="0"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
                 <div>
@@ -484,7 +695,7 @@ export const AdminCRM: React.FC = () => {
                     value={invCost}
                     onChange={e => setInvCost(Number(e.target.value))}
                     placeholder="0.00"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
                 <div>
@@ -496,7 +707,7 @@ export const AdminCRM: React.FC = () => {
                     value={invPrice}
                     onChange={e => setInvPrice(Number(e.target.value))}
                     placeholder="0.00"
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
               </div>
@@ -573,6 +784,60 @@ export const AdminCRM: React.FC = () => {
                   ))}
                 </tbody>
               </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {activeTab === 'categories' && (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-2xs p-5 self-start">
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4">
+              <Plus className="w-4 h-4 text-emerald-600" />
+              <h3 className="font-extrabold text-sm text-slate-900">Add New Category</h3>
+            </div>
+            
+            <form onSubmit={handleAddCategorySubmit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Category Name</label>
+                <input 
+                  type="text"
+                  value={newCategoryName}
+                  onChange={e => setNewCategoryName(e.target.value)}
+                  placeholder="e.g. Chemicals, Testing Kits"
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+              <button 
+                type="submit"
+                className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all active:scale-95"
+              >
+                Create Category
+              </button>
+            </form>
+          </div>
+
+          <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col">
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
+              <h3 className="font-extrabold text-sm text-slate-900">Existing Categories</h3>
+              <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">{categories.length} Categories</span>
+            </div>
+
+            <div className="flex-1 overflow-auto p-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {categories.map(c => (
+                  <div key={c.id} className="flex items-center justify-between p-3 border border-slate-200 rounded-lg hover:border-emerald-500 transition-colors bg-slate-50">
+                    <span className="font-bold text-sm text-slate-900">{c.name}</span>
+                    <button 
+                      onClick={() => handleDeleteCategorySubmit(c.id, c.name)}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                      title="Delete Category"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </div>

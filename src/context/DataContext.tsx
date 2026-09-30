@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { Product, GalleryItem, Lead, LeadStatus, SiteSettings, FarmerStory, FAQItem, Sale } from '../types.ts';
+import { Product, GalleryItem, Lead, LeadStatus, SiteSettings, FarmerStory, FAQItem, Sale, Category } from '../types.ts';
 import { PRODUCTS_DATA } from '../data/products.ts';
 import { GALLERY_DATA } from '../data/gallery.ts';
 import {
@@ -18,6 +18,8 @@ import {
   mapSettingsToDb,
   mapSaleFromDb,
   mapSaleToDb,
+  mapCategoryFromDb,
+  mapCategoryToDb,
 } from '../lib/supabase.ts';
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -362,6 +364,7 @@ const STORAGE_KEYS = {
   STORIES: 'sraqua_stories_v1',
   FAQS: 'sraqua_faqs_v1',
   SALES: 'sraqua_sales_v1',
+  CATEGORIES: 'sraqua_categories_v1',
   ADMIN_AUTH: 'sraqua_admin_auth_v1',
 };
 
@@ -401,6 +404,11 @@ interface DataContextType {
   sales: Sale[];
   addSale: (sale: Omit<Sale, 'id'>) => Promise<void>;
   resetSales: () => void;
+
+  categories: Category[];
+  addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
+  deleteCategory: (id: string) => Promise<void>;
+  resetCategories: () => void;
 
   siteSettings: SiteSettings;
   updateSiteSettings: (settings: Partial<SiteSettings>) => void;
@@ -556,6 +564,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           faqsRes,
           settingsRes,
           adminAuthRes,
+          categoriesRes,
         ] = await Promise.all([
           supabase.from('products').select('*').order('created_at', { ascending: false }),
           supabase.from('gallery').select('*').order('created_at', { ascending: false }),
@@ -565,6 +574,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           supabase.from('sales').select('*').order('created_at', { ascending: false }),
           supabase.from('site_settings').select('*').eq('id', 'default').maybeSingle(),
           supabase.from('admin_auth').select('*').eq('id', 'admin').maybeSingle(),
+          supabase.from('categories').select('*'),
         ]);
 
         if (!isMounted) return;
@@ -601,13 +611,19 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           hasData = true;
         }
 
-        if (salesRes.data) {
+        if (salesRes && salesRes.data) {
           const mapped = salesRes.data.map(mapSaleFromDb);
           setSales(mapped);
           hasData = true;
         }
 
-        if (settingsRes.data) {
+        if (categoriesRes && categoriesRes.data) {
+          const mapped = categoriesRes.data.map(mapCategoryFromDb);
+          setCategories(mapped);
+          hasData = true;
+        }
+
+        if (settingsRes && settingsRes.data) {
           const mapped = mapSettingsFromDb(settingsRes.data);
           if (mapped.heroHeadline === 'High-Performance Feeds & Reliable Pond Care for Coastal Farmers') {
             mapped.heroHeadline = 'SR AQUA FEEDS & NEEDS';
@@ -1266,6 +1282,10 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sales,
         addSale,
         resetSales,
+        categories,
+        addCategory,
+        deleteCategory,
+        resetCategories,
         siteSettings,
         updateSiteSettings,
         resetSiteSettings,
