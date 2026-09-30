@@ -29,7 +29,23 @@ export interface Product {
   dosageSchedule?: { stage: string; dose: string; frequency: string; notes: string }[];
   idealWaterParams?: { param: string; target: string; note: string }[];
   handlingAndStorage?: string;
+  stock?: number;
+  costPrice?: number;
+  sellingPrice?: number;
 }
+
+export interface Sale {
+  id: string;
+  customerName: string;
+  productId: string;
+  productName: string;
+  quantity: number;
+  sellingPrice: number;
+  totalAmount: number;
+  profit: number;
+  date: string;
+}
+
 
 export interface GalleryItem {
   id: string;

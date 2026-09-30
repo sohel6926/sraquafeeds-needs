@@ -21,6 +21,7 @@ import {
   X,
   ChevronRight,
   Sparkles,
+  BarChart3,
 } from 'lucide-react';
 import { AdminDashboard } from '../components/admin/AdminDashboard.tsx';
 import { AdminLeads } from '../components/admin/AdminLeads.tsx';
@@ -30,6 +31,7 @@ import { AdminStories } from '../components/admin/AdminStories.tsx';
 import { AdminFAQs } from '../components/admin/AdminFAQs.tsx';
 import { AdminGallery } from '../components/admin/AdminGallery.tsx';
 import { AdminSettings } from '../components/admin/AdminSettings.tsx';
+import { AdminCRM } from '../components/admin/AdminCRM.tsx';
 
 interface AdminPageProps {
   onNavigate: (page: PageType) => void;
@@ -37,6 +39,7 @@ interface AdminPageProps {
 
 export type AdminTabType =
   | 'dashboard'
+  | 'crm'
   | 'leads'
   | 'products'
   | 'content'
@@ -60,6 +63,7 @@ interface NavGroup {
 const ADMIN_TAB_STORAGE_KEY = 'sr_aqua_admin_active_tab';
 const VALID_ADMIN_TABS: AdminTabType[] = [
   'dashboard',
+  'crm',
   'leads',
   'products',
   'content',
@@ -82,7 +86,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
     // 2. Check URL hash (e.g. #admin?tab=products or #products)
     const hash = window.location.hash.toLowerCase();
-    const hashMatch = hash.match(/(?:tab=|\/|#)(dashboard|leads|products|content|stories|faqs|gallery|settings)/);
+    const hashMatch = hash.match(/(?:tab=|\/|#)(dashboard|crm|leads|products|content|stories|faqs|gallery|settings)/);
     if (hashMatch && hashMatch[1] && VALID_ADMIN_TABS.includes(hashMatch[1] as AdminTabType)) {
       return hashMatch[1] as AdminTabType;
     }
@@ -258,6 +262,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           label: 'Dashboard',
           description: 'Store summary & quick stats',
           icon: <LayoutDashboard className="w-4 h-4" />,
+        },
+        {
+          id: 'crm',
+          label: 'Inventory & CRM',
+          description: 'Sales, stock & profit tracking',
+          icon: <BarChart3 className="w-4 h-4" />,
         },
         {
           id: 'leads',
@@ -561,6 +571,7 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                 onExitToWebsite={() => onNavigate('home')}
               />
             )}
+            {activeTab === 'crm' && <AdminCRM />}
             {activeTab === 'leads' && <AdminLeads />}
             {activeTab === 'products' && <AdminProducts />}
             {activeTab === 'content' && <AdminContent />}

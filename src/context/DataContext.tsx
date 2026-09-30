@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { Product, GalleryItem, Lead, LeadStatus, SiteSettings, FarmerStory, FAQItem } from '../types.ts';
+import { Product, GalleryItem, Lead, LeadStatus, SiteSettings, FarmerStory, FAQItem, Sale } from '../types.ts';
 import { PRODUCTS_DATA } from '../data/products.ts';
 import { GALLERY_DATA } from '../data/gallery.ts';
 import {
@@ -16,6 +16,8 @@ import {
   mapFaqToDb,
   mapSettingsFromDb,
   mapSettingsToDb,
+  mapSaleFromDb,
+  mapSaleToDb,
 } from '../lib/supabase.ts';
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -359,6 +361,7 @@ const STORAGE_KEYS = {
   SETTINGS: 'sraqua_settings_v1',
   STORIES: 'sraqua_stories_v1',
   FAQS: 'sraqua_faqs_v1',
+  SALES: 'sraqua_sales_v1',
   ADMIN_AUTH: 'sraqua_admin_auth_v1',
 };
 
@@ -394,6 +397,10 @@ interface DataContextType {
   updateFAQ: (faq: FAQItem) => void;
   deleteFAQ: (id: string) => void;
   resetFAQs: () => void;
+
+  sales: Sale[];
+  addSale: (sale: Omit<Sale, 'id'>) => Promise<void>;
+  resetSales: () => void;
 
   siteSettings: SiteSettings;
   updateSiteSettings: (settings: Partial<SiteSettings>) => void;
@@ -488,7 +495,21 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return DEFAULT_FAQS;
   });
 
-  // 6. Site Settings state
+  // 6. Sales state
+  const [sales, setSales] = useState<Sale[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.SALES);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // Fallback
+    }
+    return [];
+  });
+
+  // 7. Site Settings state
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
@@ -541,6 +562,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           supabase.from('leads').select('*').order('created_at', { ascending: false }),
           supabase.from('farmer_stories').select('*').order('created_at', { ascending: true }),
           supabase.from('faqs').select('*').order('sort_order', { ascending: true }),
+          supabase.from('sales').select('*').order('created_at', { ascending: false }),
           supabase.from('site_settings').select('*').eq('id', 'default').maybeSingle(),
           supabase.from('admin_auth').select('*').eq('id', 'admin').maybeSingle(),
         ]);
@@ -576,6 +598,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (faqsRes.data && faqsRes.data.length > 0) {
           const mapped = faqsRes.data.map(mapFaqFromDb);
           setFaqs(mapped);
+          hasData = true;
+        }
+
+        if (salesRes.data) {
+          const mapped = salesRes.data.map(mapSaleFromDb);
+          setSales(mapped);
           hasData = true;
         }
 
@@ -676,6 +704,17 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setFaqs((prev) => prev.filter((f) => f.id !== payload.old.id));
         }
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'sales' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const item = mapSaleFromDb(payload.new);
+          setSales((prev) => [item, ...prev.filter((s) => s.id !== item.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const item = mapSaleFromDb(payload.new);
+          setSales((prev) => prev.map((s) => (s.id === item.id ? item : s)));
+        } else if (payload.eventType === 'DELETE' && payload.old) {
+          setSales((prev) => prev.filter((s) => s.id !== payload.old.id));
+        }
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, (payload) => {
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
           setSiteSettings(mapSettingsFromDb(payload.new));
@@ -729,6 +768,14 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Failed saving faqs to localStorage', e);
     }
   }, [faqs]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.SALES, JSON.stringify(sales));
+    } catch (e) {
+      console.error('Failed saving sales to localStorage', e);
+    }
+  }, [sales]);
 
   useEffect(() => {
     try {
@@ -798,6 +845,36 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const { error } = await supabase.from('products').delete().eq('id', id);
       if (error) console.error('Supabase deleteProduct error:', error);
+    } catch (e) {
+      console.error('Failed to sync deleted product to Supabase', e);
+    }
+  };
+
+  const resetProducts = () => {
+    setProducts(PRODUCTS_DATA);
+  };
+
+  // Sales Operations
+  const addSale = async (sale: Omit<Sale, 'id'>) => {
+    const newSale: Sale = {
+      ...sale,
+      id: `sale-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    };
+    setSales((prev) => [newSale, ...prev]);
+
+    try {
+      const dbRow = mapSaleToDb(newSale);
+      const { error } = await supabase.from('sales').insert(dbRow);
+      if (error) console.error('Supabase addSale error:', error);
+    } catch (e) {
+      console.error('Failed to sync new sale to Supabase', e);
+    }
+  };
+
+  const resetSales = () => {
+    setSales([]);
+  };
+
     } catch (e) {
       console.error('Failed to delete product from Supabase', e);
     }
@@ -1195,6 +1272,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateFAQ,
         deleteFAQ,
         resetFAQs,
+        sales,
+        addSale,
+        resetSales,
         siteSettings,
         updateSiteSettings,
         resetSiteSettings,

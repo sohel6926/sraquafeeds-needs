@@ -31,9 +31,18 @@ CREATE TABLE IF NOT EXISTS public.products (
   dosage_schedule JSONB DEFAULT '[]'::jsonb,
   ideal_water_params JSONB DEFAULT '[]'::jsonb,
   handling_and_storage TEXT,
+  stock NUMERIC DEFAULT 0,
+  cost_price NUMERIC DEFAULT 0,
+  selling_price NUMERIC DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- Safely add columns if products table already exists
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS stock NUMERIC DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS cost_price NUMERIC DEFAULT 0;
+ALTER TABLE public.products ADD COLUMN IF NOT EXISTS selling_price NUMERIC DEFAULT 0;
+
 
 -- 2. GALLERY TABLE
 CREATE TABLE IF NOT EXISTS public.gallery (
@@ -146,6 +155,21 @@ CREATE TABLE IF NOT EXISTS public.admin_auth (
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- 8. SALES TABLE
+CREATE TABLE IF NOT EXISTS public.sales (
+  id TEXT PRIMARY KEY,
+  customer_name TEXT NOT NULL,
+  product_id TEXT NOT NULL,
+  product_name TEXT NOT NULL,
+  quantity NUMERIC NOT NULL,
+  selling_price NUMERIC NOT NULL,
+  total_amount NUMERIC NOT NULL,
+  profit NUMERIC NOT NULL,
+  date TEXT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- Insert default admin auth if not exists
 INSERT INTO public.admin_auth (id, pin_code)
 VALUES ('admin', '1234')
@@ -186,11 +210,15 @@ ALTER TABLE public.admin_auth ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Public access on admin_auth" ON public.admin_auth;
 CREATE POLICY "Public access on admin_auth" ON public.admin_auth FOR ALL USING (true) WITH CHECK (true);
 
+ALTER TABLE public.sales ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Public access on sales" ON public.sales;
+CREATE POLICY "Public access on sales" ON public.sales FOR ALL USING (true) WITH CHECK (true);
+
 -- Enable Realtime for all tables
 DO $$
 BEGIN
   BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.products, public.gallery, public.leads, public.farmer_stories, public.faqs, public.site_settings;
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.products, public.gallery, public.leads, public.farmer_stories, public.faqs, public.site_settings, public.sales;
   EXCEPTION
     WHEN duplicate_object THEN NULL;
     WHEN others THEN NULL;

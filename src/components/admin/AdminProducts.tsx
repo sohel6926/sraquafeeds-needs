@@ -69,6 +69,9 @@ export const AdminProducts: React.FC = () => {
     curiosityHighlight: 'High Bio-Availability',
     fullDescription: '',
     handlingAndStorage: 'Store on elevated pallets in a dry, ventilated coastal warehouse.',
+    stock: 0,
+    costPrice: 0,
+    sellingPrice: 0,
   });
 
   const [benefitsInput, setBenefitsInput] = useState('');
@@ -110,6 +113,9 @@ export const AdminProducts: React.FC = () => {
       curiosityHighlight: 'Coastal Tested',
       fullDescription: '',
       handlingAndStorage: 'Store on elevated pallets in a dry, shaded place.',
+      stock: 0,
+      costPrice: 0,
+      sellingPrice: 0,
     });
     setBenefitsInput('High Protein Formulation\nRapid Water Stability\nOptimal FCR Conversion');
     setSpecsList([
@@ -144,6 +150,9 @@ export const AdminProducts: React.FC = () => {
       ...p,
       images: p.images && p.images.length > 0 ? [...p.images] : (p.imageUrl ? [p.imageUrl] : []),
       imageUrl: p.imageUrl || (p.images && p.images[0]) || '',
+      stock: p.stock || 0,
+      costPrice: p.costPrice || 0,
+      sellingPrice: p.sellingPrice || 0,
     });
     setBenefitsInput((p.keyBenefits || []).join('\n'));
     setSpecsList(
@@ -295,6 +304,9 @@ export const AdminProducts: React.FC = () => {
       composition: compositionList.filter((c) => c.component.trim() || c.percentage.trim()),
       dosageSchedule: dosageList.filter((d) => d.stage.trim() || d.dose.trim()),
       idealWaterParams: waterParamsList.filter((w) => w.param.trim() || w.target.trim()),
+      stock: Number(formData.stock) || 0,
+      costPrice: Number(formData.costPrice) || 0,
+      sellingPrice: Number(formData.sellingPrice) || 0,
     };
 
     if (editingProduct) {
@@ -524,6 +536,43 @@ export const AdminProducts: React.FC = () => {
                   placeholder="e.g., Highly bio-available chelated minerals"
                   className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                 />
+              </div>
+
+              {/* Pricing & Stock section */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Current Stock
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.stock || 0}
+                    onChange={(e) => setFormData({ ...formData, stock: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Cost Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.costPrice || 0}
+                    onChange={(e) => setFormData({ ...formData, costPrice: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1">
+                    Selling Price (₹)
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.sellingPrice || 0}
+                    onChange={(e) => setFormData({ ...formData, sellingPrice: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
               </div>
 
               <div>

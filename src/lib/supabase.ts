@@ -7,6 +7,7 @@ import {
   FarmerStory,
   FAQItem,
   SiteSettings,
+  Sale,
 } from '../types.ts';
 
 const SUPABASE_URL =
@@ -48,6 +49,9 @@ export const mapProductFromDb = (row: any): Product => ({
   dosageSchedule: Array.isArray(row.dosage_schedule) ? row.dosage_schedule : [],
   idealWaterParams: Array.isArray(row.ideal_water_params) ? row.ideal_water_params : [],
   handlingAndStorage: row.handling_and_storage || '',
+  stock: Number(row.stock) || 0,
+  costPrice: Number(row.cost_price) || 0,
+  sellingPrice: Number(row.selling_price) || 0,
 });
 
 export const mapProductToDb = (p: Partial<Product>) => ({
@@ -69,6 +73,9 @@ export const mapProductToDb = (p: Partial<Product>) => ({
   dosage_schedule: p.dosageSchedule,
   ideal_water_params: p.idealWaterParams,
   handling_and_storage: p.handlingAndStorage,
+  stock: p.stock || 0,
+  cost_price: p.costPrice || 0,
+  selling_price: p.sellingPrice || 0,
   updated_at: new Date().toISOString(),
 });
 
@@ -259,5 +266,31 @@ export const mapSettingsToDb = (s: Partial<SiteSettings>) => ({
   about_mission: s.aboutMission,
   dispatch_turnaround: s.dispatchTurnaround,
   payment_notice: s.paymentNotice,
+  updated_at: new Date().toISOString(),
+});
+
+// 7. Sales
+export const mapSaleFromDb = (row: any): Sale => ({
+  id: row.id,
+  customerName: row.customer_name,
+  productId: row.product_id,
+  productName: row.product_name,
+  quantity: Number(row.quantity) || 0,
+  sellingPrice: Number(row.selling_price) || 0,
+  totalAmount: Number(row.total_amount) || 0,
+  profit: Number(row.profit) || 0,
+  date: row.date || new Date().toISOString(),
+});
+
+export const mapSaleToDb = (s: Partial<Sale>) => ({
+  id: s.id,
+  customer_name: s.customerName,
+  product_id: s.productId,
+  product_name: s.productName,
+  quantity: s.quantity,
+  selling_price: s.sellingPrice,
+  total_amount: s.totalAmount,
+  profit: s.profit,
+  date: s.date,
   updated_at: new Date().toISOString(),
 });
