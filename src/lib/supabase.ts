@@ -276,6 +276,7 @@ export const mapSettingsToDb = (s: Partial<SiteSettings>) => ({
 export const mapSaleFromDb = (row: any): Sale => ({
   id: row.id,
   customerName: row.customer_name,
+  customerPhone: row.customer_phone || '',
   productId: row.product_id,
   productName: row.product_name,
   productCategory: row.product_category || 'Uncategorized',
@@ -292,6 +293,7 @@ export const mapSaleFromDb = (row: any): Sale => ({
 export const mapSaleToDb = (s: Partial<Sale>) => ({
   id: s.id,
   customer_name: s.customerName,
+  customer_phone: s.customerPhone || null,
   product_id: s.productId,
   product_name: s.productName,
   product_category: s.productCategory,

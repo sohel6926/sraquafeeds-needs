@@ -34,6 +34,7 @@ export interface Product {
 export interface Sale {
   id: string;
   customerName: string;
+  customerPhone?: string;
   productId: string;
   productName: string;
   productCategory?: string;

@@ -35,6 +35,7 @@ export const AdminCRM: React.FC = () => {
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
   const [paymentStatus, setPaymentStatus] = useState<'Paid' | 'Credit'>('Paid');
   const [amountPaid, setAmountPaid] = useState<number | ''>('');
+  const [customerPhone, setCustomerPhone] = useState('');
   
   // Sale Edit & Invoice State
   const [editingSaleId, setEditingSaleId] = useState<string | null>(null);
@@ -141,6 +142,7 @@ export const AdminCRM: React.FC = () => {
         const updatedSale: Sale = {
           ...existingSale,
           customerName: customerName.trim(),
+          customerPhone: customerPhone.trim() || undefined,
           productId: product.id,
           productName: product.name,
           productCategory: product.category,
@@ -159,6 +161,7 @@ export const AdminCRM: React.FC = () => {
       // Create Sale
       const newSale: Omit<Sale, 'id'> = {
         customerName: customerName.trim(),
+        customerPhone: customerPhone.trim() || undefined,
         productId: product.id,
         productName: product.name,
         productCategory: product.category,
@@ -184,6 +187,7 @@ export const AdminCRM: React.FC = () => {
 
     // Reset form
     setCustomerName('');
+    setCustomerPhone('');
     setQuantity('');
     setSelectedProductId('');
     setSellingPrice('');
@@ -196,6 +200,7 @@ export const AdminCRM: React.FC = () => {
   const handleEditSale = (sale: Sale) => {
     setEditingSaleId(sale.id);
     setCustomerName(sale.customerName);
+    setCustomerPhone(sale.customerPhone || '');
     setSelectedProductId(sale.productId);
     setQuantity(sale.quantity);
     setSellingPrice(sale.sellingPrice);
@@ -507,6 +512,21 @@ export const AdminCRM: React.FC = () => {
                 value={customerName}
                 onChange={e => setCustomerName(e.target.value)}
                 placeholder={t("e.g. Ramesh Reddy", isTelugu)}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                {isTelugu ? 'మొబైల్ నంబర్ (ఐచ్ఛికం)' : 'Mobile Number'}{' '}
+                <span className="text-[10px] font-normal text-slate-400">(Optional)</span>
+              </label>
+              <input 
+                type="tel"
+                value={customerPhone}
+                onChange={e => setCustomerPhone(e.target.value)}
+                placeholder="e.g. 9876543210"
+                maxLength={15}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
@@ -1064,6 +1084,9 @@ export const AdminCRM: React.FC = () => {
               <div className="mb-8">
                 <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Billed To</h3>
                 <p className="text-lg font-bold text-slate-900">{invoiceSale.customerName}</p>
+                {invoiceSale.customerPhone && (
+                  <p className="text-sm font-medium text-slate-600">Ph: {invoiceSale.customerPhone}</p>
+                )}
               </div>
 
               <table className="w-full text-left border-collapse mb-8">
