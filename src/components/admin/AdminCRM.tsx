@@ -9,11 +9,14 @@ import {
   CheckCircle2,
   Plus,
   Box,
-  Save
+  Save,
+  Edit2,
+  Trash2,
+  X
 } from 'lucide-react';
 
 export const AdminCRM: React.FC = () => {
-  const { products, sales, addSale, updateProduct, addProduct } = useData();
+  const { products, sales, addSale, updateProduct, addProduct, deleteProduct } = useData();
   const [activeTab, setActiveTab] = useState<'sales' | 'inventory'>('sales');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -30,6 +33,7 @@ export const AdminCRM: React.FC = () => {
   const [invStock, setInvStock] = useState<number | ''>('');
   const [invCost, setInvCost] = useState<number | ''>('');
   const [invPrice, setInvPrice] = useState<number | ''>('');
+  const [editingInventoryId, setEditingInventoryId] = useState<string | null>(null);
 
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
 
@@ -119,33 +123,76 @@ export const AdminCRM: React.FC = () => {
       return;
     }
 
-    const newProd: Omit<Product, 'id'> = {
-      name: invName.trim(),
-      category: invCategory,
-      tagline: 'Standard Inventory Item',
-      description: 'Added via Quick Inventory',
-      packaging: invUnit.trim(),
-      keyBenefits: [],
-      imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
-      stock: Number(invStock),
-      costPrice: Number(invCost),
-      sellingPrice: Number(invPrice),
-      isPopular: false,
-      curiosityHighlight: '',
-      composition: [],
-      specs: [],
-      dosageSchedule: [],
-      idealWaterParams: []
-    };
-
-    await addProduct(newProd);
-    showToast(`${invName} added to inventory successfully!`);
+    if (editingInventoryId) {
+      const existingProduct = products.find(p => p.id === editingInventoryId);
+      if (existingProduct) {
+        const updatedProduct: Product = {
+          ...existingProduct,
+          name: invName.trim(),
+          category: invCategory,
+          packaging: invUnit.trim(),
+          stock: Number(invStock),
+          costPrice: Number(invCost),
+          sellingPrice: Number(invPrice),
+        };
+        await updateProduct(updatedProduct);
+        showToast(`${invName} updated successfully!`);
+      }
+    } else {
+      const newProd: Omit<Product, 'id'> = {
+        name: invName.trim(),
+        category: invCategory,
+        tagline: 'Standard Inventory Item',
+        description: 'Added via Quick Inventory',
+        packaging: invUnit.trim(),
+        keyBenefits: [],
+        imageUrl: 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80',
+        stock: Number(invStock),
+        costPrice: Number(invCost),
+        sellingPrice: Number(invPrice),
+        isPopular: false,
+        curiosityHighlight: '',
+        composition: [],
+        specs: [],
+        dosageSchedule: [],
+        idealWaterParams: []
+      };
+      await addProduct(newProd);
+      showToast(`${invName} added to inventory successfully!`);
+    }
     
+    resetInventoryForm();
+  };
+
+  const resetInventoryForm = () => {
+    setEditingInventoryId(null);
     setInvName('');
     setInvUnit('');
     setInvStock('');
     setInvCost('');
     setInvPrice('');
+    setInvCategory('All');
+  };
+
+  const handleEditInventory = (p: Product) => {
+    setEditingInventoryId(p.id);
+    setInvName(p.name);
+    setInvCategory(p.category);
+    setInvUnit(p.packaging || '');
+    setInvStock(p.stock !== undefined ? p.stock : '');
+    setInvCost(p.costPrice !== undefined ? p.costPrice : '');
+    setInvPrice(p.sellingPrice !== undefined ? p.sellingPrice : '');
+    setActiveTab('inventory');
+  };
+
+  const handleDeleteInventory = async (p: Product) => {
+    if (confirm(`Are you sure you want to delete "${p.name}"? This will completely remove it from the database.`)) {
+      await deleteProduct(p.id);
+      showToast(`${p.name} deleted successfully.`);
+      if (editingInventoryId === p.id) {
+        resetInventoryForm();
+      }
+    }
   };
 
   // Compute CRM metrics
@@ -360,9 +407,23 @@ export const AdminCRM: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Quick Add Form */}
           <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-2xs p-5 self-start">
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4">
-              <Box className="w-4 h-4 text-emerald-600" />
-              <h3 className="font-extrabold text-sm text-slate-900">Quick Add Item</h3>
+            <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4 justify-between">
+              <div className="flex items-center gap-2">
+                {editingInventoryId ? <Edit2 className="w-4 h-4 text-sky-600" /> : <Box className="w-4 h-4 text-emerald-600" />}
+                <h3 className="font-extrabold text-sm text-slate-900">
+                  {editingInventoryId ? 'Edit Inventory Item' : 'Quick Add Item'}
+                </h3>
+              </div>
+              {editingInventoryId && (
+                <button 
+                  type="button" 
+                  onClick={resetInventoryForm}
+                  className="p-1 rounded-md text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                  title="Cancel Edit"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              )}
             </div>
             
             <form onSubmit={handleAddInventory} className="space-y-4">
@@ -442,10 +503,12 @@ export const AdminCRM: React.FC = () => {
 
               <button 
                 type="submit"
-                className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mt-2"
+                className={`w-full py-2.5 rounded-lg text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mt-2 ${
+                  editingInventoryId ? 'bg-sky-600 hover:bg-sky-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                }`}
               >
-                <Plus className="w-4 h-4" />
-                <span>Add to Inventory</span>
+                {editingInventoryId ? <Save className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+                <span>{editingInventoryId ? 'Update Inventory Item' : 'Add to Inventory'}</span>
               </button>
             </form>
           </div>
@@ -465,11 +528,12 @@ export const AdminCRM: React.FC = () => {
                     <th className="px-4 py-3 text-right">Stock</th>
                     <th className="px-4 py-3 text-right">Cost (₹)</th>
                     <th className="px-4 py-3 text-right">Price (₹)</th>
+                    <th className="px-4 py-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {products.map(p => (
-                    <tr key={p.id} className="hover:bg-slate-50 transition-colors text-xs text-slate-800">
+                    <tr key={p.id} className={`hover:bg-slate-50 transition-colors text-xs text-slate-800 ${editingInventoryId === p.id ? 'bg-sky-50' : ''}`}>
                       <td className="px-4 py-3">
                         <div className="font-bold text-slate-900">{p.name}</div>
                         <div className="text-[10px] text-slate-500">{p.packaging}</div>
@@ -486,6 +550,24 @@ export const AdminCRM: React.FC = () => {
                       </td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900">
                         {p.sellingPrice || 0}
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => handleEditInventory(p)}
+                            className="p-1.5 rounded-md text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                            title="Edit Item"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteInventory(p)}
+                            className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Delete Item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
