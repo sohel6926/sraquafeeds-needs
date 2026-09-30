@@ -850,10 +850,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const resetProducts = () => {
-    setProducts(PRODUCTS_DATA);
-  };
-
   // Sales Operations
   const addSale = async (sale: Omit<Sale, 'id'>) => {
     const newSale: Sale = {
@@ -873,11 +869,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const resetSales = () => {
     setSales([]);
-  };
-
-    } catch (e) {
-      console.error('Failed to delete product from Supabase', e);
-    }
   };
 
   const resetProducts = async () => {
