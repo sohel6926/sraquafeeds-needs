@@ -14,7 +14,8 @@ import {
   Trash2,
   X,
   FileText,
-  Printer
+  Printer,
+  Download
 } from 'lucide-react';
 
 import { STANDARD_UNITS, sanitizeProductUnit } from '../../utils/units';
@@ -1018,13 +1019,22 @@ export const AdminCRM: React.FC = () => {
               <h3 className="font-extrabold text-lg text-slate-900">Invoice Generation</h3>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() => {
-                    setTimeout(() => window.print(), 100);
+                  onClick={async () => {
+                    if (!invoiceRef.current) return;
+                    const html2pdf = (await import('html2pdf.js')).default;
+                    const opt = {
+                      margin:       0.5,
+                      filename:     `Invoice-${invoiceSale?.customerName.replace(/ /g, '_')}-${new Date().getTime()}.pdf`,
+                      image:        { type: 'jpeg', quality: 0.98 },
+                      html2canvas:  { scale: 2 },
+                      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                    };
+                    html2pdf().from(invoiceRef.current).set(opt).save();
                   }}
                   className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
                 >
-                  <Printer className="w-4 h-4" />
-                  Print Invoice
+                  <Download className="w-4 h-4" />
+                  Download PDF
                 </button>
                 <button
                   onClick={() => setInvoiceSale(null)}
