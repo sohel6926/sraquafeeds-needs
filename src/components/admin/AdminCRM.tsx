@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useData } from '../../context/DataContext';
 import { Product, Sale } from '../../types';
 import { 
@@ -12,13 +12,15 @@ import {
   Save,
   Edit2,
   Trash2,
-  X
+  X,
+  FileText,
+  Printer
 } from 'lucide-react';
 
 import { STANDARD_UNITS, sanitizeProductUnit } from '../../utils/units';
 
 export const AdminCRM: React.FC = () => {
-  const { products, sales, categories, addCategory, deleteCategory, addSale, updateProduct, addProduct, deleteProduct } = useData();
+  const { products, sales, categories, addCategory, deleteCategory, addSale, updateSale, deleteSale, updateProduct, addProduct, deleteProduct, siteSettings } = useData();
   const [activeTab, setActiveTab] = useState<'sales' | 'inventory' | 'categories'>('sales');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -28,6 +30,11 @@ export const AdminCRM: React.FC = () => {
   const [quantity, setQuantity] = useState<number | ''>('');
   const [sellingPrice, setSellingPrice] = useState<number | ''>('');
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
+  
+  // Sale Edit & Invoice State
+  const [editingSaleId, setEditingSaleId] = useState<string | null>(null);
+  const [invoiceSale, setInvoiceSale] = useState<Sale | null>(null);
+  const invoiceRef = useRef<HTMLDivElement>(null);
 
   // Inventory Add State
   const [invName, setInvName] = useState('');
@@ -90,7 +97,26 @@ export const AdminCRM: React.FC = () => {
       return;
     }
 
-    if ((product.stock || 0) < qty) {
+    let stockDifference = qty;
+
+    if (editingSaleId) {
+      const existingSale = sales.find(s => s.id === editingSaleId);
+      if (existingSale) {
+        // If product changed or qty changed, adjust stock difference
+        if (existingSale.productId === product.id) {
+          stockDifference = qty - existingSale.quantity;
+        } else {
+          // If product changed, we need to restore old product stock, and deduct from new
+          const oldProduct = products.find(p => p.id === existingSale.productId);
+          if (oldProduct) {
+             await updateProduct({ ...oldProduct, stock: (oldProduct.stock || 0) + existingSale.quantity });
+          }
+          stockDifference = qty;
+        }
+      }
+    }
+
+    if ((product.stock || 0) < stockDifference) {
       if (!confirm(`Warning: You only have ${product.stock || 0} in stock. Do you want to proceed and have negative stock?`)) {
         return;
       }
@@ -101,28 +127,44 @@ export const AdminCRM: React.FC = () => {
     const cost = (product.costPrice || 0);
     const profit = (price - cost) * qty;
 
-    // Create Sale
-    const newSale: Omit<Sale, 'id'> = {
-      customerName: customerName.trim(),
-      productId: product.id,
-      productName: product.name,
-      quantity: qty,
-      sellingPrice: price,
-      totalAmount,
-      profit,
-      date: new Date().toISOString()
-    };
+    if (editingSaleId) {
+      const existingSale = sales.find(s => s.id === editingSaleId);
+      if (existingSale) {
+        const updatedSale: Sale = {
+          ...existingSale,
+          customerName: customerName.trim(),
+          productId: product.id,
+          productName: product.name,
+          quantity: qty,
+          sellingPrice: price,
+          totalAmount,
+          profit,
+        };
+        await updateSale(updatedSale);
+        showToast('Sale updated successfully!');
+      }
+    } else {
+      // Create Sale
+      const newSale: Omit<Sale, 'id'> = {
+        customerName: customerName.trim(),
+        productId: product.id,
+        productName: product.name,
+        quantity: qty,
+        sellingPrice: price,
+        totalAmount,
+        profit,
+        date: new Date().toISOString()
+      };
+      await addSale(newSale);
+      showToast('Sale recorded successfully!');
+    }
 
-    await addSale(newSale);
-
-    // Deduct stock from product
+    // Adjust stock from product
     const updatedProduct = {
       ...product,
-      stock: (product.stock || 0) - qty
+      stock: (product.stock || 0) - stockDifference
     };
     await updateProduct(updatedProduct);
-
-    showToast('Sale recorded successfully!');
 
     // Reset form
     setCustomerName('');
@@ -130,6 +172,41 @@ export const AdminCRM: React.FC = () => {
     setSelectedProductId('');
     setSellingPrice('');
     setSelectedProductUnit('Units');
+    setEditingSaleId(null);
+  };
+
+  const handleEditSale = (sale: Sale) => {
+    setEditingSaleId(sale.id);
+    setCustomerName(sale.customerName);
+    setSelectedProductId(sale.productId);
+    setQuantity(sale.quantity);
+    setSellingPrice(sale.sellingPrice);
+    
+    const prod = products.find(p => p.id === sale.productId);
+    if (prod) {
+      setSelectedProductUnit(sanitizeProductUnit(prod.packaging));
+    }
+  };
+
+  const handleDeleteSale = async (sale: Sale) => {
+    if (confirm(`Are you sure you want to delete this sale for ${sale.customerName}?`)) {
+      if (confirm(`Do you want to restore the stock (${sale.quantity} units) to "${sale.productName}"?`)) {
+        const prod = products.find(p => p.id === sale.productId);
+        if (prod) {
+          await updateProduct({ ...prod, stock: (prod.stock || 0) + sale.quantity });
+        }
+      }
+      await deleteSale(sale.id);
+      showToast('Sale deleted successfully!');
+      if (editingSaleId === sale.id) {
+        setEditingSaleId(null);
+        setCustomerName('');
+        setQuantity('');
+        setSelectedProductId('');
+        setSellingPrice('');
+        setSelectedProductUnit('Units');
+      }
+    }
   };
 
   const handleAddInventory = async (e: React.FormEvent) => {
@@ -500,12 +577,30 @@ export const AdminCRM: React.FC = () => {
               </div>
             </div>
 
+            {editingSaleId && (
+              <button 
+                type="button"
+                onClick={() => {
+                  setEditingSaleId(null);
+                  setCustomerName('');
+                  setQuantity('');
+                  setSelectedProductId('');
+                  setSellingPrice('');
+                  setSelectedProductUnit('Units');
+                }}
+                className="w-full py-2.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 mt-2"
+              >
+                <X className="w-4 h-4" />
+                <span>Cancel Edit</span>
+              </button>
+            )}
+
             <button 
               type="submit"
-              className="w-full py-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mt-2"
+              className={`w-full py-2.5 rounded-lg text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mt-2 ${editingSaleId ? 'bg-sky-600 hover:bg-sky-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
             >
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Record Sale</span>
+              {editingSaleId ? <Save className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
+              <span>{editingSaleId ? 'Update Sale' : 'Record Sale'}</span>
             </button>
           </form>
         </div>
@@ -566,13 +661,15 @@ export const AdminCRM: React.FC = () => {
                     <th className="px-4 py-3 text-right">Qty</th>
                     <th className="px-4 py-3 text-right">Total (₹)</th>
                     <th className="px-4 py-3 text-right">Profit (₹)</th>
+                    <th className="px-4 py-3 text-center">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {currentSales.map(s => (
-                    <tr key={s.id} className="hover:bg-slate-50 transition-colors text-xs text-slate-800">
+                    <tr key={s.id} className={`hover:bg-slate-50 transition-colors text-xs text-slate-800 ${editingSaleId === s.id ? 'bg-sky-50' : ''}`}>
                       <td className="px-4 py-3 whitespace-nowrap text-slate-500">
-                        {new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                        <div className="font-semibold text-slate-700">{new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                        <div className="text-[10px] text-slate-400">{new Date(s.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
                       </td>
                       <td className="px-4 py-3 font-semibold">{s.customerName}</td>
                       <td 
@@ -585,6 +682,31 @@ export const AdminCRM: React.FC = () => {
                       <td className="px-4 py-3 text-right font-medium">{s.quantity}</td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900">₹{s.totalAmount.toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{s.profit.toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3 text-center">
+                        <div className="flex items-center justify-center gap-1">
+                          <button
+                            onClick={() => setInvoiceSale(s)}
+                            className="p-1.5 rounded-md text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                            title="Generate Invoice"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleEditSale(s)}
+                            className="p-1.5 rounded-md text-slate-400 hover:text-sky-600 hover:bg-sky-50 transition-colors"
+                            title="Edit Sale"
+                          >
+                            <Edit2 className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDeleteSale(s)}
+                            className="p-1.5 rounded-md text-slate-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                            title="Delete Sale"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -879,6 +1001,94 @@ export const AdminCRM: React.FC = () => {
                     </button>
                   </div>
                 ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Invoice Modal */}
+      {invoiceSale && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto flex flex-col print:shadow-none print:max-h-none">
+            {/* Modal Header */}
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between no-print sticky top-0 bg-white z-10">
+              <h3 className="font-extrabold text-lg text-slate-900">Invoice Generation</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    setTimeout(() => window.print(), 100);
+                  }}
+                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
+                >
+                  <Printer className="w-4 h-4" />
+                  Print Invoice
+                </button>
+                <button
+                  onClick={() => setInvoiceSale(null)}
+                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+            </div>
+
+            {/* Printable Area */}
+            <div className="p-8 print-only bg-white text-black" ref={invoiceRef}>
+              <div className="flex items-center justify-between border-b-2 border-slate-200 pb-6 mb-6">
+                <div>
+                  <h1 className="text-3xl font-black text-emerald-700 mb-1">{siteSettings?.name || 'SR AQUA FEEDS AND NEEDS'}</h1>
+                  <p className="text-sm font-medium text-slate-600">{siteSettings?.address || 'K.G. Road, Pedapulleru, AP'}</p>
+                  <p className="text-sm font-medium text-slate-600">{siteSettings?.phone ? `Ph: ${siteSettings.phone}` : 'Ph: +91 XXXXX XXXXX'}</p>
+                </div>
+                <div className="text-right">
+                  <h2 className="text-4xl font-black text-slate-200 uppercase tracking-wider">Invoice</h2>
+                  <p className="text-sm font-bold mt-2 text-slate-700">Date: {new Date(invoiceSale.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                  <p className="text-sm font-bold text-slate-700">Time: {new Date(invoiceSale.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-sm font-bold text-slate-500 mt-1">Invoice #: INV-{new Date(invoiceSale.date).getTime().toString().slice(-6)}</p>
+                </div>
+              </div>
+
+              <div className="mb-8">
+                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Billed To</h3>
+                <p className="text-lg font-bold text-slate-900">{invoiceSale.customerName}</p>
+              </div>
+
+              <table className="w-full text-left border-collapse mb-8">
+                <thead>
+                  <tr className="bg-slate-100 text-sm font-bold text-slate-700 uppercase">
+                    <th className="px-4 py-3 border border-slate-200 rounded-tl-lg">Description</th>
+                    <th className="px-4 py-3 border border-slate-200 text-right">Qty</th>
+                    <th className="px-4 py-3 border border-slate-200 text-right">Rate (₹)</th>
+                    <th className="px-4 py-3 border border-slate-200 text-right rounded-tr-lg">Amount (₹)</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr className="text-sm font-medium text-slate-800">
+                    <td className="px-4 py-4 border border-slate-200">{invoiceSale.productName}</td>
+                    <td className="px-4 py-4 border border-slate-200 text-right">{invoiceSale.quantity}</td>
+                    <td className="px-4 py-4 border border-slate-200 text-right">{invoiceSale.sellingPrice.toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-4 border border-slate-200 text-right font-bold">{invoiceSale.totalAmount.toLocaleString('en-IN')}</td>
+                  </tr>
+                </tbody>
+              </table>
+
+              <div className="flex justify-end mb-12">
+                <div className="w-64">
+                  <div className="flex justify-between items-center py-2 border-b border-slate-200">
+                    <span className="font-bold text-slate-600">Subtotal:</span>
+                    <span className="font-bold text-slate-900">₹{invoiceSale.totalAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-3 text-lg">
+                    <span className="font-black text-slate-900">Total:</span>
+                    <span className="font-black text-emerald-600">₹{invoiceSale.totalAmount.toLocaleString('en-IN')}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-center pt-8 border-t border-slate-200">
+                <p className="font-bold text-slate-800 mb-1">Thank you for your business!</p>
+                <p className="text-xs font-medium text-slate-500">For inquiries, please contact us.</p>
               </div>
             </div>
           </div>

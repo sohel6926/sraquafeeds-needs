@@ -403,6 +403,8 @@ interface DataContextType {
 
   sales: Sale[];
   addSale: (sale: Omit<Sale, 'id'>) => Promise<void>;
+  updateSale: (sale: Sale) => Promise<void>;
+  deleteSale: (id: string) => Promise<void>;
   resetSales: () => void;
 
   categories: Category[];
@@ -964,6 +966,33 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const updateSale = async (updated: Sale) => {
+    setSales((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+
+    if (supabase) {
+      try {
+        const dbRow = mapSaleToDb(updated);
+        const { error } = await supabase.from('sales').update(dbRow).eq('id', updated.id);
+        if (error) console.error('Supabase updateSale error:', error);
+      } catch (e) {
+        console.error('Failed to sync updated sale to Supabase', e);
+      }
+    }
+  };
+
+  const deleteSale = async (id: string) => {
+    setSales((prev) => prev.filter((s) => s.id !== id));
+
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('sales').delete().eq('id', id);
+        if (error) console.error('Supabase deleteSale error:', error);
+      } catch (e) {
+        console.error('Failed to sync deleted sale to Supabase', e);
+      }
+    }
+  };
+
   const resetSales = () => {
     setSales([]);
   };
@@ -1362,6 +1391,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         resetFAQs,
         sales,
         addSale,
+        updateSale,
+        deleteSale,
         resetSales,
         categories,
         addCategory,
