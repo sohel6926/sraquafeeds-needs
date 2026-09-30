@@ -18,11 +18,13 @@ import {
 } from 'lucide-react';
 
 import { STANDARD_UNITS, sanitizeProductUnit } from '../../utils/units';
+import { t } from '../../utils/translations';
 
 export const AdminCRM: React.FC = () => {
   const { products, sales, categories, addCategory, deleteCategory, addSale, updateSale, deleteSale, updateProduct, addProduct, deleteProduct, siteSettings } = useData();
   const [activeTab, setActiveTab] = useState<'sales' | 'inventory' | 'categories'>('sales');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [isTelugu, setIsTelugu] = useState(false);
 
   // Form State
   const [selectedProductId, setSelectedProductId] = useState('');
@@ -30,6 +32,8 @@ export const AdminCRM: React.FC = () => {
   const [quantity, setQuantity] = useState<number | ''>('');
   const [sellingPrice, setSellingPrice] = useState<number | ''>('');
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
+  const [paymentStatus, setPaymentStatus] = useState<'Paid' | 'Credit'>('Paid');
+  const [amountPaid, setAmountPaid] = useState<number | ''>('');
   
   // Sale Edit & Invoice State
   const [editingSaleId, setEditingSaleId] = useState<string | null>(null);
@@ -56,7 +60,7 @@ export const AdminCRM: React.FC = () => {
   const [saleProductFilter, setSaleProductFilter] = useState('All');
   const [salesPage, setSalesPage] = useState(1);
   const [salesPerPage, setSalesPerPage] = useState(10);
-  const [selectedSaleProduct, setSelectedSaleProduct] = useState<string | null>(null); // For performance modal
+  const [selectedCustomerName, setSelectedCustomerName] = useState<string | null>(null); // For performance modal
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -127,6 +131,9 @@ export const AdminCRM: React.FC = () => {
     const cost = (product.costPrice || 0);
     const profit = (price - cost) * qty;
 
+    const paid = paymentStatus === 'Paid' ? totalAmount : Number(amountPaid);
+    const balance = totalAmount - paid;
+
     if (editingSaleId) {
       const existingSale = sales.find(s => s.id === editingSaleId);
       if (existingSale) {
@@ -135,10 +142,14 @@ export const AdminCRM: React.FC = () => {
           customerName: customerName.trim(),
           productId: product.id,
           productName: product.name,
+          productCategory: product.category,
           quantity: qty,
           sellingPrice: price,
           totalAmount,
           profit,
+          amountPaid: paid,
+          balance,
+          paymentStatus,
         };
         await updateSale(updatedSale);
         showToast('Sale updated successfully!');
@@ -149,10 +160,14 @@ export const AdminCRM: React.FC = () => {
         customerName: customerName.trim(),
         productId: product.id,
         productName: product.name,
+        productCategory: product.category,
         quantity: qty,
         sellingPrice: price,
         totalAmount,
         profit,
+        amountPaid: paid,
+        balance,
+        paymentStatus,
         date: new Date().toISOString()
       };
       await addSale(newSale);
@@ -172,6 +187,8 @@ export const AdminCRM: React.FC = () => {
     setSelectedProductId('');
     setSellingPrice('');
     setSelectedProductUnit('Units');
+    setPaymentStatus('Paid');
+    setAmountPaid('');
     setEditingSaleId(null);
   };
 
@@ -181,6 +198,8 @@ export const AdminCRM: React.FC = () => {
     setSelectedProductId(sale.productId);
     setQuantity(sale.quantity);
     setSellingPrice(sale.sellingPrice);
+    setPaymentStatus(sale.paymentStatus || 'Paid');
+    setAmountPaid(sale.amountPaid || '');
     
     const prod = products.find(p => p.id === sale.productId);
     if (prod) {
@@ -349,78 +368,8 @@ export const AdminCRM: React.FC = () => {
   const totalPages = Math.ceil(filteredSales.length / salesPerPage);
   const currentSales = filteredSales.slice((salesPage - 1) * salesPerPage, salesPage * salesPerPage);
 
-  // Product performance stats
-  const selectedProductStats = selectedSaleProduct ? products.find(p => p.id === selectedSaleProduct) : null;
-  const selectedProductSales = selectedSaleProduct ? sales.filter(s => s.productId === selectedSaleProduct) : [];
-  const selectedProductTotalRevenue = selectedProductSales.reduce((sum, s) => sum + s.totalAmount, 0);
-  const selectedProductTotalProfit = selectedProductSales.reduce((sum, s) => sum + s.profit, 0);
-  const selectedProductTotalSold = selectedProductSales.reduce((sum, s) => sum + s.quantity, 0);
-
   return (
     <div className="space-y-6 max-w-5xl w-full relative">
-      {/* Product Performance Modal */}
-      {selectedSaleProduct && selectedProductStats && (
-        <div className="fixed inset-0 bg-slate-900/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full flex flex-col max-h-[90vh]">
-            <div className="p-5 border-b border-slate-100 flex items-center justify-between">
-              <div>
-                <h3 className="font-extrabold text-lg text-slate-900">{selectedProductStats.name} Performance</h3>
-                <p className="text-xs text-slate-500 mt-1">Detailed sales history and profitability</p>
-              </div>
-              <button 
-                onClick={() => setSelectedSaleProduct(null)}
-                className="p-2 bg-slate-100 text-slate-500 hover:text-slate-800 rounded-lg"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            <div className="p-5 grid grid-cols-3 gap-4 border-b border-slate-100 bg-slate-50">
-              <div className="p-4 bg-white rounded-lg shadow-2xs border border-slate-200">
-                <div className="text-[10px] font-bold text-slate-500 uppercase">Total Units Sold</div>
-                <div className="text-xl font-black text-slate-900 mt-1">{selectedProductTotalSold}</div>
-              </div>
-              <div className="p-4 bg-white rounded-lg shadow-2xs border border-slate-200">
-                <div className="text-[10px] font-bold text-slate-500 uppercase">Total Revenue</div>
-                <div className="text-xl font-black text-slate-900 mt-1">₹{selectedProductTotalRevenue.toLocaleString('en-IN')}</div>
-              </div>
-              <div className="p-4 bg-white rounded-lg shadow-2xs border border-slate-200">
-                <div className="text-[10px] font-bold text-slate-500 uppercase">Total Profit</div>
-                <div className="text-xl font-black text-emerald-600 mt-1">₹{selectedProductTotalProfit.toLocaleString('en-IN')}</div>
-              </div>
-            </div>
-
-            <div className="flex-1 overflow-auto p-0">
-              {selectedProductSales.length === 0 ? (
-                <div className="p-8 text-center text-sm text-slate-500">No sales for this product yet.</div>
-              ) : (
-                <table className="w-full text-left border-collapse">
-                  <thead className="bg-slate-50 sticky top-0">
-                    <tr className="text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                      <th className="px-4 py-3">Date</th>
-                      <th className="px-4 py-3">Customer</th>
-                      <th className="px-4 py-3 text-right">Qty</th>
-                      <th className="px-4 py-3 text-right">Profit</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {selectedProductSales.map(s => (
-                      <tr key={s.id} className="text-xs text-slate-800">
-                        <td className="px-4 py-3 whitespace-nowrap text-slate-500">
-                          {new Date(s.date).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3 font-semibold">{s.customerName}</td>
-                        <td className="px-4 py-3 text-right">{s.quantity}</td>
-                        <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{s.profit.toLocaleString('en-IN')}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Toast */}
       {toastMessage && (
@@ -437,9 +386,18 @@ export const AdminCRM: React.FC = () => {
             <BarChart3 className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-2xl font-black text-slate-900">Inventory & CRM</h2>
+            <div className="flex items-center gap-3">
+              <h2 className="text-2xl font-black text-slate-900">{isTelugu ? 'నిల్వ & CRM' : 'Inventory & CRM'}</h2>
+              <button
+                onClick={() => setIsTelugu(!isTelugu)}
+                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded border border-slate-200 transition-colors"
+                title="Toggle Telugu Language"
+              >
+                {isTelugu ? 'English' : 'తెలుగు'}
+              </button>
+            </div>
             <p className="text-xs text-slate-500 mt-0.5">
-              Manage stock, record sales, and quick-add inventory.
+              {isTelugu ? 'స్టాక్ నిర్వహణ, విక్రయాల నమోదు మరియు త్వరిత చేర్పులు.' : 'Manage stock, record sales, and quick-add inventory.'}
             </p>
           </div>
         </div>
@@ -454,7 +412,7 @@ export const AdminCRM: React.FC = () => {
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            Sales Desk
+            {t("Sales Desk", isTelugu)}
           </button>
           <button
             onClick={() => setActiveTab('inventory')}
@@ -464,7 +422,7 @@ export const AdminCRM: React.FC = () => {
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            Manage Inventory
+            {t("Manage Inventory", isTelugu)}
           </button>
           <button
             onClick={() => setActiveTab('categories')}
@@ -474,7 +432,7 @@ export const AdminCRM: React.FC = () => {
                 : 'text-slate-500 hover:text-slate-700'
             }`}
           >
-            Categories
+            {t("Categories", isTelugu)}
           </button>
         </div>
       </div>
@@ -484,7 +442,7 @@ export const AdminCRM: React.FC = () => {
         <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs">
           <div className="flex items-center gap-2 mb-2">
             <TrendingUp className="w-4 h-4 text-emerald-600" />
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Sales Revenue</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t("Total Sales Revenue", isTelugu)}</span>
           </div>
           <div className="text-2xl font-black text-slate-900">₹{totalRevenue.toLocaleString('en-IN')}</div>
         </div>
@@ -492,7 +450,7 @@ export const AdminCRM: React.FC = () => {
         <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs">
           <div className="flex items-center gap-2 mb-2">
             <BarChart3 className="w-4 h-4 text-emerald-600" />
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Profit</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t("Total Profit", isTelugu)}</span>
           </div>
           <div className="text-2xl font-black text-emerald-600">₹{totalProfit.toLocaleString('en-IN')}</div>
         </div>
@@ -500,7 +458,7 @@ export const AdminCRM: React.FC = () => {
         <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs">
           <div className="flex items-center gap-2 mb-2">
             <ShoppingCart className="w-4 h-4 text-sky-600" />
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Items Sold</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t("Items Sold", isTelugu)}</span>
           </div>
           <div className="text-2xl font-black text-slate-900">{totalItemsSold.toLocaleString('en-IN')} Units</div>
         </div>
@@ -508,7 +466,7 @@ export const AdminCRM: React.FC = () => {
         <div className="p-5 rounded-xl bg-white border border-slate-200 shadow-2xs">
           <div className="flex items-center gap-2 mb-2">
             <Package className="w-4 h-4 text-amber-600" />
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Stock Units</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">{t("Total Stock Units", isTelugu)}</span>
           </div>
           <div className="text-2xl font-black text-slate-900">{currentStockTotal.toLocaleString('en-IN')} Units</div>
         </div>
@@ -521,18 +479,18 @@ export const AdminCRM: React.FC = () => {
         <div className="lg:col-span-1 bg-white rounded-xl border border-slate-200 shadow-2xs p-5">
           <div className="flex items-center gap-2 pb-3 border-b border-slate-100 mb-4">
             <Plus className="w-4 h-4 text-emerald-600" />
-            <h3 className="font-extrabold text-sm text-slate-900">Record New Sale</h3>
+            <h3 className="font-extrabold text-sm text-slate-900">{t("Record New Sale", isTelugu)}</h3>
           </div>
           
           <form onSubmit={handleRecordSale} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Select Product</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">{t("Select Product", isTelugu)}</label>
               <select 
                 value={selectedProductId}
                 onChange={handleProductSelect}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               >
-                <option value="">-- Choose Product --</option>
+                <option value="">{t("-- Choose Product --", isTelugu)}</option>
                 {products.map(p => (
                   <option key={p.id} value={p.id}>
                     {p.name} (Stock: {p.stock || 0})
@@ -542,12 +500,12 @@ export const AdminCRM: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">Customer Name</label>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">{t("Customer Name", isTelugu)}</label>
               <input 
                 type="text"
                 value={customerName}
                 onChange={e => setCustomerName(e.target.value)}
-                placeholder="e.g. Ramesh Reddy"
+                placeholder={t("e.g. Ramesh Reddy", isTelugu)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
@@ -555,18 +513,18 @@ export const AdminCRM: React.FC = () => {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-semibold text-slate-700 mb-1.5">
-                  Quantity ({selectedProductUnit})
+                  {t("Quantity", isTelugu)} ({selectedProductUnit})
                 </label>
                 <input 
                   type="number"
                   value={quantity}
                   onChange={e => setQuantity(Number(e.target.value))}
-                  placeholder={`e.g. 10`}
+                  placeholder={t("e.g. 10", isTelugu)}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                 />
               </div>
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Price per {selectedProductUnit} (₹)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">{t("Price per", isTelugu)} {selectedProductUnit} (₹)</label>
                 <input 
                   type="number"
                   value={sellingPrice}
@@ -575,6 +533,32 @@ export const AdminCRM: React.FC = () => {
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                 />
               </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">{t("Payment Status", isTelugu)}</label>
+                <select
+                  value={paymentStatus}
+                  onChange={e => setPaymentStatus(e.target.value as 'Paid' | 'Credit')}
+                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                >
+                  <option value="Paid">{t("Paid Full", isTelugu)}</option>
+                  <option value="Credit">{t("Credit / Partial", isTelugu)}</option>
+                </select>
+              </div>
+              {paymentStatus === 'Credit' && (
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">{t("Amount Paid Now (₹)", isTelugu)}</label>
+                  <input
+                    type="number"
+                    value={amountPaid}
+                    onChange={e => setAmountPaid(Number(e.target.value))}
+                    placeholder="0.00"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                  />
+                </div>
+              )}
             </div>
 
             {editingSaleId && (
@@ -591,7 +575,7 @@ export const AdminCRM: React.FC = () => {
                 className="w-full py-2.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-xs shadow-sm transition-all active:scale-95 flex items-center justify-center gap-2 mt-2"
               >
                 <X className="w-4 h-4" />
-                <span>Cancel Edit</span>
+                <span>{t("Cancel Edit", isTelugu)}</span>
               </button>
             )}
 
@@ -600,7 +584,7 @@ export const AdminCRM: React.FC = () => {
               className={`w-full py-2.5 rounded-lg text-white font-bold text-xs shadow-md transition-all active:scale-95 flex items-center justify-center gap-2 mt-2 ${editingSaleId ? 'bg-sky-600 hover:bg-sky-700' : 'bg-emerald-600 hover:bg-emerald-700'}`}
             >
               {editingSaleId ? <Save className="w-4 h-4" /> : <CheckCircle2 className="w-4 h-4" />}
-              <span>{editingSaleId ? 'Update Sale' : 'Record Sale'}</span>
+              <span>{editingSaleId ? t("Update Sale", isTelugu) : t("Record Sale", isTelugu)}</span>
             </button>
           </form>
         </div>
@@ -609,7 +593,7 @@ export const AdminCRM: React.FC = () => {
         <div className="lg:col-span-2 bg-white rounded-xl border border-slate-200 shadow-2xs flex flex-col">
           <div className="p-4 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div className="flex items-center gap-2">
-              <h3 className="font-extrabold text-sm text-slate-900">Sales History</h3>
+              <h3 className="font-extrabold text-sm text-slate-900">{t("Sales History", isTelugu)}</h3>
               <span className="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-bold">{filteredSales.length}</span>
             </div>
             
@@ -622,7 +606,7 @@ export const AdminCRM: React.FC = () => {
                 }}
                 className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700"
               >
-                <option value="All">All Categories</option>
+                <option value="All">{t("All Categories", isTelugu)}</option>
                 {categories.map(c => (
                   <option key={c.id} value={c.name}>{c.name}</option>
                 ))}
@@ -636,7 +620,7 @@ export const AdminCRM: React.FC = () => {
                 }}
                 className="px-2 py-1.5 bg-slate-50 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 max-w-[150px]"
               >
-                <option value="All">All Products</option>
+                <option value="All">{t("All Products", isTelugu)}</option>
                 {products
                   .filter(p => saleCategoryFilter === 'All' || p.category === saleCategoryFilter)
                   .map(p => (
@@ -655,13 +639,16 @@ export const AdminCRM: React.FC = () => {
               <table className="w-full text-left border-collapse min-w-[600px]">
                 <thead>
                   <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
-                    <th className="px-4 py-3">Date</th>
-                    <th className="px-4 py-3">Customer</th>
-                    <th className="px-4 py-3">Product</th>
-                    <th className="px-4 py-3 text-right">Qty</th>
-                    <th className="px-4 py-3 text-right">Total (₹)</th>
-                    <th className="px-4 py-3 text-right">Profit (₹)</th>
-                    <th className="px-4 py-3 text-center">Actions</th>
+                    <th className="px-4 py-3">{t("Date", isTelugu)}</th>
+                    <th className="px-4 py-3">{t("Customer", isTelugu)}</th>
+                    <th className="px-4 py-3">{t("Category", isTelugu)}</th>
+                    <th className="px-4 py-3">{t("Product", isTelugu)}</th>
+                    <th className="px-4 py-3 text-right">{t("Qty", isTelugu)}</th>
+                    <th className="px-4 py-3 text-right">{t("Total (₹)", isTelugu)}</th>
+                    <th className="px-4 py-3 text-right">{t("Paid (₹)", isTelugu)}</th>
+                    <th className="px-4 py-3 text-right">{t("Debt (₹)", isTelugu)}</th>
+                    <th className="px-4 py-3 text-right">{t("Profit (₹)", isTelugu)}</th>
+                    <th className="px-4 py-3 text-center">{t("Actions", isTelugu)}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -671,16 +658,25 @@ export const AdminCRM: React.FC = () => {
                         <div className="font-semibold text-slate-700">{new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
                         <div className="text-[10px] text-slate-400">{new Date(s.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</div>
                       </td>
-                      <td className="px-4 py-3 font-semibold">{s.customerName}</td>
                       <td 
-                        className="px-4 py-3 truncate max-w-[150px] cursor-pointer hover:text-emerald-600 transition-colors font-semibold" 
-                        title="Click to view product performance"
-                        onClick={() => setSelectedSaleProduct(s.productId)}
+                        className="px-4 py-3 font-semibold text-emerald-700 cursor-pointer hover:underline"
+                        title="Click to view customer details"
+                        onClick={() => setSelectedCustomerName(s.customerName)}
                       >
+                        {s.customerName}
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">{s.productCategory || '-'}</td>
+                      <td className="px-4 py-3 truncate max-w-[150px] font-semibold text-slate-700">
                         {s.productName}
                       </td>
                       <td className="px-4 py-3 text-right font-medium">{s.quantity}</td>
                       <td className="px-4 py-3 text-right font-bold text-slate-900">₹{s.totalAmount.toLocaleString('en-IN')}</td>
+                      <td className="px-4 py-3 text-right font-bold text-sky-600">
+                        ₹{s.amountPaid?.toLocaleString('en-IN') || s.totalAmount.toLocaleString('en-IN')}
+                      </td>
+                      <td className="px-4 py-3 text-right font-bold text-red-500">
+                        {s.balance > 0 ? `₹${s.balance.toLocaleString('en-IN')}` : '-'}
+                      </td>
                       <td className="px-4 py-3 text-right font-bold text-emerald-600">₹{s.profit.toLocaleString('en-IN')}</td>
                       <td className="px-4 py-3 text-center">
                         <div className="flex items-center justify-center gap-1">
@@ -1090,6 +1086,86 @@ export const AdminCRM: React.FC = () => {
                 <p className="font-bold text-slate-800 mb-1">Thank you for your business!</p>
                 <p className="text-xs font-medium text-slate-500">For inquiries, please contact us.</p>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Customer Performance Modal */}
+      {selectedCustomerName && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
+            <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+              <div>
+                <h3 className="font-extrabold text-lg text-slate-900">{selectedCustomerName} - Profile</h3>
+                <p className="text-xs font-semibold text-slate-500">Customer purchase history and financial summary</p>
+              </div>
+              <button 
+                onClick={() => setSelectedCustomerName(null)}
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-6 overflow-auto bg-slate-50 flex-1">
+              {(() => {
+                const customerSales = sales.filter(s => s.customerName === selectedCustomerName).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+                const totalPurchases = customerSales.reduce((acc, s) => acc + s.totalAmount, 0);
+                const totalPaid = customerSales.reduce((acc, s) => acc + (s.amountPaid !== undefined ? s.amountPaid : s.totalAmount), 0);
+                const totalDebt = customerSales.reduce((acc, s) => acc + (s.balance || 0), 0);
+                const totalProfit = customerSales.reduce((acc, s) => acc + s.profit, 0);
+
+                return (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Purchases</div>
+                        <div className="text-xl font-black text-slate-900">₹{totalPurchases.toLocaleString('en-IN')}</div>
+                      </div>
+                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                        <div className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Total Paid</div>
+                        <div className="text-xl font-black text-emerald-600">₹{totalPaid.toLocaleString('en-IN')}</div>
+                      </div>
+                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                        <div className="text-[10px] font-bold text-red-500 uppercase mb-1">Total Debt (Pending)</div>
+                        <div className="text-xl font-black text-red-500">₹{totalDebt.toLocaleString('en-IN')}</div>
+                      </div>
+                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
+                        <div className="text-[10px] font-bold text-sky-600 uppercase mb-1">Generated Profit</div>
+                        <div className="text-xl font-black text-sky-600">₹{totalProfit.toLocaleString('en-IN')}</div>
+                      </div>
+                    </div>
+                    
+                    <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+                      <table className="w-full text-left border-collapse">
+                        <thead>
+                          <tr className="bg-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
+                            <th className="px-4 py-3">Date</th>
+                            <th className="px-4 py-3">Product</th>
+                            <th className="px-4 py-3 text-right">Qty</th>
+                            <th className="px-4 py-3 text-right">Total (₹)</th>
+                            <th className="px-4 py-3 text-right">Paid (₹)</th>
+                            <th className="px-4 py-3 text-right">Debt (₹)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-100">
+                          {customerSales.map(s => (
+                            <tr key={s.id} className="text-xs font-semibold text-slate-700 hover:bg-slate-50">
+                              <td className="px-4 py-3 text-slate-500">{new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
+                              <td className="px-4 py-3">{s.productName}</td>
+                              <td className="px-4 py-3 text-right">{s.quantity}</td>
+                              <td className="px-4 py-3 text-right text-slate-900">₹{s.totalAmount.toLocaleString('en-IN')}</td>
+                              <td className="px-4 py-3 text-right text-emerald-600">₹{(s.amountPaid !== undefined ? s.amountPaid : s.totalAmount).toLocaleString('en-IN')}</td>
+                              <td className="px-4 py-3 text-right text-red-500">{s.balance > 0 ? `₹${s.balance.toLocaleString('en-IN')}` : '-'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
           </div>
         </div>

@@ -36,10 +36,14 @@ export interface Sale {
   customerName: string;
   productId: string;
   productName: string;
+  productCategory?: string;
   quantity: number;
   sellingPrice: number;
   totalAmount: number;
   profit: number;
+  amountPaid: number;
+  balance: number;
+  paymentStatus: 'Paid' | 'Credit';
   date: string;
 }
 
