@@ -823,6 +823,59 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [siteSettings]);
 
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.CATEGORIES, JSON.stringify(categories));
+    } catch (e) {
+      console.error('Failed saving categories to localStorage', e);
+    }
+  }, [categories]);
+
+  // 9. Categories operations
+  const addCategory = async (cat: Omit<Category, 'id'>) => {
+    const newCategory: Category = {
+      id: crypto.randomUUID(),
+      ...cat,
+    };
+    
+    setCategories((prev) => [...prev, newCategory]);
+    
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('categories').insert([mapCategoryToDb(newCategory)]);
+        if (error) console.error('Supabase addCategory error:', error);
+      } catch (err) {
+        console.error('Failed to add category to Supabase:', err);
+      }
+    }
+  };
+
+  const deleteCategory = async (id: string) => {
+    setCategories((prev) => prev.filter((c) => c.id !== id));
+    
+    if (supabase) {
+      try {
+        const { error } = await supabase.from('categories').delete().eq('id', id);
+        if (error) console.error('Supabase deleteCategory error:', error);
+      } catch (err) {
+        console.error('Failed to delete category in Supabase:', err);
+      }
+    }
+  };
+
+  const resetCategories = () => {
+    const defaultCats: Category[] = [
+      { id: 'cat-1', name: 'Shrimp & Fish Feed' },
+      { id: 'cat-2', name: 'Pond Minerals' },
+      { id: 'cat-3', name: 'Probiotics & Enzymes' },
+      { id: 'cat-4', name: 'Ammonia & Gas Control' },
+      { id: 'cat-5', name: 'Oxygen Enhancers' },
+      { id: 'cat-6', name: 'Disinfectants & Sanitizers' },
+      { id: 'cat-7', name: 'Growth Promoters & Immunity' }
+    ];
+    setCategories(defaultCats);
+  };
+
   // Auth functions
   const loginAdmin = (pin: string) => {
     const trimmed = pin.trim().toLowerCase();
