@@ -31,6 +31,8 @@ export const AdminCRM: React.FC = () => {
   const [invCost, setInvCost] = useState<number | ''>('');
   const [invPrice, setInvPrice] = useState<number | ''>('');
 
+  const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000);
@@ -44,9 +46,11 @@ export const AdminCRM: React.FC = () => {
       const prod = products.find(p => p.id === pId);
       if (prod) {
         setSellingPrice(prod.sellingPrice || 0);
+        setSelectedProductUnit(prod.packaging || 'Units');
       }
     } else {
       setSellingPrice('');
+      setSelectedProductUnit('Units');
     }
   };
 
@@ -274,12 +278,14 @@ export const AdminCRM: React.FC = () => {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Quantity (Units)</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                  Quantity ({selectedProductUnit})
+                </label>
                 <input 
                   type="number"
                   value={quantity}
                   onChange={e => setQuantity(Number(e.target.value))}
-                  placeholder="0"
+                  placeholder={`e.g. 10`}
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
                 />
               </div>
@@ -387,12 +393,12 @@ export const AdminCRM: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Packaging / Unit</label>
+                <label className="block text-xs font-semibold text-slate-700 mb-1.5">Unit Metric</label>
                 <input 
                   type="text"
                   value={invUnit}
                   onChange={e => setInvUnit(e.target.value)}
-                  placeholder="e.g. 50kg Bag, 1 Ton"
+                  placeholder="e.g. kg, Tons, Litres, 50kg Bags"
                   className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500"
                 />
               </div>
@@ -409,7 +415,9 @@ export const AdminCRM: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Cost Price (₹)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Your Buy Price (Cost) ₹
+                  </label>
                   <input 
                     type="number"
                     value={invCost}
@@ -419,7 +427,9 @@ export const AdminCRM: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">Selling Price (₹)</label>
+                  <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                    Customer Price (Sale) ₹
+                  </label>
                   <input 
                     type="number"
                     value={invPrice}
