@@ -665,7 +665,9 @@ export const AdminCRM: React.FC = () => {
                       >
                         {s.customerName}
                       </td>
-                      <td className="px-4 py-3 text-slate-600">{s.productCategory || '-'}</td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {s.productCategory || products.find(p => p.id === s.productId)?.category || '-'}
+                      </td>
                       <td className="px-4 py-3 truncate max-w-[150px] font-semibold text-slate-700">
                         {s.productName}
                       </td>
@@ -896,6 +898,7 @@ export const AdminCRM: React.FC = () => {
                 <thead>
                   <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200 sticky top-0">
                     <th className="px-4 py-3">Product / Unit</th>
+                    <th className="px-4 py-3">Category</th>
                     <th className="px-4 py-3 text-right">Stock</th>
                     <th className="px-4 py-3 text-right">Cost (₹)</th>
                     <th className="px-4 py-3 text-right">Price (₹)</th>
@@ -908,6 +911,9 @@ export const AdminCRM: React.FC = () => {
                       <td className="px-4 py-3">
                         <div className="font-bold text-slate-900">{p.name}</div>
                         <div className="text-[10px] text-slate-500">{p.packaging}</div>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600">
+                        {p.category || 'General (All)'}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <span className={`px-2 py-1 rounded font-bold ${
