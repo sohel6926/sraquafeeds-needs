@@ -24,6 +24,8 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   },
 });
 
+import { sanitizeProductUnit } from '../utils/units.ts';
+
 /* =========================================================================
    Row Mapping Utilities (Database snake_case <-> App camelCase)
 ========================================================================= */
@@ -35,7 +37,7 @@ export const mapProductFromDb = (row: any): Product => ({
   category: row.category,
   tagline: row.tagline || '',
   description: row.description || '',
-  packaging: row.packaging || '',
+  packaging: sanitizeProductUnit(row.packaging),
   keyBenefits: Array.isArray(row.key_benefits) ? row.key_benefits : [],
   imageUrl: row.image_url || (Array.isArray(row.images) && row.images[0]) || '',
   images: Array.isArray(row.images) && row.images.length > 0

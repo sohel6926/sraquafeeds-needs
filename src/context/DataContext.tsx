@@ -428,6 +428,8 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | null>(null);
 
+import { sanitizeProductUnit } from '../utils/units.ts';
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isSupabaseConnected, setIsSupabaseConnected] = useState<boolean>(false);
@@ -435,16 +437,20 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // 1. Products state
   const [products, setProducts] = useState<Product[]>(() => {
+    let list: Product[] = PRODUCTS_DATA;
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.PRODUCTS);
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+        if (Array.isArray(parsed) && parsed.length > 0) list = parsed;
       }
     } catch {
       // Fallback
     }
-    return PRODUCTS_DATA;
+    return list.map(p => ({
+      ...p,
+      packaging: sanitizeProductUnit(p.packaging)
+    }));
   });
 
   // 2. Gallery state

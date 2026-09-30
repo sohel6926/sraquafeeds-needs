@@ -15,6 +15,8 @@ import {
   X
 } from 'lucide-react';
 
+import { STANDARD_UNITS, sanitizeProductUnit } from '../../utils/units';
+
 export const AdminCRM: React.FC = () => {
   const { products, sales, categories, addCategory, deleteCategory, addSale, updateProduct, addProduct, deleteProduct } = useData();
   const [activeTab, setActiveTab] = useState<'sales' | 'inventory' | 'categories'>('sales');
@@ -25,6 +27,7 @@ export const AdminCRM: React.FC = () => {
   const [customerName, setCustomerName] = useState('');
   const [quantity, setQuantity] = useState<number | ''>('');
   const [sellingPrice, setSellingPrice] = useState<number | ''>('');
+  const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
 
   // Inventory Add State
   const [invName, setInvName] = useState('');
@@ -35,8 +38,6 @@ export const AdminCRM: React.FC = () => {
   const [invPrice, setInvPrice] = useState<number | ''>('');
   const [editingInventoryId, setEditingInventoryId] = useState<string | null>(null);
 
-
-  const STANDARD_UNITS = ['kg', 'Litres', 'Tonnes', 'Grams', 'Units'];
   const [isCustomUnit, setIsCustomUnit] = useState(false);
   const [customUnitValue, setCustomUnitValue] = useState('');
 
@@ -55,7 +56,6 @@ export const AdminCRM: React.FC = () => {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
 
   const handleProductSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const pId = e.target.value;
@@ -65,7 +65,7 @@ export const AdminCRM: React.FC = () => {
       const prod = products.find(p => p.id === pId);
       if (prod) {
         setSellingPrice(prod.sellingPrice || 0);
-        setSelectedProductUnit(prod.packaging || 'Units');
+        setSelectedProductUnit(sanitizeProductUnit(prod.packaging));
       }
     } else {
       setSellingPrice('');
@@ -129,12 +129,14 @@ export const AdminCRM: React.FC = () => {
     setQuantity('');
     setSelectedProductId('');
     setSellingPrice('');
+    setSelectedProductUnit('Units');
   };
 
   const handleAddInventory = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const finalUnit = isCustomUnit ? customUnitValue.trim() : invUnit.trim();
+    const rawUnit = isCustomUnit ? customUnitValue.trim() : invUnit.trim();
+    const finalUnit = sanitizeProductUnit(rawUnit);
 
     if (!invName.trim() || !finalUnit || invStock === '' || invCost === '' || invPrice === '') {
       alert('Please fill out all fields for the new product.');
@@ -178,7 +180,7 @@ export const AdminCRM: React.FC = () => {
       await addProduct(newProd);
       showToast(`${invName} added to inventory successfully!`);
     }
-    
+
     resetInventoryForm();
   };
 
@@ -199,7 +201,7 @@ export const AdminCRM: React.FC = () => {
     setInvName(p.name);
     setInvCategory(p.category);
     
-    const unit = p.packaging || '';
+    const unit = sanitizeProductUnit(p.packaging);
     if (unit && !STANDARD_UNITS.includes(unit)) {
       setInvUnit('Other');
       setIsCustomUnit(true);
