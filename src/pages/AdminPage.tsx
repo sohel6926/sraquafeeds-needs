@@ -22,6 +22,8 @@ import {
   ChevronRight,
   Sparkles,
   BarChart3,
+  PanelLeftClose,
+  PanelLeftOpen,
 } from 'lucide-react';
 import { AdminDashboard } from '../components/admin/AdminDashboard.tsx';
 import { AdminLeads } from '../components/admin/AdminLeads.tsx';
@@ -106,6 +108,23 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
   const [activeTab, setActiveTab] = useState<AdminTabType>(getInitialTab);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState<boolean>(() => {
+    try {
+      return localStorage.getItem('sr_aqua_admin_sidebar_collapsed') === 'true';
+    } catch {
+      return false;
+    }
+  });
+
+  const toggleSidebarCollapsed = () => {
+    setIsSidebarCollapsed(prev => {
+      const next = !prev;
+      try {
+        localStorage.setItem('sr_aqua_admin_sidebar_collapsed', String(next));
+      } catch {}
+      return next;
+    });
+  };
 
   // Sync state changes with localStorage and URL
   React.useEffect(() => {
@@ -402,10 +421,12 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 pt-4 lg:pt-8 flex flex-col lg:flex-row gap-6 items-start w-full max-w-full min-w-0">
+      <div className={`${isSidebarCollapsed ? 'w-full max-w-[1700px]' : 'max-w-7xl'} mx-auto px-3 sm:px-6 pt-4 lg:pt-8 flex flex-col lg:flex-row gap-6 items-start w-full min-w-0 transition-all duration-300`}>
         {/* SIDEBAR NAVIGATION (Desktop & Tablet) */}
         <aside
-          className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-300 p-5 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:w-72 lg:rounded-xl lg:p-5 lg:shadow-xl lg:border lg:border-slate-800 flex flex-col justify-between overflow-y-auto ${
+          className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-300 p-5 transform transition-all duration-300 ease-in-out ${
+            isSidebarCollapsed ? 'lg:hidden' : 'lg:translate-x-0 lg:static lg:w-72 lg:rounded-xl lg:p-5 lg:shadow-xl lg:border lg:border-slate-800 lg:flex'
+          } flex flex-col justify-between overflow-y-auto ${
             isMobileSidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'
           }`}
         >
@@ -423,12 +444,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
                   </span>
                 </div>
               </div>
-              <button
-                onClick={() => setIsMobileSidebarOpen(false)}
-                className="lg:hidden p-1 text-slate-400 hover:text-white"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              <div className="flex items-center gap-1">
+                <button
+                  onClick={toggleSidebarCollapsed}
+                  className="hidden lg:flex p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
+                  title="Hide Navigation Pane"
+                >
+                  <PanelLeftClose className="w-4 h-4" />
+                </button>
+                <button
+                  onClick={() => setIsMobileSidebarOpen(false)}
+                  className="lg:hidden p-1 text-slate-400 hover:text-white cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
             </div>
 
             {/* Navigation Groups */}
@@ -529,6 +559,28 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
           {/* Top Breadcrumb & Quick Actions Header */}
           <div className="hidden lg:flex items-center justify-between bg-white px-6 py-4 rounded-xl border border-slate-200/80 shadow-2xs">
             <div className="flex items-center gap-3">
+              <button
+                onClick={toggleSidebarCollapsed}
+                className={`inline-flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+                  isSidebarCollapsed
+                    ? 'bg-slate-900 text-white hover:bg-emerald-700 border-slate-900 shadow-sm'
+                    : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200'
+                }`}
+                title={isSidebarCollapsed ? 'Show Navigation Pane' : 'Hide Navigation Pane'}
+              >
+                {isSidebarCollapsed ? (
+                  <>
+                    <PanelLeftOpen className="w-4 h-4 text-emerald-400" />
+                    <span>Open Navigation</span>
+                  </>
+                ) : (
+                  <>
+                    <PanelLeftClose className="w-4 h-4 text-slate-500" />
+                    <span>Hide Navigation</span>
+                  </>
+                )}
+              </button>
+
               <div className="w-9 h-9 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
                 {currentNav.icon}
               </div>

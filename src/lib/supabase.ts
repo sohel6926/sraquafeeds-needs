@@ -9,6 +9,8 @@ import {
   SiteSettings,
   Sale,
   Category,
+  Customer,
+  CustomerPayment,
 } from '../types.ts';
 
 const SUPABASE_URL =
@@ -277,6 +279,7 @@ export const mapSaleFromDb = (row: any): Sale => ({
   id: row.id,
   customerName: row.customer_name,
   customerPhone: row.customer_phone || '',
+  customerAddress: row.customer_address || '',
   productId: row.product_id,
   productName: row.product_name,
   productCategory: row.product_category || 'Uncategorized',
@@ -294,6 +297,7 @@ export const mapSaleToDb = (s: Partial<Sale>) => ({
   id: s.id,
   customer_name: s.customerName,
   customer_phone: s.customerPhone || null,
+  customer_address: s.customerAddress || null,
   product_id: s.productId,
   product_name: s.productName,
   product_category: s.productCategory,
@@ -318,4 +322,42 @@ export const mapCategoryToDb = (c: Partial<Category>) => ({
   id: c.id,
   name: c.name,
   created_at: new Date().toISOString(),
+});
+
+// 9. Customers
+export const mapCustomerFromDb = (row: any): Customer => ({
+  id: row.id,
+  name: row.name,
+  phone: row.phone || '',
+  address: row.address || '',
+  createdAt: row.created_at,
+  updatedAt: row.updated_at,
+});
+
+export const mapCustomerToDb = (c: Partial<Customer>) => ({
+  id: c.id,
+  name: c.name,
+  phone: c.phone || null,
+  address: c.address || null,
+  updated_at: new Date().toISOString(),
+});
+
+// 10. Customer Payments (Debt tracking transactions)
+export const mapPaymentFromDb = (row: any): CustomerPayment => ({
+  id: row.id,
+  customerName: row.customer_name,
+  amount: Number(row.amount) || 0,
+  paymentDate: row.payment_date || row.created_at || new Date().toISOString(),
+  paymentMode: row.payment_mode || 'Cash',
+  notes: row.notes || '',
+  createdAt: row.created_at,
+});
+
+export const mapPaymentToDb = (p: Partial<CustomerPayment>) => ({
+  id: p.id,
+  customer_name: p.customerName,
+  amount: p.amount,
+  payment_date: p.paymentDate || new Date().toISOString(),
+  payment_mode: p.paymentMode || 'Cash',
+  notes: p.notes || null,
 });

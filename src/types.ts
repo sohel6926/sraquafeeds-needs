@@ -35,6 +35,7 @@ export interface Sale {
   id: string;
   customerName: string;
   customerPhone?: string;
+  customerAddress?: string;
   productId: string;
   productName: string;
   productCategory?: string;
@@ -46,6 +47,25 @@ export interface Sale {
   balance: number;
   paymentStatus: 'Paid' | 'Credit';
   date: string;
+}
+
+export interface Customer {
+  id: string;
+  name: string;
+  phone?: string;
+  address?: string;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface CustomerPayment {
+  id: string;
+  customerName: string;
+  amount: number;
+  paymentDate: string;
+  paymentMode?: string;
+  notes?: string;
+  createdAt?: string;
 }
 
 

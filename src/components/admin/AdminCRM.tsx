@@ -15,14 +15,38 @@ import {
   X,
   FileText,
   Printer,
-  Download
+  Download,
+  CreditCard,
+  Clock,
+  Phone,
+  MapPin,
+  User,
+  History,
+  AlertCircle
 } from 'lucide-react';
 
 import { STANDARD_UNITS, sanitizeProductUnit } from '../../utils/units';
 import { t } from '../../utils/translations';
 
 export const AdminCRM: React.FC = () => {
-  const { products, sales, categories, addCategory, deleteCategory, addSale, updateSale, deleteSale, updateProduct, addProduct, deleteProduct, siteSettings } = useData();
+  const { 
+    products, 
+    sales, 
+    customers,
+    customerPayments,
+    addCustomerPayment,
+    deleteCustomerPayment,
+    categories, 
+    addCategory, 
+    deleteCategory, 
+    addSale, 
+    updateSale, 
+    deleteSale, 
+    updateProduct, 
+    addProduct, 
+    deleteProduct, 
+    siteSettings 
+  } = useData();
   const [activeTab, setActiveTab] = useState<'sales' | 'inventory' | 'categories'>('sales');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isTelugu, setIsTelugu] = useState(false);
@@ -36,11 +60,20 @@ export const AdminCRM: React.FC = () => {
   const [paymentStatus, setPaymentStatus] = useState<'Paid' | 'Credit'>('Paid');
   const [amountPaid, setAmountPaid] = useState<number | ''>('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [customerAddress, setCustomerAddress] = useState('');
+  const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false);
   
   // Sale Edit & Invoice State
   const [editingSaleId, setEditingSaleId] = useState<string | null>(null);
   const [invoiceSale, setInvoiceSale] = useState<Sale | null>(null);
   const invoiceRef = useRef<HTMLDivElement>(null);
+
+  // Customer Debt Repayment State
+  const [repaymentAmount, setRepaymentAmount] = useState<number | ''>('');
+  const [repaymentMode, setRepaymentMode] = useState<string>('Cash');
+  const [repaymentDate, setRepaymentDate] = useState<string>('');
+  const [repaymentNotes, setRepaymentNotes] = useState<string>('');
+  const [customerLedgerTab, setCustomerLedgerTab] = useState<'all' | 'sales' | 'payments'>('all');
 
   // Inventory Add State
   const [invName, setInvName] = useState('');
@@ -83,6 +116,75 @@ export const AdminCRM: React.FC = () => {
     } else {
       setSellingPrice('');
       setSelectedProductUnit('Units');
+    }
+  };
+
+  // Matching customers for autocomplete
+  const customerSuggestions = customerName.trim().length > 0
+    ? customers.filter(c => c.name.toLowerCase().includes(customerName.trim().toLowerCase()))
+    : [];
+
+  const handleSelectCustomer = (c: { name: string; phone?: string; address?: string }) => {
+    setCustomerName(c.name);
+    if (c.phone) setCustomerPhone(c.phone);
+    if (c.address) setCustomerAddress(c.address);
+    setShowCustomerSuggestions(false);
+  };
+
+  // Helper to compute individual customer financial ledger & stats
+  const getCustomerFinancials = (custName: string) => {
+    const cSales = sales
+      .filter(s => s.customerName.trim().toLowerCase() === custName.trim().toLowerCase())
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    
+    const cPayments = (customerPayments || [])
+      .filter(p => p.customerName.trim().toLowerCase() === custName.trim().toLowerCase())
+      .sort((a, b) => new Date(b.paymentDate).getTime() - new Date(a.paymentDate).getTime());
+
+    const totalPurchases = cSales.reduce((acc, s) => acc + s.totalAmount, 0);
+    const initialPaidOnSales = cSales.reduce((acc, s) => acc + (s.amountPaid !== undefined ? s.amountPaid : s.totalAmount), 0);
+    const totalRepayments = cPayments.reduce((acc, p) => acc + (p.amount || 0), 0);
+    const totalPaid = initialPaidOnSales + totalRepayments;
+    const totalDebt = Math.max(0, totalPurchases - totalPaid);
+    const totalProfit = cSales.reduce((acc, s) => acc + s.profit, 0);
+
+    return {
+      cSales,
+      cPayments,
+      totalPurchases,
+      totalPaid,
+      totalDebt,
+      totalProfit,
+    };
+  };
+
+  const handleRecordDebtPayment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomerName) return;
+    const amt = Number(repaymentAmount);
+    if (!amt || amt <= 0) {
+      alert('Please enter a valid payment amount.');
+      return;
+    }
+
+    await addCustomerPayment({
+      customerName: selectedCustomerName,
+      amount: amt,
+      paymentDate: repaymentDate ? new Date(repaymentDate).toISOString() : new Date().toISOString(),
+      paymentMode: repaymentMode || 'Cash',
+      notes: repaymentNotes.trim() || undefined,
+    });
+
+    showToast(`Payment of ₹${amt.toLocaleString('en-IN')} recorded for ${selectedCustomerName}!`);
+    setRepaymentAmount('');
+    setRepaymentNotes('');
+    setRepaymentDate('');
+  };
+
+  const handleDeleteRepayment = async (id: string, amt: number) => {
+    if (confirm(`Delete this payment record of ₹${amt.toLocaleString('en-IN')}?`)) {
+      await deleteCustomerPayment(id);
+      showToast('Payment record removed.');
     }
   };
 
@@ -143,6 +245,7 @@ export const AdminCRM: React.FC = () => {
           ...existingSale,
           customerName: customerName.trim(),
           customerPhone: customerPhone.trim() || undefined,
+          customerAddress: customerAddress.trim() || undefined,
           productId: product.id,
           productName: product.name,
           productCategory: product.category,
@@ -162,6 +265,7 @@ export const AdminCRM: React.FC = () => {
       const newSale: Omit<Sale, 'id'> = {
         customerName: customerName.trim(),
         customerPhone: customerPhone.trim() || undefined,
+        customerAddress: customerAddress.trim() || undefined,
         productId: product.id,
         productName: product.name,
         productCategory: product.category,
@@ -188,6 +292,8 @@ export const AdminCRM: React.FC = () => {
     // Reset form
     setCustomerName('');
     setCustomerPhone('');
+    setCustomerAddress('');
+    setShowCustomerSuggestions(false);
     setQuantity('');
     setSelectedProductId('');
     setSellingPrice('');
@@ -201,6 +307,8 @@ export const AdminCRM: React.FC = () => {
     setEditingSaleId(sale.id);
     setCustomerName(sale.customerName);
     setCustomerPhone(sale.customerPhone || '');
+    setCustomerAddress(sale.customerAddress || '');
+    setShowCustomerSuggestions(false);
     setSelectedProductId(sale.productId);
     setQuantity(sale.quantity);
     setSellingPrice(sale.sellingPrice);
@@ -226,6 +334,9 @@ export const AdminCRM: React.FC = () => {
       if (editingSaleId === sale.id) {
         setEditingSaleId(null);
         setCustomerName('');
+        setCustomerPhone('');
+        setCustomerAddress('');
+        setShowCustomerSuggestions(false);
         setQuantity('');
         setSelectedProductId('');
         setSellingPrice('');
@@ -375,7 +486,7 @@ export const AdminCRM: React.FC = () => {
   const currentSales = filteredSales.slice((salesPage - 1) * salesPerPage, salesPage * salesPerPage);
 
   return (
-    <div className="space-y-6 max-w-5xl w-full relative">
+    <div className="space-y-6 w-full max-w-full relative">
 
       {/* Toast */}
       {toastMessage && (
@@ -396,7 +507,7 @@ export const AdminCRM: React.FC = () => {
               <h2 className="text-2xl font-black text-slate-900">{isTelugu ? 'నిల్వ & CRM' : 'Inventory & CRM'}</h2>
               <button
                 onClick={() => setIsTelugu(!isTelugu)}
-                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded border border-slate-200 transition-colors"
+                className="px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded border border-slate-200 transition-colors cursor-pointer"
                 title="Toggle Telugu Language"
               >
                 {isTelugu ? 'English' : 'తెలుగు'}
@@ -412,7 +523,7 @@ export const AdminCRM: React.FC = () => {
         <div className="flex bg-slate-100 p-1 rounded-lg">
           <button
             onClick={() => setActiveTab('sales')}
-            className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'sales'
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
@@ -422,7 +533,7 @@ export const AdminCRM: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('inventory')}
-            className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'inventory'
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
@@ -432,7 +543,7 @@ export const AdminCRM: React.FC = () => {
           </button>
           <button
             onClick={() => setActiveTab('categories')}
-            className={`px-4 py-2 rounded-md text-xs font-bold transition-all ${
+            className={`px-4 py-2 rounded-md text-xs font-bold transition-all cursor-pointer ${
               activeTab === 'categories'
                 ? 'bg-white text-slate-900 shadow-sm'
                 : 'text-slate-500 hover:text-slate-700'
@@ -505,15 +616,72 @@ export const AdminCRM: React.FC = () => {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1.5">{t("Customer Name", isTelugu)}</label>
+            <div className="relative">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-xs font-semibold text-slate-700">{t("Customer Name", isTelugu)}</label>
+                {customerName.trim() && (
+                  customerSuggestions.some(c => c.name.toLowerCase() === customerName.trim().toLowerCase()) ? (
+                    <span className="text-[10px] text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded font-bold border border-emerald-200">
+                      ✓ Existing Customer
+                    </span>
+                  ) : (
+                    <span className="text-[10px] text-sky-700 bg-sky-50 px-2 py-0.5 rounded font-medium border border-sky-200">
+                      + New Customer
+                    </span>
+                  )
+                )}
+              </div>
               <input 
                 type="text"
                 value={customerName}
-                onChange={e => setCustomerName(e.target.value)}
+                onFocus={() => setShowCustomerSuggestions(true)}
+                onChange={e => {
+                  setCustomerName(e.target.value);
+                  setShowCustomerSuggestions(true);
+                }}
                 placeholder={t("e.g. Ramesh Reddy", isTelugu)}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
+
+              {/* Suggestions Dropdown */}
+              {showCustomerSuggestions && customerSuggestions.length > 0 && (
+                <div className="absolute left-0 right-0 top-full mt-1 bg-white rounded-lg shadow-xl border border-slate-200 max-h-48 overflow-y-auto z-30 divide-y divide-slate-100">
+                  <div className="p-2 text-[10px] font-bold uppercase tracking-wider text-slate-400 bg-slate-50">
+                    Existing Customers ({customerSuggestions.length})
+                  </div>
+                  {customerSuggestions.map(c => {
+                    const stats = getCustomerFinancials(c.name);
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => handleSelectCustomer(c)}
+                        className="w-full text-left p-2.5 hover:bg-emerald-50 transition-colors flex items-center justify-between group cursor-pointer"
+                      >
+                        <div>
+                          <div className="font-bold text-xs text-slate-900 group-hover:text-emerald-700 flex items-center gap-1.5">
+                            <User className="w-3 h-3 text-slate-400 group-hover:text-emerald-600" />
+                            <span>{c.name}</span>
+                          </div>
+                          {c.phone && <div className="text-[10px] text-slate-500 mt-0.5">{c.phone}</div>}
+                          {c.address && <div className="text-[10px] text-slate-400 truncate max-w-[200px]">{c.address}</div>}
+                        </div>
+                        <div className="text-right">
+                          {stats.totalDebt > 0 ? (
+                            <span className="text-[10px] font-bold text-red-600 bg-red-50 px-1.5 py-0.5 rounded border border-red-200">
+                              Debt: ₹{stats.totalDebt.toLocaleString('en-IN')}
+                            </span>
+                          ) : (
+                            <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                              No Debt
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
             <div>
@@ -527,6 +695,20 @@ export const AdminCRM: React.FC = () => {
                 onChange={e => setCustomerPhone(e.target.value)}
                 placeholder="e.g. 9876543210"
                 maxLength={15}
+                className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-slate-700 mb-1.5">
+                {isTelugu ? 'కస్టమర్ చిరునామా / ఊరు (ఐచ్ఛికం)' : 'Customer Address / Village'}{' '}
+                <span className="text-[10px] font-normal text-slate-400">(Optional)</span>
+              </label>
+              <input 
+                type="text"
+                value={customerAddress}
+                onChange={e => setCustomerAddress(e.target.value)}
+                placeholder={isTelugu ? 'ఉదా. రామాయపట్నం, ఉలవపాడు' : 'e.g. Ramayapatnam, Ulavapadu'}
                 className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
               />
             </div>
@@ -1032,33 +1214,124 @@ export const AdminCRM: React.FC = () => {
 
       {/* Invoice Modal */}
       {invoiceSale && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-auto flex flex-col print:shadow-none print:max-h-none">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-auto flex flex-col">
             {/* Modal Header */}
             <div className="p-4 border-b border-slate-100 flex items-center justify-between no-print sticky top-0 bg-white z-10">
-              <h3 className="font-extrabold text-lg text-slate-900">Invoice Generation</h3>
+              <div className="flex items-center gap-2">
+                <FileText className="w-5 h-5 text-emerald-600" />
+                <h3 className="font-extrabold text-lg text-slate-900">Tax Invoice</h3>
+              </div>
               <div className="flex items-center gap-2">
                 <button
+                  type="button"
+                  onClick={() => {
+                    if (!invoiceRef.current) return;
+                    const printContent = invoiceRef.current.innerHTML;
+                    const printWindow = window.open('', '_blank', 'width=850,height=900');
+                    if (printWindow) {
+                      printWindow.document.write(`
+                        <!DOCTYPE html>
+                        <html>
+                          <head>
+                            <title>Invoice - ${invoiceSale?.customerName || 'Customer'}</title>
+                            <style>
+                              @page { size: auto; margin: 12mm; }
+                              body {
+                                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+                                color: #0f172a;
+                                background: #fff;
+                                margin: 0;
+                                padding: 16px;
+                              }
+                              .text-3xl { font-size: 24px; font-weight: 900; }
+                              .text-4xl { font-size: 32px; font-weight: 900; }
+                              .text-lg { font-size: 16px; font-weight: 700; }
+                              .text-sm { font-size: 13px; }
+                              .text-xs { font-size: 11px; }
+                              .font-bold { font-weight: bold; }
+                              .font-black { font-weight: 900; }
+                              .font-medium { font-weight: 500; }
+                              .text-emerald-700 { color: #047857; }
+                              .text-emerald-600 { color: #059669; }
+                              .text-slate-900 { color: #0f172a; }
+                              .text-slate-700 { color: #334155; }
+                              .text-slate-600 { color: #475569; }
+                              .text-slate-500 { color: #64748b; }
+                              .text-slate-400 { color: #94a3b8; }
+                              .text-slate-200 { color: #e2e8f0; }
+                              .border-b-2 { border-bottom: 2px solid #cbd5e1; }
+                              .border-b { border-bottom: 1px solid #e2e8f0; }
+                              .border-t { border-top: 1px solid #e2e8f0; }
+                              .pb-6 { padding-bottom: 20px; }
+                              .mb-6 { margin-bottom: 20px; }
+                              .mb-8 { margin-bottom: 24px; }
+                              .mb-12 { margin-bottom: 32px; }
+                              .pt-8 { padding-top: 24px; }
+                              .flex { display: flex; }
+                              .justify-between { justify-content: space-between; }
+                              .justify-end { justify-content: flex-end; }
+                              .items-center { align-items: center; }
+                              .text-right { text-align: right; }
+                              .text-center { text-align: center; }
+                              .uppercase { text-transform: uppercase; }
+                              .tracking-wider { letter-spacing: 0.05em; }
+                              table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
+                              th, td { border: 1px solid #cbd5e1; padding: 10px 14px; text-align: left; }
+                              th { background-color: #f8fafc; font-size: 12px; font-weight: 700; }
+                              .w-64 { width: 280px; }
+                              .py-2 { padding-top: 8px; padding-bottom: 8px; }
+                              .py-3 { padding-top: 12px; padding-bottom: 12px; }
+                            </style>
+                          </head>
+                          <body>
+                            ${printContent}
+                            <script>
+                              window.onload = function() {
+                                window.focus();
+                                window.print();
+                                window.onafterprint = function() { window.close(); };
+                              };
+                            </script>
+                          </body>
+                        </html>
+                      `);
+                      printWindow.document.close();
+                    }
+                  }}
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                  title="Print to connected printer"
+                >
+                  <Printer className="w-4 h-4 text-emerald-400" />
+                  <span>Print Invoice</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={async () => {
                     if (!invoiceRef.current) return;
                     const html2pdf = (await import('html2pdf.js')).default;
                     const opt = {
                       margin:       0.5,
                       filename:     `Invoice-${invoiceSale?.customerName.replace(/ /g, '_')}-${new Date().getTime()}.pdf`,
-                      image:        { type: 'jpeg', quality: 0.98 },
+                      image:        { type: 'jpeg' as const, quality: 0.98 },
                       html2canvas:  { scale: 2 },
-                      jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                      jsPDF:        { unit: 'in' as const, format: 'letter' as const, orientation: 'portrait' as const }
                     };
                     html2pdf().from(invoiceRef.current).set(opt).save();
                   }}
-                  className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition-colors"
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
+                  title="Download PDF file"
                 >
                   <Download className="w-4 h-4" />
-                  Download PDF
+                  <span>Download PDF</span>
                 </button>
+
                 <button
+                  type="button"
                   onClick={() => setInvoiceSale(null)}
-                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
+                  title="Close"
                 >
                   <X className="w-5 h-5" />
                 </button>
@@ -1066,32 +1339,49 @@ export const AdminCRM: React.FC = () => {
             </div>
 
             {/* Printable Area */}
-            <div className="p-8 print-only bg-white text-black" ref={invoiceRef}>
+            <div className="p-8 bg-white text-slate-900" ref={invoiceRef}>
               <div className="flex items-center justify-between border-b-2 border-slate-200 pb-6 mb-6">
                 <div>
-                  <h1 className="text-3xl font-black text-emerald-700 mb-1">{siteSettings?.name || 'SR AQUA FEEDS AND NEEDS'}</h1>
-                  <p className="text-sm font-medium text-slate-600">{siteSettings?.address || 'K.G. Road, Pedapulleru, AP'}</p>
-                  <p className="text-sm font-medium text-slate-600">{siteSettings?.phone ? `Ph: ${siteSettings.phone}` : 'Ph: +91 XXXXX XXXXX'}</p>
+                  <h1 className="text-2xl font-black text-emerald-700 mb-1 tracking-tight">
+                    {siteSettings?.businessName || 'SR AQUA FEEDS AND NEEDS'}
+                  </h1>
+                  <p className="text-xs font-medium text-slate-600 max-w-md leading-relaxed">
+                    {siteSettings?.address || 'Chakicherla Peddapattapu Palem, Ulavapadu (Mandal), Ramayapatnam Road, SPSR Nellore District, Andhra Pradesh – 523292'}
+                  </p>
+                  <p className="text-xs font-bold text-slate-700 mt-1">
+                    {siteSettings?.primaryPhone
+                      ? `Ph: +91 ${siteSettings.primaryPhone}`
+                      : siteSettings?.whatsappNumber
+                      ? `Ph: +91 ${siteSettings.whatsappNumber}`
+                      : 'Ph: +91 94932 43244'}
+                  </p>
                 </div>
                 <div className="text-right">
-                  <h2 className="text-4xl font-black text-slate-200 uppercase tracking-wider">Invoice</h2>
-                  <p className="text-sm font-bold mt-2 text-slate-700">Date: {new Date(invoiceSale.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
-                  <p className="text-sm font-bold text-slate-700">Time: {new Date(invoiceSale.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
-                  <p className="text-sm font-bold text-slate-500 mt-1">Invoice #: INV-{new Date(invoiceSale.date).getTime().toString().slice(-6)}</p>
+                  <h2 className="text-3xl font-black text-slate-300 uppercase tracking-widest">INVOICE</h2>
+                  <p className="text-xs font-bold mt-2 text-slate-700">Date: {new Date(invoiceSale.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</p>
+                  <p className="text-xs font-bold text-slate-700">Time: {new Date(invoiceSale.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}</p>
+                  <p className="text-xs font-bold text-slate-500 mt-0.5 font-mono">Invoice #: INV-{new Date(invoiceSale.date).getTime().toString().slice(-6)}</p>
                 </div>
               </div>
 
-              <div className="mb-8">
-                <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-2">Billed To</h3>
-                <p className="text-lg font-bold text-slate-900">{invoiceSale.customerName}</p>
-                {invoiceSale.customerPhone && (
-                  <p className="text-sm font-medium text-slate-600">Ph: {invoiceSale.customerPhone}</p>
+              <div className="mb-6 p-4 rounded-lg bg-slate-50 border border-slate-200/80">
+                <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-wider mb-1">BILLED TO</h3>
+                <p className="text-base font-extrabold text-slate-900">{invoiceSale.customerName}</p>
+                <p className="text-xs font-medium text-slate-600 mt-0.5">
+                  {invoiceSale.customerPhone
+                    ? `Ph: +91 ${invoiceSale.customerPhone.replace(/^\+?91/, '').trim()}`
+                    : 'Ph: +91 XXXXX XXXXX'}
+                </p>
+                {invoiceSale.customerAddress && (
+                  <p className="text-xs font-medium text-slate-600 mt-0.5 flex items-center gap-1">
+                    <span>Address: {invoiceSale.customerAddress}</span>
+                  </p>
                 )}
               </div>
 
-              <table className="w-full text-left border-collapse mb-8">
+              <table className="w-full text-left border-collapse mb-6">
                 <thead>
-                  <tr className="bg-slate-100 text-sm font-bold text-slate-700 uppercase">
+                  <tr className="bg-slate-100 text-xs font-bold text-slate-700 uppercase">
                     <th className="px-4 py-3 border border-slate-200 rounded-tl-lg">Description</th>
                     <th className="px-4 py-3 border border-slate-200 text-right">Qty</th>
                     <th className="px-4 py-3 border border-slate-200 text-right">Rate (₹)</th>
@@ -1099,110 +1389,400 @@ export const AdminCRM: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="text-sm font-medium text-slate-800">
-                    <td className="px-4 py-4 border border-slate-200">{invoiceSale.productName}</td>
-                    <td className="px-4 py-4 border border-slate-200 text-right">{invoiceSale.quantity}</td>
-                    <td className="px-4 py-4 border border-slate-200 text-right">{invoiceSale.sellingPrice.toLocaleString('en-IN')}</td>
-                    <td className="px-4 py-4 border border-slate-200 text-right font-bold">{invoiceSale.totalAmount.toLocaleString('en-IN')}</td>
+                  <tr className="text-xs font-semibold text-slate-800">
+                    <td className="px-4 py-3.5 border border-slate-200">
+                      <div className="font-bold text-slate-900">{invoiceSale.productName}</div>
+                      <div className="text-[10px] text-slate-500">{invoiceSale.productCategory || 'Aquaculture Products'}</div>
+                    </td>
+                    <td className="px-4 py-3.5 border border-slate-200 text-right font-medium">{invoiceSale.quantity}</td>
+                    <td className="px-4 py-3.5 border border-slate-200 text-right">{invoiceSale.sellingPrice.toLocaleString('en-IN')}</td>
+                    <td className="px-4 py-3.5 border border-slate-200 text-right font-bold text-slate-900">{invoiceSale.totalAmount.toLocaleString('en-IN')}</td>
                   </tr>
                 </tbody>
               </table>
 
-              <div className="flex justify-end mb-12">
-                <div className="w-64">
-                  <div className="flex justify-between items-center py-2 border-b border-slate-200">
-                    <span className="font-bold text-slate-600">Subtotal:</span>
+              <div className="flex justify-end mb-8">
+                <div className="w-72 bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
+                  <div className="flex justify-between items-center text-xs text-slate-600 font-semibold">
+                    <span>Subtotal:</span>
                     <span className="font-bold text-slate-900">₹{invoiceSale.totalAmount.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex justify-between items-center py-3 text-lg">
-                    <span className="font-black text-slate-900">Total:</span>
-                    <span className="font-black text-emerald-600">₹{invoiceSale.totalAmount.toLocaleString('en-IN')}</span>
+                  <div className="flex justify-between items-center text-xs text-sky-700 font-semibold">
+                    <span>Paid Amount:</span>
+                    <span className="font-bold">₹{(invoiceSale.amountPaid !== undefined ? invoiceSale.amountPaid : invoiceSale.totalAmount).toLocaleString('en-IN')}</span>
+                  </div>
+                  {invoiceSale.balance > 0 && (
+                    <div className="flex justify-between items-center text-xs text-red-600 font-semibold">
+                      <span>Pending Debt:</span>
+                      <span className="font-bold">₹{invoiceSale.balance.toLocaleString('en-IN')}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-center pt-2 border-t border-slate-200 text-sm">
+                    <span className="font-black text-slate-900">Grand Total:</span>
+                    <span className="font-black text-emerald-700 text-base">₹{invoiceSale.totalAmount.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="text-center pt-8 border-t border-slate-200">
-                <p className="font-bold text-slate-800 mb-1">Thank you for your business!</p>
-                <p className="text-xs font-medium text-slate-500">For inquiries, please contact us.</p>
+              <div className="text-center pt-6 border-t border-slate-200 space-y-1">
+                <p className="font-bold text-xs text-slate-800">Thank you for choosing SR Aqua Feeds & Needs!</p>
+                <p className="text-[11px] text-slate-500">For emergency pond assistance or dispatch inquiries, please contact 9493243244.</p>
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* Customer Performance Modal */}
+      {/* Customer Performance & Debt Repayment Modal */}
       {selectedCustomerName && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-scale-in">
-            <div className="p-4 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
-              <div>
-                <h3 className="font-extrabold text-lg text-slate-900">{selectedCustomerName} - Profile</h3>
-                <p className="text-xs font-semibold text-slate-500">Customer purchase history and financial summary</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[92vh] overflow-hidden flex flex-col animate-scale-in">
+            {/* Modal Header */}
+            <div className="p-5 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold">
+                  <User className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-black text-xl text-slate-900 leading-tight">
+                    {selectedCustomerName}
+                  </h3>
+                  <div className="flex items-center gap-3 text-xs text-slate-500 font-medium mt-0.5">
+                    {(() => {
+                      const cObj = customers.find(c => c.name.toLowerCase() === selectedCustomerName.toLowerCase());
+                      const cSales = sales.filter(s => s.customerName.toLowerCase() === selectedCustomerName.toLowerCase());
+                      const phone = cObj?.phone || cSales[0]?.customerPhone;
+                      const addr = cObj?.address || cSales[0]?.customerAddress;
+                      return (
+                        <>
+                          {phone && (
+                            <span className="flex items-center gap-1 text-slate-700 font-semibold">
+                              <Phone className="w-3 h-3 text-slate-400" />
+                              {phone}
+                            </span>
+                          )}
+                          {addr && (
+                            <span className="flex items-center gap-1 text-slate-500">
+                              <MapPin className="w-3 h-3 text-slate-400" />
+                              {addr}
+                            </span>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
               </div>
               <button 
+                type="button"
                 onClick={() => setSelectedCustomerName(null)}
-                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors"
+                className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors cursor-pointer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
             
-            <div className="p-6 overflow-auto bg-slate-50 flex-1">
+            <div className="p-6 overflow-auto bg-slate-50 flex-1 space-y-6">
               {(() => {
-                const customerSales = sales.filter(s => s.customerName === selectedCustomerName).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-                const totalPurchases = customerSales.reduce((acc, s) => acc + s.totalAmount, 0);
-                const totalPaid = customerSales.reduce((acc, s) => acc + (s.amountPaid !== undefined ? s.amountPaid : s.totalAmount), 0);
-                const totalDebt = customerSales.reduce((acc, s) => acc + (s.balance || 0), 0);
-                const totalProfit = customerSales.reduce((acc, s) => acc + s.profit, 0);
+                const { cSales, cPayments, totalPurchases, totalPaid, totalDebt, totalProfit } = getCustomerFinancials(selectedCustomerName);
+
+                // Combined unified ledger sorted chronologically (newest first)
+                const ledgerItems = [
+                  ...cSales.map(s => ({
+                    id: s.id,
+                    type: 'sale' as const,
+                    date: s.date,
+                    productName: s.productName,
+                    quantity: s.quantity,
+                    sellingPrice: s.sellingPrice,
+                    totalAmount: s.totalAmount,
+                    paidAmount: s.amountPaid !== undefined ? s.amountPaid : s.totalAmount,
+                    debtAmount: s.balance || 0,
+                    saleObj: s,
+                  })),
+                  ...cPayments.map(p => ({
+                    id: p.id,
+                    type: 'payment' as const,
+                    date: p.paymentDate,
+                    productName: `Repayment (${p.paymentMode || 'Cash'})`,
+                    quantity: 1,
+                    sellingPrice: p.amount,
+                    totalAmount: p.amount,
+                    paidAmount: p.amount,
+                    debtAmount: 0,
+                    notes: p.notes,
+                    mode: p.paymentMode,
+                    paymentObj: p,
+                  })),
+                ].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
                 return (
-                  <div className="space-y-6">
+                  <>
+                    {/* Financial Summary 4 Stats */}
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
-                        <div className="text-[10px] font-bold text-slate-400 uppercase mb-1">Total Purchases</div>
+                      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs text-center">
+                        <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Purchases</div>
                         <div className="text-xl font-black text-slate-900">₹{totalPurchases.toLocaleString('en-IN')}</div>
                       </div>
-                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
-                        <div className="text-[10px] font-bold text-emerald-600 uppercase mb-1">Total Paid</div>
+                      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs text-center">
+                        <div className="text-[10px] font-bold text-emerald-600 uppercase tracking-wider mb-1">Total Paid</div>
                         <div className="text-xl font-black text-emerald-600">₹{totalPaid.toLocaleString('en-IN')}</div>
                       </div>
-                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
-                        <div className="text-[10px] font-bold text-red-500 uppercase mb-1">Total Debt (Pending)</div>
-                        <div className="text-xl font-black text-red-500">₹{totalDebt.toLocaleString('en-IN')}</div>
+                      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs text-center">
+                        <div className="text-[10px] font-bold text-red-500 uppercase tracking-wider mb-1">Total Debt (Pending)</div>
+                        <div className={`text-xl font-black ${totalDebt > 0 ? 'text-red-600' : 'text-slate-400'}`}>
+                          ₹{totalDebt.toLocaleString('en-IN')}
+                        </div>
                       </div>
-                      <div className="p-4 bg-white rounded-lg border border-slate-200 shadow-sm text-center">
-                        <div className="text-[10px] font-bold text-sky-600 uppercase mb-1">Generated Profit</div>
+                      <div className="p-4 bg-white rounded-xl border border-slate-200 shadow-2xs text-center">
+                        <div className="text-[10px] font-bold text-sky-600 uppercase tracking-wider mb-1">Generated Profit</div>
                         <div className="text-xl font-black text-sky-600">₹{totalProfit.toLocaleString('en-IN')}</div>
                       </div>
                     </div>
-                    
-                    <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-                      <table className="w-full text-left border-collapse">
-                        <thead>
-                          <tr className="bg-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-wider">
-                            <th className="px-4 py-3">Date</th>
-                            <th className="px-4 py-3">Product</th>
-                            <th className="px-4 py-3 text-right">Qty</th>
-                            <th className="px-4 py-3 text-right">Total (₹)</th>
-                            <th className="px-4 py-3 text-right">Paid (₹)</th>
-                            <th className="px-4 py-3 text-right">Debt (₹)</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
-                          {customerSales.map(s => (
-                            <tr key={s.id} className="text-xs font-semibold text-slate-700 hover:bg-slate-50">
-                              <td className="px-4 py-3 text-slate-500">{new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}</td>
-                              <td className="px-4 py-3">{s.productName}</td>
-                              <td className="px-4 py-3 text-right">{s.quantity}</td>
-                              <td className="px-4 py-3 text-right text-slate-900">₹{s.totalAmount.toLocaleString('en-IN')}</td>
-                              <td className="px-4 py-3 text-right text-emerald-600">₹{(s.amountPaid !== undefined ? s.amountPaid : s.totalAmount).toLocaleString('en-IN')}</td>
-                              <td className="px-4 py-3 text-right text-red-500">{s.balance > 0 ? `₹${s.balance.toLocaleString('en-IN')}` : '-'}</td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
+
+                    {/* Record Debt Payment Quick Box */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-2xs p-5 space-y-3">
+                      <div className="flex items-center justify-between pb-2 border-b border-slate-100">
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-4 h-4 text-emerald-600" />
+                          <h4 className="font-extrabold text-sm text-slate-900">
+                            Record Debt Clearance / New Payment
+                          </h4>
+                        </div>
+                        {totalDebt > 0 ? (
+                          <span className="text-xs font-bold text-red-600 bg-red-50 px-2.5 py-1 rounded border border-red-200">
+                            Outstanding Balance: ₹{totalDebt.toLocaleString('en-IN')}
+                          </span>
+                        ) : (
+                          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2.5 py-1 rounded border border-emerald-200">
+                            ✓ No Debt Outstanding
+                          </span>
+                        )}
+                      </div>
+
+                      <form onSubmit={handleRecordDebtPayment} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end pt-1">
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Amount Paid (₹) *
+                          </label>
+                          <input
+                            type="number"
+                            required
+                            min="1"
+                            value={repaymentAmount}
+                            onChange={e => setRepaymentAmount(Number(e.target.value))}
+                            placeholder={totalDebt > 0 ? `${totalDebt}` : "0.00"}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Payment Mode
+                          </label>
+                          <select
+                            value={repaymentMode}
+                            onChange={e => setRepaymentMode(e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-semibold text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                          >
+                            <option value="Cash">Cash</option>
+                            <option value="PhonePe / GPay (UPI)">PhonePe / GPay (UPI)</option>
+                            <option value="Bank Transfer">Bank Transfer (NEFT/IMPS)</option>
+                            <option value="Cheque">Cheque</option>
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Payment Date & Time
+                          </label>
+                          <input
+                            type="datetime-local"
+                            value={repaymentDate}
+                            onChange={e => setRepaymentDate(e.target.value)}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            Notes / Remark (Optional)
+                          </label>
+                          <input
+                            type="text"
+                            value={repaymentNotes}
+                            onChange={e => setRepaymentNotes(e.target.value)}
+                            placeholder="e.g. Paid part debt"
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-800 focus:ring-2 focus:ring-emerald-500"
+                          />
+                        </div>
+
+                        <div className="sm:col-span-4 flex justify-end pt-1">
+                          <button
+                            type="submit"
+                            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold transition-all shadow-md active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Save className="w-4 h-4" />
+                            <span>Save Payment Record</span>
+                          </button>
+                        </div>
+                      </form>
                     </div>
-                  </div>
+
+                    {/* Ledger Tabs and Transactions Table */}
+                    <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+                      <div className="p-4 border-b border-slate-100 flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <History className="w-4 h-4 text-slate-600" />
+                          <h4 className="font-extrabold text-sm text-slate-900">
+                            Transaction History & Ledger
+                          </h4>
+                          <span className="text-[10px] font-bold bg-slate-100 text-slate-700 px-2 py-0.5 rounded">
+                            {ledgerItems.length} records
+                          </span>
+                        </div>
+
+                        <div className="flex bg-slate-100 p-0.5 rounded-lg text-xs font-bold">
+                          <button
+                            type="button"
+                            onClick={() => setCustomerLedgerTab('all')}
+                            className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                              customerLedgerTab === 'all' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            All ({ledgerItems.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCustomerLedgerTab('sales')}
+                            className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                              customerLedgerTab === 'sales' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            Purchases ({cSales.length})
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setCustomerLedgerTab('payments')}
+                            className={`px-3 py-1 rounded-md transition-all cursor-pointer ${
+                              customerLedgerTab === 'payments' ? 'bg-white text-slate-900 shadow-2xs' : 'text-slate-500 hover:text-slate-700'
+                            }`}
+                          >
+                            Debt Repayments ({cPayments.length})
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto max-h-[360px]">
+                        <table className="w-full text-left border-collapse">
+                          <thead>
+                            <tr className="bg-slate-50 text-[10px] font-bold text-slate-500 uppercase tracking-wider border-b border-slate-200">
+                              <th className="px-4 py-3">Date & Time</th>
+                              <th className="px-4 py-3">Type</th>
+                              <th className="px-4 py-3">Item / Description</th>
+                              <th className="px-4 py-3 text-right">Total (₹)</th>
+                              <th className="px-4 py-3 text-right">Paid (₹)</th>
+                              <th className="px-4 py-3 text-right">Debt Balance (₹)</th>
+                              <th className="px-4 py-3 text-center">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-slate-100 text-xs">
+                            {ledgerItems
+                              .filter(item => {
+                                if (customerLedgerTab === 'sales') return item.type === 'sale';
+                                if (customerLedgerTab === 'payments') return item.type === 'payment';
+                                return true;
+                              })
+                              .map(item => {
+                                if (item.type === 'sale') {
+                                  return (
+                                    <tr key={item.id} className="hover:bg-slate-50 transition-colors">
+                                      <td className="px-4 py-3 whitespace-nowrap text-slate-500">
+                                        <div className="font-semibold text-slate-800">
+                                          {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </div>
+                                        <div className="text-[10px] text-slate-400">
+                                          {new Date(item.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                      </td>
+                                      <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                                          SALE
+                                        </span>
+                                      </td>
+                                      <td className="px-4 py-3 font-semibold text-slate-900">
+                                        {item.productName} ({item.quantity} Qty)
+                                      </td>
+                                      <td className="px-4 py-3 text-right font-bold text-slate-900">
+                                        ₹{item.totalAmount.toLocaleString('en-IN')}
+                                      </td>
+                                      <td className="px-4 py-3 text-right font-bold text-emerald-600">
+                                        ₹{item.paidAmount.toLocaleString('en-IN')}
+                                      </td>
+                                      <td className="px-4 py-3 text-right font-bold text-red-500">
+                                        {item.debtAmount > 0 ? `₹${item.debtAmount.toLocaleString('en-IN')}` : '-'}
+                                      </td>
+                                      <td className="px-4 py-3 text-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            if (item.saleObj) setInvoiceSale(item.saleObj);
+                                          }}
+                                          className="p-1 text-slate-400 hover:text-emerald-700 hover:bg-emerald-50 rounded transition-colors cursor-pointer"
+                                          title="View Invoice"
+                                        >
+                                          <FileText className="w-3.5 h-3.5" />
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  );
+                                } else {
+                                  return (
+                                    <tr key={item.id} className="bg-sky-50/40 hover:bg-sky-50 transition-colors">
+                                      <td className="px-4 py-3 whitespace-nowrap text-slate-500">
+                                        <div className="font-semibold text-slate-800">
+                                          {new Date(item.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                                        </div>
+                                        <div className="text-[10px] text-slate-400">
+                                          {new Date(item.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                                        </div>
+                                      </td>
+                                      <td className="px-4 py-3 whitespace-nowrap">
+                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800 flex items-center gap-1 w-fit">
+                                          <CheckCircle2 className="w-3 h-3 text-sky-600" />
+                                          REPAYMENT
+                                        </span>
+                                      </td>
+                                      <td className="px-4 py-3 font-semibold text-sky-900">
+                                        <div>Debt Repayment via {item.mode}</div>
+                                        {item.notes && <div className="text-[10px] text-slate-500 font-normal italic">"{item.notes}"</div>}
+                                      </td>
+                                      <td className="px-4 py-3 text-right text-slate-400">-</td>
+                                      <td className="px-4 py-3 text-right font-black text-sky-700">
+                                        +₹{item.paidAmount.toLocaleString('en-IN')}
+                                      </td>
+                                      <td className="px-4 py-3 text-right text-emerald-600 font-bold text-[11px]">
+                                        Cleared
+                                      </td>
+                                      <td className="px-4 py-3 text-center">
+                                        <button
+                                          type="button"
+                                          onClick={() => handleDeleteRepayment(item.id, item.paidAmount)}
+                                          className="p-1 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors cursor-pointer"
+                                          title="Delete Repayment Record"
+                                        >
+                                          <Trash2 className="w-3.5 h-3.5" />
+                                        </button>
+                                      </td>
+                                    </tr>
+                                  );
+                                }
+                              })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </>
                 );
               })()}
             </div>

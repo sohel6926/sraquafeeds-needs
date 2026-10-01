@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { Product, GalleryItem, Lead, LeadStatus, SiteSettings, FarmerStory, FAQItem, Sale, Category } from '../types.ts';
+import { Product, GalleryItem, Lead, LeadStatus, SiteSettings, FarmerStory, FAQItem, Sale, Category, Customer, CustomerPayment } from '../types.ts';
 import { PRODUCTS_DATA } from '../data/products.ts';
 import { GALLERY_DATA } from '../data/gallery.ts';
 import {
@@ -20,6 +20,10 @@ import {
   mapSaleToDb,
   mapCategoryFromDb,
   mapCategoryToDb,
+  mapCustomerFromDb,
+  mapCustomerToDb,
+  mapPaymentFromDb,
+  mapPaymentToDb,
 } from '../lib/supabase.ts';
 
 export const DEFAULT_SITE_SETTINGS: SiteSettings = {
@@ -365,6 +369,8 @@ const STORAGE_KEYS = {
   FAQS: 'sraqua_faqs_v1',
   SALES: 'sraqua_sales_v1',
   CATEGORIES: 'sraqua_categories_v1',
+  CUSTOMERS: 'sraqua_customers_v1',
+  CUSTOMER_PAYMENTS: 'sraqua_customer_payments_v1',
   ADMIN_AUTH: 'sraqua_admin_auth_v1',
 };
 
@@ -406,6 +412,15 @@ interface DataContextType {
   updateSale: (sale: Sale) => Promise<void>;
   deleteSale: (id: string) => Promise<void>;
   resetSales: () => void;
+
+  customers: Customer[];
+  addCustomer: (customer: Omit<Customer, 'id'>) => Promise<Customer>;
+  updateCustomer: (customer: Customer) => Promise<void>;
+  deleteCustomer: (id: string) => Promise<void>;
+
+  customerPayments: CustomerPayment[];
+  addCustomerPayment: (payment: Omit<CustomerPayment, 'id'>) => Promise<void>;
+  deleteCustomerPayment: (id: string) => Promise<void>;
 
   categories: Category[];
   addCategory: (category: Omit<Category, 'id'>) => Promise<void>;
@@ -547,7 +562,35 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     ];
   });
 
-  // 8. Site Settings state
+  // 8. Customers state
+  const [customers, setCustomers] = useState<Customer[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMERS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // Fallback
+    }
+    return [];
+  });
+
+  // 9. Customer Payments (Debt tracking transactions)
+  const [customerPayments, setCustomerPayments] = useState<CustomerPayment[]>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEYS.CUSTOMER_PAYMENTS);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (Array.isArray(parsed)) return parsed;
+      }
+    } catch {
+      // Fallback
+    }
+    return [];
+  });
+
+  // 10. Site Settings state
   const [siteSettings, setSiteSettings] = useState<SiteSettings>(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEYS.SETTINGS);
@@ -569,7 +612,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return DEFAULT_SITE_SETTINGS;
   });
 
-  // 7. Admin Authentication state
+  // 11. Admin Authentication state
   const [isAdminAuthenticated, setIsAdminAuthenticated] = useState<boolean>(() => {
     try {
       return sessionStorage.getItem(STORAGE_KEYS.ADMIN_AUTH) === 'true';
@@ -592,9 +635,12 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           leadsRes,
           storiesRes,
           faqsRes,
+          salesRes,
           settingsRes,
           adminAuthRes,
           categoriesRes,
+          customersRes,
+          paymentsRes,
         ] = await Promise.all([
           supabase.from('products').select('*').order('created_at', { ascending: false }),
           supabase.from('gallery').select('*').order('created_at', { ascending: false }),
@@ -605,6 +651,8 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           supabase.from('site_settings').select('*').eq('id', 'default').maybeSingle(),
           supabase.from('admin_auth').select('*').eq('id', 'admin').maybeSingle(),
           supabase.from('categories').select('*'),
+          supabase.from('customers').select('*').order('name', { ascending: true }),
+          supabase.from('customer_payments').select('*').order('payment_date', { ascending: false }),
         ]);
 
         if (!isMounted) return;
@@ -644,6 +692,18 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (salesRes && salesRes.data) {
           const mapped = salesRes.data.map(mapSaleFromDb);
           setSales(mapped);
+          hasData = true;
+        }
+
+        if (customersRes && customersRes.data) {
+          const mapped = customersRes.data.map(mapCustomerFromDb);
+          setCustomers(mapped);
+          hasData = true;
+        }
+
+        if (paymentsRes && paymentsRes.data) {
+          const mapped = paymentsRes.data.map(mapPaymentFromDb);
+          setCustomerPayments(mapped);
           hasData = true;
         }
 
@@ -761,6 +821,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setSales((prev) => prev.filter((s) => s.id !== payload.old.id));
         }
       })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customers' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const item = mapCustomerFromDb(payload.new);
+          setCustomers((prev) => [item, ...prev.filter((c) => c.id !== item.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const item = mapCustomerFromDb(payload.new);
+          setCustomers((prev) => prev.map((c) => (c.id === item.id ? item : c)));
+        } else if (payload.eventType === 'DELETE' && payload.old) {
+          setCustomers((prev) => prev.filter((c) => c.id !== payload.old.id));
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'customer_payments' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          const item = mapPaymentFromDb(payload.new);
+          setCustomerPayments((prev) => [item, ...prev.filter((p) => p.id !== item.id)]);
+        } else if (payload.eventType === 'UPDATE') {
+          const item = mapPaymentFromDb(payload.new);
+          setCustomerPayments((prev) => prev.map((p) => (p.id === item.id ? item : p)));
+        } else if (payload.eventType === 'DELETE' && payload.old) {
+          setCustomerPayments((prev) => prev.filter((p) => p.id !== payload.old.id));
+        }
+      })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'site_settings' }, (payload) => {
         if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
           setSiteSettings(mapSettingsFromDb(payload.new));
@@ -822,6 +904,22 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Failed saving sales to localStorage', e);
     }
   }, [sales]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.CUSTOMERS, JSON.stringify(customers));
+    } catch (e) {
+      console.error('Failed saving customers to localStorage', e);
+    }
+  }, [customers]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(STORAGE_KEYS.CUSTOMER_PAYMENTS, JSON.stringify(customerPayments));
+    } catch (e) {
+      console.error('Failed saving customer payments to localStorage', e);
+    }
+  }, [customerPayments]);
 
   useEffect(() => {
     try {
@@ -949,6 +1047,81 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Customer Operations
+  const addCustomer = async (cust: Omit<Customer, 'id'>): Promise<Customer> => {
+    const trimmedName = cust.name.trim();
+    const existing = customers.find(c => c.name.trim().toLowerCase() === trimmedName.toLowerCase());
+    if (existing) {
+      return existing;
+    }
+    const newCust: Customer = {
+      ...cust,
+      name: trimmedName,
+      id: `cust-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setCustomers((prev) => [newCust, ...prev]);
+
+    try {
+      const dbRow = mapCustomerToDb(newCust);
+      const { error } = await supabase.from('customers').insert(dbRow);
+      if (error) console.error('Supabase addCustomer error:', error);
+    } catch (e) {
+      console.error('Failed to sync customer to Supabase', e);
+    }
+    return newCust;
+  };
+
+  const updateCustomer = async (updated: Customer) => {
+    setCustomers((prev) => prev.map((c) => (c.id === updated.id ? updated : c)));
+    try {
+      const dbRow = mapCustomerToDb(updated);
+      const { error } = await supabase.from('customers').update(dbRow).eq('id', updated.id);
+      if (error) console.error('Supabase updateCustomer error:', error);
+    } catch (e) {
+      console.error('Failed to update customer in Supabase', e);
+    }
+  };
+
+  const deleteCustomer = async (id: string) => {
+    setCustomers((prev) => prev.filter((c) => c.id !== id));
+    try {
+      const { error } = await supabase.from('customers').delete().eq('id', id);
+      if (error) console.error('Supabase deleteCustomer error:', error);
+    } catch (e) {
+      console.error('Failed to delete customer in Supabase', e);
+    }
+  };
+
+  // Customer Debt Payments Operations
+  const addCustomerPayment = async (payment: Omit<CustomerPayment, 'id'>) => {
+    const newPayment: CustomerPayment = {
+      ...payment,
+      id: `pay-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+      createdAt: new Date().toISOString(),
+    };
+    setCustomerPayments((prev) => [newPayment, ...prev]);
+
+    try {
+      const dbRow = mapPaymentToDb(newPayment);
+      const { error } = await supabase.from('customer_payments').insert(dbRow);
+      if (error) console.error('Supabase addCustomerPayment error:', error);
+    } catch (e) {
+      console.error('Failed to sync payment to Supabase', e);
+    }
+  };
+
+  const deleteCustomerPayment = async (id: string) => {
+    setCustomerPayments((prev) => prev.filter((p) => p.id !== id));
+    try {
+      const { error } = await supabase.from('customer_payments').delete().eq('id', id);
+      if (error) console.error('Supabase deleteCustomerPayment error:', error);
+    } catch (e) {
+      console.error('Failed to delete customer payment in Supabase', e);
+    }
+  };
+
   // Sales Operations
   const addSale = async (sale: Omit<Sale, 'id'>) => {
     const newSale: Sale = {
@@ -956,6 +1129,25 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: `sale-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
     };
     setSales((prev) => [newSale, ...prev]);
+
+    // Also auto-save customer in customers table if new or update phone/address
+    const trimmedName = sale.customerName.trim();
+    if (trimmedName) {
+      const existingCust = customers.find(c => c.name.trim().toLowerCase() === trimmedName.toLowerCase());
+      if (!existingCust) {
+        addCustomer({
+          name: trimmedName,
+          phone: sale.customerPhone,
+          address: sale.customerAddress,
+        });
+      } else if ((!existingCust.phone && sale.customerPhone) || (!existingCust.address && sale.customerAddress)) {
+        updateCustomer({
+          ...existingCust,
+          phone: existingCust.phone || sale.customerPhone,
+          address: existingCust.address || sale.customerAddress,
+        });
+      }
+    }
 
     try {
       const dbRow = mapSaleToDb(newSale);
@@ -1394,6 +1586,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateSale,
         deleteSale,
         resetSales,
+        customers,
+        addCustomer,
+        updateCustomer,
+        deleteCustomer,
+        customerPayments,
+        addCustomerPayment,
+        deleteCustomerPayment,
         categories,
         addCategory,
         deleteCategory,
