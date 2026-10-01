@@ -27,6 +27,8 @@ import {
 
 import { STANDARD_UNITS, sanitizeProductUnit } from '../../utils/units';
 import { t } from '../../utils/translations';
+import { jsPDF } from 'jspdf';
+
 
 export const AdminCRM: React.FC = () => {
   const { 
@@ -57,7 +59,8 @@ export const AdminCRM: React.FC = () => {
   const [quantity, setQuantity] = useState<number | ''>('');
   const [sellingPrice, setSellingPrice] = useState<number | ''>('');
   const [selectedProductUnit, setSelectedProductUnit] = useState<string>('Units');
-  const [paymentStatus, setPaymentStatus] = useState<'Paid' | 'Credit'>('Paid');
+  const [paymentStatus, setPaymentStatus] = useState<'Paid' | 'Credit' | 'Partial'>('Paid');
+
   const [amountPaid, setAmountPaid] = useState<number | ''>('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
@@ -96,6 +99,7 @@ export const AdminCRM: React.FC = () => {
   const [salesPage, setSalesPage] = useState(1);
   const [salesPerPage, setSalesPerPage] = useState(10);
   const [selectedCustomerName, setSelectedCustomerName] = useState<string | null>(null); // For performance modal
+  const [repaymentSaleId, setRepaymentSaleId] = useState<string>('all'); // For selecting specific product debt
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -126,8 +130,12 @@ export const AdminCRM: React.FC = () => {
 
   const handleSelectCustomer = (c: { name: string; phone?: string; address?: string }) => {
     setCustomerName(c.name);
-    if (c.phone) setCustomerPhone(c.phone);
-    if (c.address) setCustomerAddress(c.address);
+    // Find phone & address: check customer object first, fallback to any past sales for this customer
+    const pastSale = sales.find(s => s.customerName.trim().toLowerCase() === c.name.trim().toLowerCase() && (s.customerPhone || s.customerAddress));
+    const phone = c.phone || pastSale?.customerPhone || '';
+    const address = c.address || pastSale?.customerAddress || '';
+    setCustomerPhone(phone);
+    setCustomerAddress(address);
     setShowCustomerSuggestions(false);
   };
 
@@ -167,18 +175,75 @@ export const AdminCRM: React.FC = () => {
       return;
     }
 
-    await addCustomerPayment({
-      customerName: selectedCustomerName,
-      amount: amt,
-      paymentDate: repaymentDate ? new Date(repaymentDate).toISOString() : new Date().toISOString(),
-      paymentMode: repaymentMode || 'Cash',
-      notes: repaymentNotes.trim() || undefined,
-    });
+    const pDate = repaymentDate ? new Date(repaymentDate).toISOString() : new Date().toISOString();
+    const pMode = repaymentMode || 'Cash';
+    const pNotes = repaymentNotes.trim() || undefined;
 
-    showToast(`Payment of ₹${amt.toLocaleString('en-IN')} recorded for ${selectedCustomerName}!`);
+    // Check if admin selected a specific product credit purchase
+    if (repaymentSaleId && repaymentSaleId !== 'all') {
+      const targetSale = sales.find(s => s.id === repaymentSaleId);
+      if (targetSale) {
+        const newPaid = (targetSale.amountPaid || 0) + amt;
+        const newBal = Math.max(0, targetSale.totalAmount - newPaid);
+        const newStatus = newBal === 0 ? 'Paid' : 'Partial';
+
+        await updateSale({
+          ...targetSale,
+          amountPaid: newPaid,
+          balance: newBal,
+          paymentStatus: newStatus,
+        });
+
+        await addCustomerPayment({
+          customerName: selectedCustomerName,
+          amount: amt,
+          paymentDate: pDate,
+          paymentMode: pMode,
+          saleId: targetSale.id,
+          productName: targetSale.productName,
+          notes: pNotes,
+        });
+
+        showToast(`Payment of ₹${amt.toLocaleString('en-IN')} applied to ${targetSale.productName}!`);
+      }
+    } else {
+      // General payment: distribute across pending credit sales FIFO
+      let remainingToApply = amt;
+      const pendingSales = sales
+        .filter(s => s.customerName.trim().toLowerCase() === selectedCustomerName.trim().toLowerCase() && (s.balance || 0) > 0)
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+
+      for (const s of pendingSales) {
+        if (remainingToApply <= 0) break;
+        const currDebt = s.balance || 0;
+        const payForThis = Math.min(remainingToApply, currDebt);
+        const newPaid = (s.amountPaid || 0) + payForThis;
+        const newBal = Math.max(0, s.totalAmount - newPaid);
+
+        await updateSale({
+          ...s,
+          amountPaid: newPaid,
+          balance: newBal,
+          paymentStatus: newBal === 0 ? 'Paid' : 'Partial',
+        });
+        remainingToApply -= payForThis;
+      }
+
+      await addCustomerPayment({
+        customerName: selectedCustomerName,
+        amount: amt,
+        paymentDate: pDate,
+        paymentMode: pMode,
+        notes: pNotes || 'General Account Repayment',
+      });
+
+      showToast(`Payment of ₹${amt.toLocaleString('en-IN')} recorded for ${selectedCustomerName}!`);
+    }
+
     setRepaymentAmount('');
     setRepaymentNotes('');
     setRepaymentDate('');
+    setRepaymentSaleId('all');
   };
 
   const handleDeleteRepayment = async (id: string, amt: number) => {
@@ -187,6 +252,199 @@ export const AdminCRM: React.FC = () => {
       showToast('Payment record removed.');
     }
   };
+
+  // Pure jsPDF high-speed, crash-free vector PDF generator
+  const handleDownloadPdf = (sale: Sale) => {
+    try {
+      const doc = new jsPDF();
+      const pageWidth = doc.internal.pageSize.getWidth();
+
+      // Top Brand Header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.setTextColor(4, 120, 87); // emerald-700
+      doc.text(siteSettings?.businessName || 'SR AQUA FEEDS AND NEEDS', 14, 18);
+
+      // Store Address & Phone
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      const storeAddr = siteSettings?.address || 'Chakicherla Peddapattapu Palem, Ulavapadu (Mandal), Ramayapatnam Road, SPSR Nellore District, AP – 523292';
+      const splitAddr = doc.splitTextToSize(storeAddr, 115);
+      doc.text(splitAddr, 14, 24);
+
+      const storePhone = siteSettings?.primaryPhone ? `Ph: +91 ${siteSettings.primaryPhone}` : 'Ph: +91 94932 43244';
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text(storePhone, 14, 34);
+
+      // Top Right: Tax Invoice Header
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(22);
+      doc.setTextColor(15, 23, 42);
+      doc.text('TAX INVOICE', pageWidth - 14, 18, { align: 'right' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(71, 85, 105);
+      const invoiceDate = new Date(sale.date);
+      const dateStr = invoiceDate.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+      const timeStr = invoiceDate.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+      const invNum = `INV-${new Date(sale.date).getTime().toString().slice(-6)}`;
+
+      doc.text(`Date: ${dateStr}`, pageWidth - 14, 25, { align: 'right' });
+      doc.text(`Time: ${timeStr}`, pageWidth - 14, 30, { align: 'right' });
+      doc.setFont('helvetica', 'bold');
+      doc.text(`Invoice #: ${invNum}`, pageWidth - 14, 35, { align: 'right' });
+
+      // Divider line
+      doc.setDrawColor(226, 232, 240);
+      doc.setLineWidth(0.5);
+      doc.line(14, 39, pageWidth - 14, 39);
+
+      // BILLED TO Box
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(14, 43, pageWidth - 28, 24, 2, 2, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(14, 43, pageWidth - 28, 24, 2, 2, 'S');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text('BILLED TO', 18, 49);
+
+      doc.setFontSize(12);
+      doc.setTextColor(15, 23, 42);
+      doc.text(sale.customerName, 18, 55);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      const custPhone = sale.customerPhone ? `Ph: +91 ${sale.customerPhone.replace(/^\+?91/, '').trim()}` : 'Ph: +91 XXXXX XXXXX';
+      const custAddress = sale.customerAddress ? ` | Address: ${sale.customerAddress}` : '';
+      doc.text(`${custPhone}${custAddress}`, 18, 62);
+
+      // Table Header (including Date & Time and Category!)
+      const tableTop = 73;
+      doc.setFillColor(241, 245, 249);
+      doc.rect(14, tableTop, pageWidth - 28, 9, 'F');
+      doc.setDrawColor(203, 213, 225);
+      doc.rect(14, tableTop, pageWidth - 28, 9, 'S');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(51, 65, 85);
+      doc.text('DATE & TIME', 18, tableTop + 6);
+      doc.text('PRODUCT / DESCRIPTION', 55, tableTop + 6);
+      doc.text('CATEGORY', 105, tableTop + 6);
+      doc.text('QTY', 145, tableTop + 6, { align: 'right' });
+      doc.text('RATE (₹)', 168, tableTop + 6, { align: 'right' });
+      doc.text('AMOUNT (₹)', pageWidth - 18, tableTop + 6, { align: 'right' });
+
+      // Table Row
+      const rowTop = tableTop + 9;
+      doc.setFillColor(255, 255, 255);
+      doc.rect(14, rowTop, pageWidth - 28, 14, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.rect(14, rowTop, pageWidth - 28, 14, 'S');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(8);
+      doc.setTextColor(15, 23, 42);
+      doc.text(dateStr, 18, rowTop + 5.5);
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(7.5);
+      doc.setTextColor(100, 116, 139);
+      doc.text(timeStr, 18, rowTop + 10.5);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text(sale.productName, 55, rowTop + 6);
+
+      const resolvedCategory = (sale.productCategory && sale.productCategory !== 'Uncategorized')
+        ? sale.productCategory
+        : (products.find(p => p.id === sale.productId || p.name.toLowerCase() === sale.productName.toLowerCase())?.category || 'Aqua Feeds & Care');
+      
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(4, 120, 87);
+      doc.text(resolvedCategory, 105, rowTop + 6);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text(`${sale.quantity}`, 145, rowTop + 6, { align: 'right' });
+      doc.text(`₹${sale.sellingPrice.toLocaleString('en-IN')}`, 168, rowTop + 6, { align: 'right' });
+      
+      doc.setFont('helvetica', 'bold');
+      doc.text(`₹${sale.totalAmount.toLocaleString('en-IN')}`, pageWidth - 18, rowTop + 6, { align: 'right' });
+
+      // Financial Summary Box
+      const summaryTop = rowTop + 19;
+      const summaryBoxWidth = 75;
+      const summaryBoxX = pageWidth - 14 - summaryBoxWidth;
+
+      doc.setFillColor(248, 250, 252);
+      doc.roundedRect(summaryBoxX, summaryTop, summaryBoxWidth, 30, 2, 2, 'F');
+      doc.setDrawColor(226, 232, 240);
+      doc.roundedRect(summaryBoxX, summaryTop, summaryBoxWidth, 30, 2, 2, 'S');
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8.5);
+      doc.setTextColor(71, 85, 105);
+      doc.text('Subtotal:', summaryBoxX + 6, summaryTop + 6.5);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(15, 23, 42);
+      doc.text(`₹${sale.totalAmount.toLocaleString('en-IN')}`, summaryBoxX + summaryBoxWidth - 6, summaryTop + 6.5, { align: 'right' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(3, 105, 161);
+      doc.text('Paid Amount:', summaryBoxX + 6, summaryTop + 13);
+      doc.setFont('helvetica', 'bold');
+      doc.text(`₹${(sale.amountPaid !== undefined ? sale.amountPaid : sale.totalAmount).toLocaleString('en-IN')}`, summaryBoxX + summaryBoxWidth - 6, summaryTop + 13, { align: 'right' });
+
+      if (sale.balance > 0) {
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(220, 38, 38);
+        doc.text('Pending Debt:', summaryBoxX + 6, summaryTop + 19.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text(`₹${sale.balance.toLocaleString('en-IN')}`, summaryBoxX + summaryBoxWidth - 6, summaryTop + 19.5, { align: 'right' });
+      }
+
+      doc.setDrawColor(203, 213, 225);
+      doc.line(summaryBoxX + 4, summaryTop + 22, summaryBoxX + summaryBoxWidth - 4, summaryTop + 22);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(10);
+      doc.setTextColor(4, 120, 87);
+      doc.text('Grand Total:', summaryBoxX + 6, summaryTop + 27);
+      doc.text(`₹${sale.totalAmount.toLocaleString('en-IN')}`, summaryBoxX + summaryBoxWidth - 6, summaryTop + 27, { align: 'right' });
+
+      // Footer
+      const footerY = summaryTop + 40;
+      doc.setDrawColor(226, 232, 240);
+      doc.line(14, footerY, pageWidth - 14, footerY);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(9);
+      doc.setTextColor(15, 23, 42);
+      doc.text('Thank you for choosing SR Aqua Feeds & Needs!', pageWidth / 2, footerY + 7, { align: 'center' });
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(100, 116, 139);
+      doc.text('For emergency pond assistance or dispatch inquiries, please contact 9493243244.', pageWidth / 2, footerY + 12, { align: 'center' });
+
+      // Save PDF file (Zero lag, instantaneous download!)
+      doc.save(`Invoice_${sale.customerName.replace(/[^a-zA-Z0-9]/g, '_')}_${invNum}.pdf`);
+      showToast('Invoice PDF downloaded successfully!');
+    } catch (err: any) {
+      console.error('Failed to generate PDF with jsPDF:', err);
+      alert('Could not download PDF. Please try the Print Invoice option.');
+    }
+  };
+
 
   const handleRecordSale = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -651,6 +909,9 @@ export const AdminCRM: React.FC = () => {
                   </div>
                   {customerSuggestions.map(c => {
                     const stats = getCustomerFinancials(c.name);
+                    const pastSale = sales.find(s => s.customerName.trim().toLowerCase() === c.name.trim().toLowerCase() && (s.customerPhone || s.customerAddress));
+                    const phone = c.phone || pastSale?.customerPhone;
+                    const address = c.address || pastSale?.customerAddress;
                     return (
                       <button
                         key={c.id}
@@ -663,8 +924,8 @@ export const AdminCRM: React.FC = () => {
                             <User className="w-3 h-3 text-slate-400 group-hover:text-emerald-600" />
                             <span>{c.name}</span>
                           </div>
-                          {c.phone && <div className="text-[10px] text-slate-500 mt-0.5">{c.phone}</div>}
-                          {c.address && <div className="text-[10px] text-slate-400 truncate max-w-[200px]">{c.address}</div>}
+                          {phone && <div className="text-[10px] text-slate-500 mt-0.5 font-medium">{phone}</div>}
+                          {address && <div className="text-[10px] text-slate-400 truncate max-w-[200px]">{address}</div>}
                         </div>
                         <div className="text-right">
                           {stats.totalDebt > 0 ? (
@@ -680,6 +941,7 @@ export const AdminCRM: React.FC = () => {
                       </button>
                     );
                   })}
+
                 </div>
               )}
             </div>
@@ -1278,8 +1540,8 @@ export const AdminCRM: React.FC = () => {
                               .tracking-wider { letter-spacing: 0.05em; }
                               table { width: 100%; border-collapse: collapse; margin-bottom: 24px; }
                               th, td { border: 1px solid #cbd5e1; padding: 10px 14px; text-align: left; }
-                              th { background-color: #f8fafc; font-size: 12px; font-weight: 700; }
-                              .w-64 { width: 280px; }
+                              th { background-color: #f8fafc; font-size: 11px; font-weight: 700; color: #475569; }
+                              .w-72 { width: 300px; }
                               .py-2 { padding-top: 8px; padding-bottom: 8px; }
                               .py-3 { padding-top: 12px; padding-bottom: 12px; }
                             </style>
@@ -1308,20 +1570,9 @@ export const AdminCRM: React.FC = () => {
 
                 <button
                   type="button"
-                  onClick={async () => {
-                    if (!invoiceRef.current) return;
-                    const html2pdf = (await import('html2pdf.js')).default;
-                    const opt = {
-                      margin:       0.5,
-                      filename:     `Invoice-${invoiceSale?.customerName.replace(/ /g, '_')}-${new Date().getTime()}.pdf`,
-                      image:        { type: 'jpeg' as const, quality: 0.98 },
-                      html2canvas:  { scale: 2 },
-                      jsPDF:        { unit: 'in' as const, format: 'letter' as const, orientation: 'portrait' as const }
-                    };
-                    html2pdf().from(invoiceRef.current).set(opt).save();
-                  }}
-                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm"
-                  title="Download PDF file"
+                  onClick={() => handleDownloadPdf(invoiceSale)}
+                  className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold flex items-center gap-1.5 transition-colors cursor-pointer shadow-sm active:scale-95"
+                  title="Download instant crash-free PDF file"
                 >
                   <Download className="w-4 h-4" />
                   <span>Download PDF</span>
@@ -1379,27 +1630,49 @@ export const AdminCRM: React.FC = () => {
                 )}
               </div>
 
-              <table className="w-full text-left border-collapse mb-6">
-                <thead>
-                  <tr className="bg-slate-100 text-xs font-bold text-slate-700 uppercase">
-                    <th className="px-4 py-3 border border-slate-200 rounded-tl-lg">Description</th>
-                    <th className="px-4 py-3 border border-slate-200 text-right">Qty</th>
-                    <th className="px-4 py-3 border border-slate-200 text-right">Rate (₹)</th>
-                    <th className="px-4 py-3 border border-slate-200 text-right rounded-tr-lg">Amount (₹)</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr className="text-xs font-semibold text-slate-800">
-                    <td className="px-4 py-3.5 border border-slate-200">
-                      <div className="font-bold text-slate-900">{invoiceSale.productName}</div>
-                      <div className="text-[10px] text-slate-500">{invoiceSale.productCategory || 'Aquaculture Products'}</div>
-                    </td>
-                    <td className="px-4 py-3.5 border border-slate-200 text-right font-medium">{invoiceSale.quantity}</td>
-                    <td className="px-4 py-3.5 border border-slate-200 text-right">{invoiceSale.sellingPrice.toLocaleString('en-IN')}</td>
-                    <td className="px-4 py-3.5 border border-slate-200 text-right font-bold text-slate-900">{invoiceSale.totalAmount.toLocaleString('en-IN')}</td>
-                  </tr>
-                </tbody>
-              </table>
+              {(() => {
+                const resolvedCat = (invoiceSale.productCategory && invoiceSale.productCategory !== 'Uncategorized')
+                  ? invoiceSale.productCategory
+                  : (products.find(p => p.id === invoiceSale.productId || p.name.toLowerCase() === invoiceSale.productName.toLowerCase())?.category || 'Aqua Feeds & Care');
+
+                return (
+                  <table className="w-full text-left border-collapse mb-6">
+                    <thead>
+                      <tr className="bg-slate-100 text-xs font-bold text-slate-700 uppercase">
+                        <th className="px-3.5 py-3 border border-slate-200">Date & Time</th>
+                        <th className="px-3.5 py-3 border border-slate-200">Product / Description</th>
+                        <th className="px-3.5 py-3 border border-slate-200">Category</th>
+                        <th className="px-3 py-3 border border-slate-200 text-right">Qty</th>
+                        <th className="px-3.5 py-3 border border-slate-200 text-right">Rate (₹)</th>
+                        <th className="px-3.5 py-3 border border-slate-200 text-right">Amount (₹)</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr className="text-xs font-semibold text-slate-800">
+                        <td className="px-3.5 py-3.5 border border-slate-200 whitespace-nowrap">
+                          <div className="font-bold text-slate-900">
+                            {new Date(invoiceSale.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })}
+                          </div>
+                          <div className="text-[10px] text-slate-500">
+                            {new Date(invoiceSale.date).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
+                        </td>
+                        <td className="px-3.5 py-3.5 border border-slate-200">
+                          <div className="font-bold text-slate-900">{invoiceSale.productName}</div>
+                        </td>
+                        <td className="px-3.5 py-3.5 border border-slate-200">
+                          <span className="px-2 py-0.5 rounded bg-emerald-50 text-emerald-800 text-[11px] font-bold border border-emerald-200">
+                            {resolvedCat}
+                          </span>
+                        </td>
+                        <td className="px-3 py-3.5 border border-slate-200 text-right font-medium">{invoiceSale.quantity}</td>
+                        <td className="px-3.5 py-3.5 border border-slate-200 text-right">{invoiceSale.sellingPrice.toLocaleString('en-IN')}</td>
+                        <td className="px-3.5 py-3.5 border border-slate-200 text-right font-bold text-slate-900">{invoiceSale.totalAmount.toLocaleString('en-IN')}</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                );
+              })()}
 
               <div className="flex justify-end mb-8">
                 <div className="w-72 bg-slate-50 p-4 rounded-lg border border-slate-200 space-y-2">
@@ -1504,7 +1777,7 @@ export const AdminCRM: React.FC = () => {
                     id: p.id,
                     type: 'payment' as const,
                     date: p.paymentDate,
-                    productName: `Repayment (${p.paymentMode || 'Cash'})`,
+                    productName: p.productName ? `Repayment for ${p.productName} (${p.paymentMode || 'Cash'})` : `Debt Repayment (${p.paymentMode || 'Cash'})`,
                     quantity: 1,
                     sellingPrice: p.amount,
                     totalAmount: p.amount,
@@ -1561,6 +1834,36 @@ export const AdminCRM: React.FC = () => {
                       </div>
 
                       <form onSubmit={handleRecordDebtPayment} className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end pt-1">
+                        {/* 1. First Option: Select Product / Credit Purchase */}
+                        <div className="sm:col-span-4">
+                          <label className="block text-[11px] font-bold text-slate-700 mb-1">
+                            1. Select Product / Credit Bill *
+                          </label>
+                          <select
+                            value={repaymentSaleId}
+                            onChange={(e) => {
+                              const sId = e.target.value;
+                              setRepaymentSaleId(sId);
+                              if (sId !== 'all') {
+                                const targetSale = cSales.find(s => s.id === sId);
+                                if (targetSale) {
+                                  setRepaymentAmount(targetSale.balance > 0 ? targetSale.balance : '');
+                                }
+                              } else {
+                                setRepaymentAmount(totalDebt > 0 ? totalDebt : '');
+                              }
+                            }}
+                            className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-lg text-xs font-bold text-slate-900 focus:ring-2 focus:ring-emerald-500 focus:bg-white"
+                          >
+                            <option value="all">-- All Purchases / General Account Debt Clearance (₹{totalDebt.toLocaleString('en-IN')} pending) --</option>
+                            {cSales.map((s) => (
+                              <option key={s.id} value={s.id}>
+                                {s.productName} — Bought on {new Date(s.date).toLocaleDateString('en-IN', { day: '2-digit', month: 'short' })} | Total: ₹{s.totalAmount.toLocaleString('en-IN')} | Remaining Debt: ₹{(s.balance || 0).toLocaleString('en-IN')}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
                         <div>
                           <label className="block text-[11px] font-bold text-slate-700 mb-1">
                             Amount Paid (₹) *
@@ -1628,6 +1931,7 @@ export const AdminCRM: React.FC = () => {
                         </div>
                       </form>
                     </div>
+
 
                     {/* Ledger Tabs and Transactions Table */}
                     <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">

@@ -384,44 +384,104 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onNavigate }) => {
 
   return (
     <div className="min-h-screen bg-slate-100/70 text-slate-900 pb-16 w-full max-w-full overflow-x-hidden">
-      {/* Mobile Top Header */}
-      <div className="lg:hidden sticky top-0 z-30 bg-slate-900 text-white px-4 py-3 border-b border-slate-800 flex items-center justify-between shadow-md">
-        <div className="flex items-center gap-2.5">
+      {/* FULL-WIDTH TOP ADMIN HEADER BAR */}
+      <header className="sticky top-0 z-40 w-full bg-slate-900 text-white border-b border-slate-800 px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between shadow-md">
+        {/* Left Side: Brand, Mobile Toggle & Navigation Pane Button */}
+        <div className="flex items-center gap-3">
+          {/* Mobile menu trigger */}
           <button
             onClick={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-            className="p-1.5 rounded-lg bg-slate-800 text-slate-200 hover:text-white cursor-pointer"
+            className="lg:hidden p-1.5 rounded-lg bg-slate-800 text-slate-200 hover:text-white cursor-pointer"
             aria-label="Toggle menu"
           >
             {isMobileSidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
-          <div className="flex items-center gap-2">
-            <span className="w-7 h-7 rounded-md bg-emerald-600 flex items-center justify-center font-bold text-xs text-white">
+
+          {/* Brand Logo & Name */}
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-lg bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center font-black text-sm shadow-md">
               SR
             </span>
-            <span className="font-extrabold text-sm tracking-tight text-white">Admin Control</span>
+            <div className="hidden sm:block">
+              <span className="font-extrabold text-sm tracking-tight text-white block leading-none">
+                SR Aqua Feeds & Needs
+              </span>
+              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">
+                Admin Control Center
+              </span>
+            </div>
+          </div>
+
+          <div className="hidden sm:block h-6 w-px bg-slate-800 mx-1"></div>
+
+          {/* Desktop Navigation Pane Toggle Button */}
+          <button
+            onClick={toggleSidebarCollapsed}
+            className={`hidden lg:inline-flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer border ${
+              isSidebarCollapsed
+                ? 'bg-emerald-600 text-white hover:bg-emerald-700 border-emerald-500 shadow-sm'
+                : 'bg-slate-800 hover:bg-slate-700 text-slate-200 border-slate-700'
+            }`}
+            title={isSidebarCollapsed ? 'Show Navigation Pane' : 'Hide Navigation Pane'}
+          >
+            {isSidebarCollapsed ? (
+              <>
+                <PanelLeftOpen className="w-4 h-4 text-white" />
+                <span>Open Navigation</span>
+              </>
+            ) : (
+              <>
+                <PanelLeftClose className="w-4 h-4 text-slate-300" />
+                <span>Hide Navigation</span>
+              </>
+            )}
+          </button>
+
+          {/* Active Tab Breadcrumb */}
+          <div className="hidden md:flex items-center gap-2 text-xs font-medium text-slate-400 pl-2">
+            <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-slate-800/80 border border-slate-700 text-emerald-400 font-bold">
+              {currentNav.icon}
+              <span>{currentNav.label}</span>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Right Side: Leads Badge, Live Site & Log Out */}
+        <div className="flex items-center gap-2 sm:gap-3">
           {newLeadsCount > 0 && (
             <button
               onClick={() => handleSelectTab('leads')}
-              className="px-2 py-0.5 rounded-md bg-rose-500 text-white text-[10px] font-bold flex items-center gap-1 animate-pulse"
+              className="px-2.5 py-1 rounded-md bg-rose-500 hover:bg-rose-600 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm animate-pulse cursor-pointer"
             >
-              <span>{newLeadsCount} Leads</span>
+              <Users className="w-3.5 h-3.5" />
+              <span>{newLeadsCount} New Leads</span>
             </button>
           )}
+
           <button
             onClick={() => onNavigate('home')}
-            className="p-1.5 rounded-lg bg-slate-800 text-sky-400 hover:text-sky-300"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-sky-400 hover:text-sky-300 hover:bg-slate-700 border border-slate-700 text-xs font-bold transition-all cursor-pointer"
             title="View Live Website"
           >
-            <ExternalLink className="w-4 h-4" />
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Live Site</span>
+          </button>
+
+          <button
+            onClick={logoutAdmin}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-800 text-slate-300 hover:text-rose-400 hover:bg-slate-700 border border-slate-700 text-xs font-bold transition-all cursor-pointer"
+            title="Sign Out of Admin"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Log Out</span>
           </button>
         </div>
-      </div>
+      </header>
 
-      <div className={`${isSidebarCollapsed ? 'w-full max-w-[1700px]' : 'max-w-7xl'} mx-auto px-3 sm:px-6 pt-4 lg:pt-8 flex flex-col lg:flex-row gap-6 items-start w-full min-w-0 transition-all duration-300`}>
+      {/* FULL-WIDTH MAIN WRAPPER (No narrow max-w constraints) */}
+      <div className="w-full px-3 sm:px-6 lg:px-8 py-5 flex flex-col lg:flex-row gap-6 items-start min-w-0 transition-all duration-300">
+
         {/* SIDEBAR NAVIGATION (Desktop & Tablet) */}
         <aside
           className={`fixed inset-y-0 left-0 z-40 w-72 bg-slate-900 text-slate-300 p-5 transform transition-all duration-300 ease-in-out ${

@@ -45,8 +45,9 @@ export interface Sale {
   profit: number;
   amountPaid: number;
   balance: number;
-  paymentStatus: 'Paid' | 'Credit';
+  paymentStatus: 'Paid' | 'Credit' | 'Partial';
   date: string;
+
 }
 
 export interface Customer {
@@ -64,9 +65,12 @@ export interface CustomerPayment {
   amount: number;
   paymentDate: string;
   paymentMode?: string;
+  saleId?: string;
+  productName?: string;
   notes?: string;
   createdAt?: string;
 }
+
 
 
 export interface GalleryItem {

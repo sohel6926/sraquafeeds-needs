@@ -349,6 +349,8 @@ export const mapPaymentFromDb = (row: any): CustomerPayment => ({
   amount: Number(row.amount) || 0,
   paymentDate: row.payment_date || row.created_at || new Date().toISOString(),
   paymentMode: row.payment_mode || 'Cash',
+  saleId: row.sale_id || undefined,
+  productName: row.product_name || undefined,
   notes: row.notes || '',
   createdAt: row.created_at,
 });
@@ -359,5 +361,8 @@ export const mapPaymentToDb = (p: Partial<CustomerPayment>) => ({
   amount: p.amount,
   payment_date: p.paymentDate || new Date().toISOString(),
   payment_mode: p.paymentMode || 'Cash',
+  sale_id: p.saleId || null,
+  product_name: p.productName || null,
   notes: p.notes || null,
 });
+
